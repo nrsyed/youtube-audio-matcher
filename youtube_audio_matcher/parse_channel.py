@@ -1,4 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
+import math
 import os
 import re
 import time
@@ -6,6 +7,7 @@ import pdb
 
 import bs4
 import selenium.webdriver
+import youtube_dl
 
 
 def get_videos_page_url(url):
@@ -25,7 +27,7 @@ def get_videos_page_url(url):
     return None
 
 
-def _get_source(url, init_wait_time=2, scroll_wait_time=0.5):
+def get_source(url, init_wait_time=2, scroll_wait_time=0.5):
     """
     Get source for the page at `url` by scrolling to the end of the page.
 
@@ -51,41 +53,193 @@ def _get_source(url, init_wait_time=2, scroll_wait_time=0.5):
     return source
 
 
-def get_source(urls, init_wait_time=2, scroll_wait_time=0.5, max_workers=None):
+def get_videos_page_metadata(source, max_duration=None, min_duration=None):
     """
-    Threaded wrapper for _get_source() that takes a list of URLs, concurrently
-    fetches the page source of each URL, and returns the page source(s).
+    Given the page source for a channel/user Videos page, extract video id,
+    video title, and video duration (in seconds) for each video.
 
     Args:
-        urls (List[str]): A list of page URLs.
+        source (str): Page source.
+        max_duration (int): Only return metadata for videos shorter than the
+            given duration (in seconds). If None, all videos are returned.
+        min_duration (int): Only return metadata for videos longer than the
+            given duration (in seconds). If None, all videos are returned.
 
     Returns:
-        A list containing the page source for each input URL.
+        A list of videos, where each video is a dict with the structure:
+        {
+            "id": str,
+            "title": str,
+            "duration": int
+        }
+    """
+    if max_duration is None:
+        max_duration = math.inf
+    if min_duration is None:
+        min_duration = 0
+
+    soup = bs4.BeautifulSoup(source, "html.parser")
+
+    videos = []
+    video_id_expr = r"^.*/watch\?v=([a-zA-Z0-9_-]+)"
+
+    video_renderer_elements = soup.findAll("ytd-grid-video-renderer")
+    for renderer in video_renderer_elements:
+        # Get video title and YT video id from title <a> element.
+        title_tag = renderer.find("a", {"id": "video-title"})
+        video_title = title_tag["title"]
+
+        video_id = None
+        video_id_match = re.match(video_id_expr, title_tag["href"])
+        if video_id_match:
+            video_id = video_id_match.groups()[0]
+
+        # Get video duration from duration <span> element.
+        duration_tag = renderer.find(
+            "span", {"class": "ytd-thumbnail-overlay-time-status-renderer"}
+        )
+        duration_str = duration_tag.text.strip()
+
+        duration_vals = duration_str.split(":")
+        seconds = int(duration_vals[-1])
+        minutes = int(duration_vals[-2])
+        hours = int(duration_vals[-3]) if len(duration_vals) > 2 else 0
+        duration = seconds + (minutes * 60) + (hours * 3600)
+
+        if min_duration <= duration <= max_duration:
+            videos.append(
+                {"id": video_id, "title": video_title, "duration": duration}
+            )
+    return videos
+
+
+def _download_video_mp3(
+    video_id, dst_dir, start_time=None, duration=None, end_time=None
+):
+    """
+    Download a YouTube video as an mp3 using youtube-dl.
+
+    Args:
+        video_id (str): The video id, i.e., www.youtube.com/watch?v=<video_id>
+        dst_dir (str): Path to destination directory for downloaded file.
+        start_time (float): Start time (in seconds) of the portion of the
+            video to extract. Zero (beginning of video) if omitted.
+        duration (float): Duration of video (in seconds) to extract. Whole
+            video extracted if omitted.
+        end_time (float): End time (in seconds) of the portion of the video to
+            extract. Note that `duration` takes precedence over `end_time` (as
+            defined in ffmpeg usage) if both are provided. Whole video is
+            extracted if `duration` and `end_time` are both omitted.
+
+    Returns:
+        Path (str) to output file if download successful, else None.
+    """
+    out_template = os.path.join(dst_dir, f"{video_id}.%(ext)s")
+
+    postprocessor_args = []
+    if start_time is not None:
+        postprocessor_args.extend(["-ss", str(start_time)])
+    if duration is not None:
+        postprocessor_args.extend(["-t", str(duration)])
+    if end_time is not None:
+        postprocessor_args.extend(["-to", str(end_time)])
+
+    ydl_opts = {
+        "format": "bestaudio/best",
+        "outtmpl": out_template,
+        "postprocessors": [
+            {
+                "key": "FFmpegExtractAudio",
+                "preferredcodec": "mp3",
+                "preferredquality": "192",
+            }
+        ],
+        "postprocessor_args": postprocessor_args,
+    }
+
+    video_url = f"https://www.youtube.com/watch?v={video_id}"
+    try:
+        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([video_url])
+    except youtube_dl.utils.DownloadError as e:
+        return None
+    else:
+        return os.path.join(dst_dir, f"{video_id}.mp3")
+
+
+def download_video_mp3s(
+    video_ids, dst_dir, start_time=None, duration=None, end_time=None,
+    max_workers=None
+):
+    """
+    Threaded wrapper for _download_video_mp3. This function exists because,
+    although youtube_dl.YoutubeDL.download() accepts a list of video URLs,
+    it is not multithreaded and downloads/processes each video sequentially.
     """
     thread_pool = ThreadPoolExecutor(max_workers=max_workers)
     futures = []
-    for url in urls:
+
+    for video_id in video_ids:
         futures.append(
             thread_pool.submit(
-                _get_source, url, init_wait_time=init_wait_time,
-                scroll_wait_time=scroll_wait_time
+                _download_video_mp3, video_id, dst_dir, start_time=start_time,
+                duration=duration, end_time=end_time
             )
         )
     thread_pool.shutdown()
-    source_list = [future.result() for future in futures]
-    return source_list
+
+    # Get paths to output files returned by calls to _download_video_mp3().
+    retvals = [future.result() for future in futures]
+    return retvals
 
 
-if __name__ == "__main__":
-    urls = [
-        "https://www.youtube.com/channel/UCmSynKP6bHIlBqzBDpCeQPA/featured",
-        "www.youtube.com/c/GlitchxCity/featured",
-        "https://www.youtube.com/c/creatoracademy/",
-        #"https://www.youtube.com/user/CAVEMAN2019/morestuff",
-        #"https://www.youtube.com/u/dummy/okiedokie",
-    ]
+def download_channel(
+    url, dst_dir, num_retries=3, exclude_longer_than=None, exclude_shorter_than=None,
+    start_time=None, duration=None, end_time=None
+):
+    """
+    TODO
+    """
+    videos_page_url = get_videos_page_url(url)
+    videos_page_source = get_source(videos_page_url)
 
-    urls = [get_videos_page_url(url) for url in urls]
-    print(urls)
-    sources = get_source(urls)
-    breakpoint()
+    # Get metadata for each video in the Videos page.
+    metadata = get_videos_page_metadata(
+        videos_page_source, max_duration=exclude_longer_than,
+        min_duration=exclude_shorter_than
+    )
+
+    # Add output file path and channel URL to video metadata.
+    for video in metadata:
+        video["channel_url"] = videos_page_url
+        video["path"] = None
+
+    # Download all videos. Re-attempt failed videos `num_retries` times.
+    if num_retries is None:
+        num_retries = math.inf
+    tries = 0
+
+    # List of indexes into the list of video metadata [0, ..., num_videos - 1]
+    idxs_to_download = [i for i, _ in enumerate(metadata)]
+
+    while (tries < num_retries + 1) and idxs_to_download:
+        video_ids = [metadata[idx]["id"] for idx in idxs_to_download]
+        dst_paths = download_video_mp3s(
+            video_ids, dst_dir, start_time=start_time,
+            duration=duration, end_time=end_time
+        )
+
+        updated_idxs_to_download = []
+        for j, path in enumerate(dst_paths):
+            idx = idxs_to_download[j]
+            if path is None:
+                # File was not downloaded correctly. Re-add its index in
+                # `metadata` to the list of indexes to be downloaded.
+                updated_idxs_to_download.append(idx)
+            else:
+                metadata[idx]["path"] = path
+
+        idxs_to_download = updated_idxs_to_download
+        tries += 1
+
+    return metadata
