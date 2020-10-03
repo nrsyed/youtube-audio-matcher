@@ -240,16 +240,57 @@ def download_video_mp3s(
 
 
 def download_channel(
-    url, dst_dir, num_retries=3, exclude_longer_than=None, exclude_shorter_than=None,
-    start_time=None, duration=None, end_time=None
+    url, dst_dir, num_retries=3, exclude_longer_than=None,
+    exclude_shorter_than=None, start_time=None, duration=None, end_time=None
 ):
     """
-    TODO
+    Download all videos from a YouTube channel/user subject to the specified
+    criteria.
+
+    The `exclude_longer_than` and `exclude_shorter_than` arguments correspond
+    to the `max_duration` and `min_duration` arguments of `download_video_mp3`.
+    They DO NOT truncate MP3s but instead prevent them from being downloaded
+    at all. To truncate MP3s only the desired portions, use the
+    `start_time`, `duration`, and `end_time` arguments(see
+    `download_video_mp3`). For example, if a video is 3000 seconds long and
+    the first 500 seconds are desired, use `duration=500`; providing
+    `exclude_longer_than=500` would cause the video to NOT be downloaded.
+
+    Args:
+        url (str): URL of the desired channel/user. From this URL, the URL of
+            the channel/user's Videos page is automatically constructed.
+        dst_dir (str): Path to download destination directory.
+        num_retries (int): Number of times to re-attempt download when one or
+            more files fails to download. Only the failed files are retried.
+            Pass `None` to retry indefinitely (not recommended).
+        exclude_longer_than (float|int): Exclude videos longer than the
+            specified value (in seconds). Corresponds to the `max_duration`
+            argument of `get_videos_page_metadata`.
+        exclude_shorter_than (float|int): Exclude videos shorter than the
+            specified value (in seconds). Corresponds to the `min_duration`
+            argument of `get_videos_page_metadata`.
+        start_time (float|int): See `download_video_mp3`.
+        duration (float|int): See `download_video_mp3`.
+        end_time (float|int): See `download_video_mp3`.
+
+    Returns:
+        A list of dicts containing the video id, video title, (original) video
+        duration, channel/user videos page URL from which the video was
+        downloaded, and path to the downloaded MP3 file on the local machine
+        (path will be `None` if download was unsuccessful):
+
+        {
+            "id": str,
+            "title": str,
+            "duration": int,
+            "channel_url": str,
+            "path": str
+        }
     """
     videos_page_url = get_videos_page_url(url)
     videos_page_source = get_source(videos_page_url)
 
-    # Get metadata for each video in the Videos page.
+    # Get metadata for each video in the Videos page source.
     metadata = get_videos_page_metadata(
         videos_page_source, max_duration=exclude_longer_than,
         min_duration=exclude_shorter_than
@@ -294,6 +335,25 @@ def download_channel(
 def download_channels(urls, *args, **kwargs):
     """
     Threaded wrapper for `download_channel()`.
+
+    Args:
+        urls (List[str]): List of YouTube channel/user URLs.
+        *args: See `download_channel`.
+        **kwargs: See `download_channel`.
+
+    Returns:
+        A list of dicts containing the video id, video title, (original) video
+        duration, channel/user videos page URL from which the video was
+        downloaded, and path to the downloaded MP3 file on the local machine
+        (path will be `None` if download was unsuccessful):
+
+        {
+            "id": str,
+            "title": str,
+            "duration": int,
+            "channel_url": str,
+            "path": str
+        }
     """
     thread_pool = ThreadPoolExecutor()
     futures = []
@@ -305,17 +365,3 @@ def download_channels(urls, *args, **kwargs):
 
     metadata = [video for future in futures for video in future.result()]
     return metadata
-
-
-if __name__ == "__main__":
-    urls = [
-        "https://www.youtube.com/channel/UCmSynKP6bHIlBqzBDpCeQPA/featured",
-        #"www.youtube.com/c/GlitchxCity/featured",
-        #"https://www.youtube.com/c/creatoracademy/",
-        #"https://www.youtube.com/user/CAVEMAN2019/morestuff",
-        #"https://www.youtube.com/u/dummy/okiedokie",
-    ]
-
-    dst_dir = "/home/najam/repos/youtube-audio-matcher/test_download"
-    x = download_channels(urls, dst_dir, exclude_longer_than=140)
-    breakpoint()
