@@ -12,11 +12,29 @@ import youtube_dl
 
 def get_videos_page_url(url):
     """
-    Get the videos page URL from a YouTube channel/user URL. See
+    Get a valid videos page URL from a YouTube channel/user URL. See
     https://support.google.com/youtube/answer/6180214?hl=en
 
+    Args:
+        url (str): URL for a YouTube channel or user. The end of the URL may
+            contain extra parameters or a subpath to a different page on the
+            channel—these are stripped and the suffix "/videos" is added to
+            the end of the core URL.
     Returns:
         URL for videos page if valid URL, else None.
+
+    Examples:
+        >>> url = 'youtube.com/channel/UCUZHFZ9jIKrLroW8LcyJEQQ'
+        >>> get_videos_page_url(url)
+        'https://www.youtube.com/channel/UCUZHFZ9jIKrLroW8LcyJEQQ/videos'
+
+        >>> url2 = 'www.youtube.com/c/creatoracademy/community'
+        >>> get_videos_page_url(url2)
+        'https://www.youtube.com/c/creatoracademy/videos'
+
+        >>> url3 = 'https://youtube.com/u/foobar?param1=val1&param2=val2'
+        >>> get_videos_page_url(url3)
+        'https://www.youtube.com/u/foobar/videos'
     """
     expr = r"^.*(/(c(hannel)?|u(ser)?)/[a-zA-Z0-9-_]+)"
     match = re.match(expr, url)
@@ -36,6 +54,9 @@ def get_source(url, init_wait_time=2, scroll_wait_time=0.5):
         init_wait_time (float): Initial wait time (in seconds) for page load.
         scroll_wait_time (float): Subsequent wait time (in seconds) for
             page scrolls.
+
+    Returns:
+        String containing page source code.
     """
     # TODO: incorporate timeout
     # TODO: hide browser window
@@ -65,8 +86,11 @@ def get_videos_page_metadata(source, max_duration=None, min_duration=None):
         min_duration (int): Only return metadata for videos longer than the
             given duration (in seconds). If None, all videos are returned.
 
+        `max_duration` and `min_duration` may both be supplied to return videos
+        meeting both criteria.
+
     Returns:
-        A list of videos, where each video is a dict with the structure:
+        A list of videos, where each video is represented by a dict:
         {
             "id": str,
             "title": str,
@@ -89,6 +113,7 @@ def get_videos_page_metadata(source, max_duration=None, min_duration=None):
         title_tag = renderer.find("a", {"id": "video-title"})
         video_title = title_tag["title"]
 
+        # Get video id from title tag hyperlink href value.
         video_id = None
         video_id_match = re.match(video_id_expr, title_tag["href"])
         if video_id_match:
@@ -100,6 +125,7 @@ def get_videos_page_metadata(source, max_duration=None, min_duration=None):
         )
         duration_str = duration_tag.text.strip()
 
+        # Extract time units from duration string and compute total seconds.
         duration_vals = duration_str.split(":")
         seconds = int(duration_vals[-1])
         minutes = int(duration_vals[-2])
@@ -113,7 +139,7 @@ def get_videos_page_metadata(source, max_duration=None, min_duration=None):
     return videos
 
 
-def _download_video_mp3(
+def download_video_mp3(
     video_id, dst_dir, start_time=None, duration=None, end_time=None
 ):
     """
@@ -134,8 +160,10 @@ def _download_video_mp3(
     Returns:
         Path (str) to output file if download successful, else None.
     """
+    # youtube_dl output file template/path.
     out_template = os.path.join(dst_dir, f"{video_id}.%(ext)s")
 
+    # ffmpeg postprocessor args, if any.
     postprocessor_args = []
     if start_time is not None:
         postprocessor_args.extend(["-ss", str(start_time)])
@@ -144,6 +172,7 @@ def _download_video_mp3(
     if end_time is not None:
         postprocessor_args.extend(["-to", str(end_time)])
 
+    # youtube_dl.YoutubeDL options.
     ydl_opts = {
         "format": "bestaudio/best",
         "outtmpl": out_template,
@@ -162,6 +191,7 @@ def _download_video_mp3(
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             ydl.download([video_url])
     except youtube_dl.utils.DownloadError as e:
+        # TODO: log error
         return None
     else:
         return os.path.join(dst_dir, f"{video_id}.mp3")
@@ -172,9 +202,24 @@ def download_video_mp3s(
     max_workers=None
 ):
     """
-    Threaded wrapper for _download_video_mp3. This function exists because,
-    although youtube_dl.YoutubeDL.download() accepts a list of video URLs,
-    it is not multithreaded and downloads/processes each video sequentially.
+    Threaded wrapper for download_video_mp3 to download/convert multiple videos
+    concurrently. This function exists because, although
+    youtube_dl.YoutubeDL.download() accepts a list of video URLs, it is not
+    multithreaded and downloads each video sequentially.
+
+    Args:
+        video_ids (List[str]): A list of YouTube video ids to download.
+        dst_dir (str): Path to destination directory for downloaded files.
+        start_time (int): See `download_video_mp3`.
+        duration (int): See `download_video_mp3`.
+        end_time (int): See `download_video_mp3`.
+        max_workers (int): Max threads to spawn.
+
+        `start_time`, `duration`, and `end_time` (if specified) are applied
+        to all videos.
+
+    Returns:
+        A list of paths (one per video) returned by `download_video_mp3`.
     """
     thread_pool = ThreadPoolExecutor(max_workers=max_workers)
     futures = []
@@ -182,15 +227,16 @@ def download_video_mp3s(
     for video_id in video_ids:
         futures.append(
             thread_pool.submit(
-                _download_video_mp3, video_id, dst_dir, start_time=start_time,
+                download_video_mp3, video_id, dst_dir, start_time=start_time,
                 duration=duration, end_time=end_time
             )
         )
+        # TODO: add sleep between option
     thread_pool.shutdown()
 
-    # Get paths to output files returned by calls to _download_video_mp3().
-    retvals = [future.result() for future in futures]
-    return retvals
+    # Get paths to output files returned by calls to download_video_mp3().
+    paths = [future.result() for future in futures]
+    return paths
 
 
 def download_channel(
@@ -243,3 +289,33 @@ def download_channel(
         tries += 1
 
     return metadata
+
+
+def download_channels(urls, *args, **kwargs):
+    """
+    Threaded wrapper for `download_channel()`.
+    """
+    thread_pool = ThreadPoolExecutor()
+    futures = []
+    for url in urls:
+        futures.append(
+            thread_pool.submit(download_channel, url, *args, **kwargs)
+        )
+    thread_pool.shutdown()
+
+    metadata = [video for future in futures for video in future.result()]
+    return metadata
+
+
+if __name__ == "__main__":
+    urls = [
+        "https://www.youtube.com/channel/UCmSynKP6bHIlBqzBDpCeQPA/featured",
+        #"www.youtube.com/c/GlitchxCity/featured",
+        #"https://www.youtube.com/c/creatoracademy/",
+        #"https://www.youtube.com/user/CAVEMAN2019/morestuff",
+        #"https://www.youtube.com/u/dummy/okiedokie",
+    ]
+
+    dst_dir = "/home/najam/repos/youtube-audio-matcher/test_download"
+    x = download_channels(urls, dst_dir, exclude_longer_than=140)
+    breakpoint()
