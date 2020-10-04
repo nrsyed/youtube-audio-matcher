@@ -431,10 +431,15 @@ def download_channels(urls, dst_dir, *args, **kwargs):
 
 
 def main():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description="""Efficiently and quickly download the audio from all
+            videos on one or more YouTube channels, filter based on video
+            length, and extract audio only from the segments of interest."""
+    )
     parser.add_argument(
         "url", type=str, nargs="+",
-        help="One or more channel/user URLs. All options apply to all URLs."
+        help="One or more channel/user URLs (e.g., "
+        "www.youtube.com/c/YouTubeCreators). All options apply to all URLs."
     )
     parser.add_argument(
         "-d", "--dst-dir", type=pathlib.Path, metavar="<path>",
