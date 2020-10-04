@@ -92,7 +92,7 @@ This would produce the following output:
     'title': 'Example video title',
     'duration': 57,
     'channel_url': 'https://www.youtube.com/c/ExampleYTChannel123/videos',
-    'path': '/home/najam/yt_mp3s/HtAk9CHy6n'
+    'path': '/home/najam/yt_mp3s/HtAk9CHy6n.mp3'
 }
 ```
 
