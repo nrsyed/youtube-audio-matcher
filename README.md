@@ -18,9 +18,12 @@ determine if there are any matches.
 
 # <span id="requirements">Requirements</span>
 * Python &ge; 3.6
+* [Chromium](https://www.chromium.org) or
+  [Google Chrome](https://www.google.com/chrome/) browser, and
+  [ChromeDriver](http://chromedriver.chromium.org/home)
 * FFmpeg (install from your distribution's package repository, if on a
   Unix-based system, or from
-  [https://ffmpeg.org](https://ffmpeg.org/download.html).)
+  [https://ffmpeg.org](https://ffmpeg.org/download.html))
 
 # <span id="installation">Installation</span>
 ```
