@@ -231,7 +231,7 @@ def download_video_mp3s(
     end_time=None, ignore_existing=False, quiet=False
 ):
     """
-    Threaded wrapper for download_video_mp3 to download/convert multiple videos
+    Multithreaded wrapper for download_video_mp3 to download/convert multiple videos
     concurrently. This function exists because, although
     youtube_dl.YoutubeDL.download() accepts a list of video URLs, it is not
     multithreaded and downloads each video sequentially.
@@ -281,11 +281,11 @@ def download_channel(
     The `exclude_longer_than` and `exclude_shorter_than` arguments correspond
     to the `max_duration` and `min_duration` arguments of `download_video_mp3`.
     They DO NOT truncate MP3s but instead prevent them from being downloaded
-    at all. To truncate MP3s only the desired portions, use the
-    `start_time`, `duration`, and `end_time` arguments(see
-    `download_video_mp3`). For example, if a video is 3000 seconds long and
-    the first 500 seconds are desired, use `duration=500`; providing
-    `exclude_longer_than=500` would cause the video to NOT be downloaded.
+    at all. To truncate MP3s to only the desired segment, use the `start_time`,
+    `duration`, and `end_time` arguments(see `download_video_mp3`). For example,
+    if a video is 3000 seconds long and the first 500 seconds are desired, use
+    `duration=500`; providing `exclude_longer_than=500` would cause the video
+    to NOT be downloaded at all.
 
     Args:
         url (str): URL of the desired channel/user. From this URL, the URL of
@@ -294,7 +294,7 @@ def download_channel(
         num_retries (int): Number of times to re-attempt download when one or
             more files fails to download. Only the failed files are retried.
             Pass `None` to retry indefinitely (not recommended).
-        ignore_existing (bool): Skip existing files (see `download_video_mp3).
+        ignore_existing (bool): Skip existing files (see `download_video_mp3`).
         exclude_longer_than (float|int): Exclude videos longer than the
             specified value (in seconds). Corresponds to the `max_duration`
             argument of `get_videos_page_metadata`.
@@ -387,7 +387,7 @@ def download_channel(
 
 def download_channels(urls, dst_dir, *args, **kwargs):
     """
-    Threaded wrapper for `download_channel()`.
+    Multithreaded wrapper for `download_channel`.
 
     Args:
         urls (List[str]): List of YouTube channel/user URLs.
