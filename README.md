@@ -85,7 +85,7 @@ metadata = yam.download.download_channels(
 print(metadata[0])
 ```
 
-This would product the following output:
+This would produce the following output:
 ```
 {
     'id': 'HtAk9CHy6n',
