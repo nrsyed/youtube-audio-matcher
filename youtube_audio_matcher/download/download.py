@@ -209,7 +209,7 @@ def download_video_mp3(
     }
 
     dst_path = os.path.join(dst_dir, f"{video_id}.mp3")
-    if os.path.exists(dst_path):
+    if ignore_existing and os.path.exists(dst_path):
         logging.info(
             f"Skipping video id {video_id}; file {dst_path} already exists"
         )
@@ -234,10 +234,10 @@ def download_video_mp3s(
     end_time=None, ignore_existing=False, quiet=False
 ):
     """
-    Multithreaded wrapper for download_video_mp3 to download/convert multiple videos
-    concurrently. This function exists because, although
-    youtube_dl.YoutubeDL.download() accepts a list of video URLs, it is not
-    multithreaded and downloads each video sequentially.
+    Multithreaded wrapper for download_video_mp3 to download/convert multiple
+    videos concurrently. This function exists because, although
+    youtube_dl.YoutubeDL.download() accepts a list of video URLs, that function
+    is not multithreaded and downloads each video sequentially.
 
     Args:
         video_ids (List[str]): A list of YouTube video ids to download.
