@@ -77,7 +77,7 @@ def get_source(url, init_wait_time=2, scroll_wait_time=1):
             time.sleep(scroll_wait_time)
         driver.quit()
     except Exception as e:
-        logging.critical(f"Error getting page source for URL {url}")
+        logging.error(f"Error getting page source for URL {url}")
         raise e
     finally:
         return source
