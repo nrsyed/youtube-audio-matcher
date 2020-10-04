@@ -1,9 +1,11 @@
+import argparse
 from concurrent.futures import ThreadPoolExecutor
+import logging
 import math
 import os
+import pathlib
 import re
 import time
-import pdb
 
 import bs4
 import selenium.webdriver
@@ -45,7 +47,7 @@ def get_videos_page_url(url):
     return None
 
 
-def get_source(url, init_wait_time=2, scroll_wait_time=0.5):
+def get_source(url, init_wait_time=2, scroll_wait_time=1):
     """
     Get source for the page at `url` by scrolling to the end of the page.
 
@@ -60,18 +62,25 @@ def get_source(url, init_wait_time=2, scroll_wait_time=0.5):
     """
     # TODO: incorporate timeout
     # TODO: hide browser window
-    driver = selenium.webdriver.Chrome()
-    driver.get(url)
-    time.sleep(init_wait_time)
+    # TODO: options for wait time in higher level functions and CLI?
+    logging.info(f"Grabbing page source for URL {url}")
+    try:
+        driver = selenium.webdriver.Chrome()
+        driver.get(url)
+        time.sleep(init_wait_time)
 
-    source = None
-    scroll_by = 5000
-    while source != driver.page_source:
-        source = driver.page_source
-        driver.execute_script(f"window.scrollBy(0, {scroll_by});")
-        time.sleep(scroll_wait_time)
-    driver.quit()
-    return source
+        source = None
+        scroll_by = 5000
+        while source != driver.page_source:
+            source = driver.page_source
+            driver.execute_script(f"window.scrollBy(0, {scroll_by});")
+            time.sleep(scroll_wait_time)
+        driver.quit()
+    except Exception as e:
+        logging.critical(f"Error getting page source for URL {url}")
+        raise e
+    finally:
+        return source
 
 
 def get_videos_page_metadata(source, max_duration=None, min_duration=None):
@@ -101,6 +110,11 @@ def get_videos_page_metadata(source, max_duration=None, min_duration=None):
         max_duration = math.inf
     if min_duration is None:
         min_duration = 0
+
+    logging.debug(
+        f"Getting videos page metadata. max_duration={max_duration}, "
+        f"min_duration={min_duration}"
+    )
 
     soup = bs4.BeautifulSoup(source, "html.parser")
 
@@ -140,7 +154,8 @@ def get_videos_page_metadata(source, max_duration=None, min_duration=None):
 
 
 def download_video_mp3(
-    video_id, dst_dir, start_time=None, duration=None, end_time=None
+    video_id, dst_dir, start_time=None, duration=None, end_time=None,
+    ignore_existing=False, quiet=False
 ):
     """
     Download a YouTube video as an mp3 using youtube-dl.
@@ -156,6 +171,8 @@ def download_video_mp3(
             extract. Note that `duration` takes precedence over `end_time` (as
             defined in ffmpeg usage) if both are provided. Whole video is
             extracted if `duration` and `end_time` are both omitted.
+        ignore_existing (bool): Skip existing files.
+        quiet (bool): Suppress youtube_dl/ffmpeg terminal output.
 
     Returns:
         Path (str) to output file if download successful, else None.
@@ -184,22 +201,34 @@ def download_video_mp3(
             }
         ],
         "postprocessor_args": postprocessor_args,
+        "quiet": quiet,
+        "no_warnings": quiet,
     }
 
-    video_url = f"https://www.youtube.com/watch?v={video_id}"
-    try:
-        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([video_url])
-    except youtube_dl.utils.DownloadError as e:
-        # TODO: log error
-        return None
+    dst_path = os.path.join(dst_dir, f"{video_id}.mp3")
+    if os.path.exists(dst_path):
+        logging.info(
+            f"Skipping video id {video_id}; file {dst_path} already exists"
+        )
     else:
-        return os.path.join(dst_dir, f"{video_id}.mp3")
+        video_url = f"https://www.youtube.com/watch?v={video_id}"
+        try:
+            with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+                ydl.download([video_url])
+        except youtube_dl.utils.DownloadError as e:
+            logging.error(f"Error downloading video id {video_id}")
+            return None
+        else:
+            logging.info(
+                f"Successfully downloaded file {dst_path} (video id {video_id})"
+            )
+
+    return dst_path
 
 
 def download_video_mp3s(
-    video_ids, dst_dir, start_time=None, duration=None, end_time=None,
-    max_workers=None
+    video_ids, dst_dir, max_workers=None, start_time=None, duration=None,
+    end_time=None, ignore_existing=False, quiet=False
 ):
     """
     Threaded wrapper for download_video_mp3 to download/convert multiple videos
@@ -216,7 +245,7 @@ def download_video_mp3s(
         max_workers (int): Max threads to spawn.
 
         `start_time`, `duration`, and `end_time` (if specified) are applied
-        to all videos.
+        to all videos (see `download_video_mp3`).
 
     Returns:
         A list of paths (one per video) returned by `download_video_mp3`.
@@ -228,7 +257,8 @@ def download_video_mp3s(
         futures.append(
             thread_pool.submit(
                 download_video_mp3, video_id, dst_dir, start_time=start_time,
-                duration=duration, end_time=end_time
+                duration=duration, end_time=end_time,
+                ignore_existing=ignore_existing, quiet=quiet
             )
         )
         # TODO: add sleep between option
@@ -240,8 +270,9 @@ def download_video_mp3s(
 
 
 def download_channel(
-    url, dst_dir, num_retries=3, exclude_longer_than=None,
-    exclude_shorter_than=None, start_time=None, duration=None, end_time=None
+    url, dst_dir, num_retries=3, ignore_existing=False,
+    exclude_longer_than=None, exclude_shorter_than=None, start_time=None,
+    duration=None, end_time=None, quiet=False
 ):
     """
     Download all videos from a YouTube channel/user subject to the specified
@@ -263,6 +294,7 @@ def download_channel(
         num_retries (int): Number of times to re-attempt download when one or
             more files fails to download. Only the failed files are retried.
             Pass `None` to retry indefinitely (not recommended).
+        ignore_existing (bool): Skip existing files (see `download_video_mp3).
         exclude_longer_than (float|int): Exclude videos longer than the
             specified value (in seconds). Corresponds to the `max_duration`
             argument of `get_videos_page_metadata`.
@@ -272,6 +304,8 @@ def download_channel(
         start_time (float|int): See `download_video_mp3`.
         duration (float|int): See `download_video_mp3`.
         end_time (float|int): See `download_video_mp3`.
+        quiet (bool): Suppress youtube_dl/ffmpeg terminal output (see
+            `download_video_mp3`).
 
     Returns:
         A list of dicts containing the video id, video title, (original) video
@@ -310,11 +344,17 @@ def download_channel(
     idxs_to_download = [i for i, _ in enumerate(metadata)]
 
     while (tries < num_retries + 1) and idxs_to_download:
+        logging.info(
+            f"Downloading files from {videos_page_url} (attempt #{tries + 1})"
+        )
+
         video_ids = [metadata[idx]["id"] for idx in idxs_to_download]
         dst_paths = download_video_mp3s(
             video_ids, dst_dir, start_time=start_time,
-            duration=duration, end_time=end_time
+            duration=duration, end_time=end_time,
+            ignore_existing=ignore_existing, quiet=quiet
         )
+        tries += 1
 
         updated_idxs_to_download = []
         for j, path in enumerate(dst_paths):
@@ -322,17 +362,30 @@ def download_channel(
             if path is None:
                 # File was not downloaded correctly. Re-add its index in
                 # `metadata` to the list of indexes to be downloaded.
+                failed_video_id = metadata[idx]["id"]
+                log_msg = f"Failed to download video id {failed_video_id}."
+                if tries >= num_retries + 1:
+                    log_msg += " Not retrying (max attempts reached)."
+                    logging.error(log_msg)
+                else:
+                    log_msg += " Download will be retried."
+                    logging.warning(log_msg)
                 updated_idxs_to_download.append(idx)
             else:
                 metadata[idx]["path"] = path
-
         idxs_to_download = updated_idxs_to_download
-        tries += 1
 
+    num_successful_downloads = len(
+        [video for video in metadata if video["path"] is not None]
+    )
+    logging.info(
+        f"Successfully downloaded audio from {num_successful_downloads} of "
+        f"{len(metadata)} videos for URL {videos_page_url}"
+    )
     return metadata
 
 
-def download_channels(urls, *args, **kwargs):
+def download_channels(urls, dst_dir, *args, **kwargs):
     """
     Threaded wrapper for `download_channel()`.
 
@@ -359,9 +412,113 @@ def download_channels(urls, *args, **kwargs):
     futures = []
     for url in urls:
         futures.append(
-            thread_pool.submit(download_channel, url, *args, **kwargs)
+            thread_pool.submit(download_channel, url, dst_dir, *args, **kwargs)
         )
     thread_pool.shutdown()
 
     metadata = [video for future in futures for video in future.result()]
+
+    num_successful_downloads = len(
+        [video for video in metadata if video["path"] is not None]
+    )
+    logging.info(
+        f"Successfully downloaded audio from {num_successful_downloads} of "
+        f"{len(metadata)} total videos"
+    )
     return metadata
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "url", type=str, nargs="+",
+        help="One or more channel/user URLs. All options apply to all URLs."
+    )
+    parser.add_argument(
+        "-d", "--dst-dir", type=pathlib.Path, metavar="<path>",
+        help="Path to destination directory for downloaded files "
+        "(default: current directory)"
+    )
+    parser.add_argument(
+        "-i", "--ignore-existing", action="store_true",
+        help="Do not download files that already exist"
+    )
+    parser.add_argument(
+        "-r", "--retries", type=int, default=3, metavar="<num>",
+        dest="num_retries",
+        help="Number of times to re-attempt failed downloads (default: 3). "
+        "Pass -1 to retry indefinitely until successful (not recommended)"
+    )
+    parser.add_argument(
+        "-L", "--exclude-longer-than", type=float, metavar="<seconds>",
+        help="Do not download/convert videos longer than specified duration. "
+        "This does NOT truncate videos to a maximum desired length; to extract "
+        "or truncate specific segments of audio from downloaded videos, use "
+        "--start, --end, and/or --duration"
+    )
+    parser.add_argument(
+        "-S", "--exclude-shorter-than", type=float, metavar="<seconds>",
+        help="Do not download/convert videos shorter than specified duration"
+    )
+
+    parser.add_argument(
+        "--start", type=float, metavar="<seconds>", dest="start_time",
+        help="Extract audio beginning at the specified video time (in seconds)"
+    )
+    parser.add_argument(
+        "--end", type=float, metavar="<seconds>", dest="end_time",
+        help="Extract audio up to the specified video time (in seconds)"
+    )
+    parser.add_argument(
+        "--duration", type=float, metavar="<seconds>",
+        help="Duration (in seconds) of audio to extract beginning at 0 if "
+        "--start not specified, otherwise at --start. If --duration is used "
+        "with --end, --duration takes precedence."
+    )
+
+    parser.add_argument(
+        "-q", "--youtubedl-quiet", action="store_true", dest="quiet",
+        help="Disable all youtube-dl and ffmpeg terminal output. This option "
+        "does NOT control the terminal output of this program "
+        "(youtube-audio-matcher); to set this program's output, use "
+        "--silent or --debug"
+    )
+
+    _verbosity_args = parser.add_argument_group("verbosity options")
+    verbosity_args = _verbosity_args.add_mutually_exclusive_group()
+    verbosity_args.add_argument(
+        "--debug", action="store_true", help="Print verbose debugging info"
+    )
+    verbosity_args.add_argument(
+        "-s", "--silent", action="store_true",
+        help="Suppress terminal output for this program"
+    )
+    args = parser.parse_args()
+
+    log_level = logging.INFO
+    if args.debug:
+        log_level = logging.DEBUG
+    elif args.silent:
+        log_level = logging.CRITICAL
+    log_format = "[%(levelname)s] %(message)s"
+    logging.basicConfig(format=log_format, level=log_level)
+
+    if args.dst_dir is None:
+        args.dst_dir = pathlib.Path(".")
+    dst_dir = args.dst_dir.expanduser().resolve()
+
+    download_func_kwargs = {
+        "num_retries": args.num_retries if args.num_retries >= 0 else None,
+        "exclude_longer_than": args.exclude_longer_than,
+        "exclude_shorter_than": args.exclude_shorter_than,
+        "ignore_existing": args.ignore_existing,
+        "start_time": args.start_time,
+        "duration": args.duration,
+        "end_time": args.end_time,
+        "quiet": args.quiet,
+    }
+    metadata = download_channels(args.url, dst_dir, **download_func_kwargs)
+
+
+if __name__ == "__main__":
+    main()
