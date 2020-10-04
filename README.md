@@ -2,10 +2,9 @@
 
 This package, which is still in-progress, contains efficient and lightweight
 tools for concurrently downloading the audio from all of the videos on one
-or more YouTube channels, which is achieved by calling
-[youtube-dl](https://github.com/ytdl-org/youtube-dl/). Ultimately, audio
-fingerprinting functionality will be incorporated to compare the downloaded
-audio files to a database and determine if there are any matches.
+or more YouTube channels. Ultimately, audio fingerprinting functionality will
+be incorporated to compare the downloaded audio files to a database and
+determine if there are any matches.
 
 * [Requirements](#requirements)
 * [Installation](#installation)

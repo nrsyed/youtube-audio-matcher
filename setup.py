@@ -11,7 +11,7 @@ setup(
     install_requires=["bs4", "selenium", "youtube-dl"],
     entry_points={
         "console_scripts": [
-            "yamdl = youtube_audio_matcher.download.download:main"
+            "yamdl = youtube_audio_matcher.download.__main__:main"
         ],
     },
 )
