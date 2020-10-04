@@ -2,6 +2,7 @@ from setuptools import setup
 
 setup(
     name="youtube-audio-matcher",
+    version="0.5",
     url="https://github.com/nrsyed/youtube-audio-matcher",
     author="Najam R Syed",
     author_email="najam.r.syed@gmail.com",
