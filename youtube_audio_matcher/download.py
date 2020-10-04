@@ -83,20 +83,22 @@ def get_source(url, init_wait_time=2, scroll_wait_time=1):
         return source
 
 
-def get_videos_page_metadata(source, max_duration=None, min_duration=None):
+def get_videos_page_metadata(
+    source, exclude_longer_than=None, exclude_shorter_than=None
+):
     """
     Given the page source for a channel/user Videos page, extract video id,
     video title, and video duration (in seconds) for each video.
 
     Args:
         source (str): Page source.
-        max_duration (int): Only return metadata for videos shorter than the
-            given duration (in seconds). If None, all videos are returned.
-        min_duration (int): Only return metadata for videos longer than the
-            given duration (in seconds). If None, all videos are returned.
+        exclude_longer_than (float): Only return metadata for videos shorter
+            than the given duration (in seconds). If None, return all videos.
+        exclude_shorter_than (float): Only return metadata for videos longer
+            than the given duration (in seconds). If None, return all videos.
 
-        `max_duration` and `min_duration` may both be supplied to return videos
-        meeting both criteria.
+        `exclude_longer_than` and `exclude_shorter_than` may both be supplied
+        to return videos meeting both criteria.
 
     Returns:
         A list of videos, where each video is represented by a dict:
@@ -106,8 +108,11 @@ def get_videos_page_metadata(source, max_duration=None, min_duration=None):
             "duration": int
         }
     """
+    max_duration = exclude_longer_than
     if max_duration is None:
         max_duration = math.inf
+
+    min_duration = exclude_shorter_than
     if min_duration is None:
         min_duration = 0
 
@@ -239,10 +244,10 @@ def download_video_mp3s(
     Args:
         video_ids (List[str]): A list of YouTube video ids to download.
         dst_dir (str): Path to destination directory for downloaded files.
-        start_time (int): See `download_video_mp3`.
-        duration (int): See `download_video_mp3`.
-        end_time (int): See `download_video_mp3`.
         max_workers (int): Max threads to spawn.
+        start_time (float): See `download_video_mp3`.
+        duration (float): See `download_video_mp3`.
+        end_time (float): See `download_video_mp3`.
 
         `start_time`, `duration`, and `end_time` (if specified) are applied
         to all videos (see `download_video_mp3`).
@@ -278,14 +283,13 @@ def download_channel(
     Download all videos from a YouTube channel/user subject to the specified
     criteria.
 
-    The `exclude_longer_than` and `exclude_shorter_than` arguments correspond
-    to the `max_duration` and `min_duration` arguments of `download_video_mp3`.
-    They DO NOT truncate MP3s but instead prevent them from being downloaded
-    at all. To truncate MP3s to only the desired segment, use the `start_time`,
-    `duration`, and `end_time` arguments(see `download_video_mp3`). For example,
-    if a video is 3000 seconds long and the first 500 seconds are desired, use
-    `duration=500`; providing `exclude_longer_than=500` would cause the video
-    to NOT be downloaded at all.
+    The `exclude_longer_than` and `exclude_shorter_than` arguments DO NOT
+    truncate MP3s but instead prevent them from being downloaded at all (see
+    `get_videos_page_metadata`). To truncate MP3s to only the desired segment,
+    use the `start_time`, `duration`, and `end_time` arguments (see
+    `download_video_mp3`). For example, if a video is 3000 seconds long and
+    the first 500 seconds are desired, use `duration=500`; providing
+    `exclude_longer_than=500` would cause the video to NOT be downloaded at all.
 
     Args:
         url (str): URL of the desired channel/user. From this URL, the URL of
@@ -295,15 +299,13 @@ def download_channel(
             more files fails to download. Only the failed files are retried.
             Pass `None` to retry indefinitely (not recommended).
         ignore_existing (bool): Skip existing files (see `download_video_mp3`).
-        exclude_longer_than (float|int): Exclude videos longer than the
-            specified value (in seconds). Corresponds to the `max_duration`
-            argument of `get_videos_page_metadata`.
-        exclude_shorter_than (float|int): Exclude videos shorter than the
-            specified value (in seconds). Corresponds to the `min_duration`
-            argument of `get_videos_page_metadata`.
-        start_time (float|int): See `download_video_mp3`.
-        duration (float|int): See `download_video_mp3`.
-        end_time (float|int): See `download_video_mp3`.
+        exclude_longer_than (float): Exclude videos longer than the
+            specified value (in seconds). See `get_videos_page_metadata`.
+        exclude_shorter_than (float): Exclude videos shorter than the
+            specified value (in seconds). See `get_videos_page_metadata`.
+        start_time (float): See `download_video_mp3`.
+        duration (float): See `download_video_mp3`.
+        end_time (float): See `download_video_mp3`.
         quiet (bool): Suppress youtube_dl/ffmpeg terminal output (see
             `download_video_mp3`).
 
@@ -326,8 +328,8 @@ def download_channel(
 
     # Get metadata for each video in the Videos page source.
     metadata = get_videos_page_metadata(
-        videos_page_source, max_duration=exclude_longer_than,
-        min_duration=exclude_shorter_than
+        videos_page_source, exclude_longer_than=exclude_longer_than,
+        exclude_shorter_than=exclude_shorter_than
     )
 
     # Add output file path and channel URL to video metadata.
