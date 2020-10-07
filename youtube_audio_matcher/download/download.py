@@ -13,13 +13,14 @@ import youtube_dl
 def get_videos_page_url(url):
     """
     Get a valid videos page URL from a YouTube channel/user URL. See
-    https://support.google.com/youtube/answer/6180214?hl=en
+    `Understand Your Channel URLs`_.
 
     Args:
         url (str): URL for a YouTube channel or user. The end of the URL may
             contain extra parameters or a subpath to a different page on the
-            channel—these are stripped and the suffix "/videos" is added to
+            channel; these are stripped and the suffix "/videos" is added to
             the end of the core URL.
+
     Returns:
         URL for videos page if valid URL, else None.
 
@@ -35,6 +36,9 @@ def get_videos_page_url(url):
         >>> url3 = 'https://youtube.com/u/foobar?param1=val1&param2=val2'
         >>> get_videos_page_url(url3)
         'https://www.youtube.com/u/foobar/videos'
+
+    .. _`Understand Your Channel URLs`:
+        https://support.google.com/youtube/answer/6180214?hl=en
     """
     expr = r"^.*(/(c(hannel)?|u(ser)?)/[a-zA-Z0-9-_]+)"
     match = re.match(expr, url)
@@ -47,13 +51,13 @@ def get_videos_page_url(url):
 
 def get_source(url, init_wait_time=2, scroll_wait_time=1):
     """
-    Get source for the page at `url` by scrolling to the end of the page.
+    Get source for the page at ``url`` by scrolling to the end of the page.
 
     Args:
         url (str): URL for webpage.
         init_wait_time (float): Initial wait time (in seconds) for page load.
-        scroll_wait_time (float): Subsequent wait time (in seconds) for
-            page scrolls.
+        scroll_wait_time (float): Subsequent wait time (in seconds) for each
+            page scroll.
 
     Returns:
         String containing page source code.
@@ -95,16 +99,18 @@ def get_videos_page_metadata(
         exclude_shorter_than (float): Only return metadata for videos longer
             than the given duration (in seconds). If None, return all videos.
 
-        `exclude_longer_than` and `exclude_shorter_than` may both be supplied
-        to return videos meeting both criteria.
-
     Returns:
-        A list of videos, where each video is represented by a dict:
-        {
-            "id": str,
-            "title": str,
-            "duration": int
-        }
+        A list of videos, where each video is represented by a dict::
+
+            {
+                "id": str,
+                "title": str,
+                "duration": int
+            }
+
+    .. note::
+        ``exclude_longer_than`` and ``exclude_shorter_than`` may both be
+        supplied to return videos meeting both criteria.
     """
     max_duration = exclude_longer_than
     if max_duration is None:
@@ -218,12 +224,12 @@ def download_video_mp3(
         try:
             with youtube_dl.YoutubeDL(ydl_opts) as ydl:
                 ydl.download([video_url])
-        except youtube_dl.utils.DownloadError as e:
+        except youtube_dl.utils.DownloadError:
             logging.error(f"Error downloading video id {video_id}")
             return None
         else:
             logging.info(
-                f"Successfully downloaded file {dst_path} (video id {video_id})"
+                f"Successfully downloaded {dst_path} (video id {video_id})"
             )
 
     return dst_path
@@ -234,10 +240,10 @@ def download_video_mp3s(
     end_time=None, ignore_existing=False, quiet=False
 ):
     """
-    Multithreaded wrapper for download_video_mp3 to download/convert multiple
-    videos concurrently. This function exists because, although
-    youtube_dl.YoutubeDL.download() accepts a list of video URLs, that function
-    is not multithreaded and downloads each video sequentially.
+    Multithreaded wrapper for :func:`download_video_mp3` to download/convert
+    multiple videos concurrently. This function exists because, although
+    youtube_dl.YoutubeDL.download() accepts a list of video URLs, it is not
+    multithreaded and downloads each video sequentially.
 
     Args:
         video_ids (List[str]): A list of YouTube video ids to download.
@@ -247,11 +253,11 @@ def download_video_mp3s(
         duration (float): See `download_video_mp3`.
         end_time (float): See `download_video_mp3`.
 
-        `start_time`, `duration`, and `end_time` (if specified) are applied
-        to all videos (see `download_video_mp3`).
+        ``start_time``, ``duration``, and ``end_time`` (if specified) are
+        applied to all videos (see :func:`download_video_mp3`).
 
     Returns:
-        A list of paths (one per video) returned by `download_video_mp3`.
+        A list of paths (one per video) returned by :func:`download_video_mp3`.
     """
     thread_pool = ThreadPoolExecutor(max_workers=max_workers)
     futures = []
@@ -281,13 +287,14 @@ def download_channel(
     Download all videos from a YouTube channel/user subject to the specified
     criteria.
 
-    The `exclude_longer_than` and `exclude_shorter_than` arguments DO NOT
+    The ``exclude_longer_than`` and ``exclude_shorter_than`` arguments DO NOT
     truncate MP3s but instead prevent them from being downloaded at all (see
-    `get_videos_page_metadata`). To truncate MP3s to only the desired segment,
-    use the `start_time`, `duration`, and `end_time` arguments (see
-    `download_video_mp3`). For example, if a video is 3000 seconds long and
-    the first 500 seconds are desired, use `duration=500`; providing
-    `exclude_longer_than=500` would cause the video to NOT be downloaded at all.
+    :func:`get_videos_page_metadata`). To truncate MP3s to only the desired
+    segment, use the ``start_time``, ``duration``, and ``end_time`` arguments
+    (see :func:`download_video_mp3`). For example, if a video is 3000 seconds
+    long and the first 500 seconds are desired, use `duration=500`; providing
+    ``exclude_longer_than=500`` would cause the video to NOT be downloaded at
+    all.
 
     Args:
         url (str): URL of the desired channel/user. From this URL, the URL of
@@ -296,30 +303,31 @@ def download_channel(
         num_retries (int): Number of times to re-attempt download when one or
             more files fails to download. Only the failed files are retried.
             Pass `None` to retry indefinitely (not recommended).
-        ignore_existing (bool): Skip existing files (see `download_video_mp3`).
+        ignore_existing (bool): Skip existing files
+            (see :func:`download_video_mp3`).
         exclude_longer_than (float): Exclude videos longer than the
-            specified value (in seconds). See `get_videos_page_metadata`.
+            specified value (in seconds). See :func:`get_videos_page_metadata`.
         exclude_shorter_than (float): Exclude videos shorter than the
-            specified value (in seconds). See `get_videos_page_metadata`.
-        start_time (float): See `download_video_mp3`.
-        duration (float): See `download_video_mp3`.
-        end_time (float): See `download_video_mp3`.
+            specified value (in seconds). See :func:`get_videos_page_metadata`.
+        start_time (float): See :func:`download_video_mp3`.
+        duration (float): See :func:`download_video_mp3`.
+        end_time (float): See :func:`download_video_mp3`.
         quiet (bool): Suppress youtube_dl/ffmpeg terminal output (see
-            `download_video_mp3`).
+            :func:`download_video_mp3`).
 
     Returns:
         A list of dicts containing the video id, video title, (original) video
         duration, channel/user videos page URL from which the video was
         downloaded, and path to the downloaded MP3 file on the local machine
-        (path will be `None` if download was unsuccessful):
+        (path will be ``None`` if download was unsuccessful)::
 
-        {
-            "id": str,
-            "title": str,
-            "duration": int,
-            "channel_url": str,
-            "path": str
-        }
+            {
+                "id": str,
+                "title": str,
+                "duration": int,
+                "channel_url": str,
+                "path": str
+            }
     """
     videos_page_url = get_videos_page_url(url)
     videos_page_source = get_source(videos_page_url)
@@ -387,26 +395,26 @@ def download_channel(
 
 def download_channels(urls, dst_dir, *args, **kwargs):
     """
-    Multithreaded wrapper for `download_channel`.
+    Multithreaded wrapper for :func:`download_channel`.
 
     Args:
         urls (List[str]): List of YouTube channel/user URLs.
-        *args: See `download_channel`.
-        **kwargs: See `download_channel`.
+        *args: See :func:`download_channel`.
+        **kwargs: See :func:`download_channel`.
 
     Returns:
         A list of dicts containing the video id, video title, (original) video
         duration, channel/user videos page URL from which the video was
         downloaded, and path to the downloaded MP3 file on the local machine
-        (path will be `None` if download was unsuccessful):
+        (path will be ``None`` if download was unsuccessful)::
 
-        {
-            "id": str,
-            "title": str,
-            "duration": int,
-            "channel_url": str,
-            "path": str
-        }
+            {
+                "id": str,
+                "title": str,
+                "duration": int,
+                "channel_url": str,
+                "path": str
+            }
     """
     thread_pool = ThreadPoolExecutor()
     futures = []

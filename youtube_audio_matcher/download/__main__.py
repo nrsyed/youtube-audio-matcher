@@ -34,9 +34,9 @@ def main():
     parser.add_argument(
         "-L", "--exclude-longer-than", type=float, metavar="<seconds>",
         help="Do not download/convert videos longer than specified duration. "
-        "This does NOT truncate videos to a maximum desired length; to extract "
-        "or truncate specific segments of audio from downloaded videos, use "
-        "--start, --end, and/or --duration"
+        "This does NOT truncate videos to a maximum desired length; to "
+        "extract or truncate specific segments of audio from downloaded "
+        "videos, use --start, --end, and/or --duration"
     )
     parser.add_argument(
         "-S", "--exclude-shorter-than", type=float, metavar="<seconds>",
@@ -100,6 +100,6 @@ def main():
         "quiet": args.quiet,
     }
 
-    metadata = youtube_audio_matcher.download.download_channels(
+    youtube_audio_matcher.download.download_channels(
         args.url, dst_dir, **download_func_kwargs
     )
