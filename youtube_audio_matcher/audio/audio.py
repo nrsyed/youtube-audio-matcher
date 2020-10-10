@@ -100,6 +100,7 @@ def find_peaks_2d(
 ):
     """
     See `Peak detection in a 2D array`_.
+
     Args:
         filter_connectivity (int): neighborhood connectivity of the maximum
             filter (``1`` produces a diamond, ``2`` produces a square). See
@@ -112,9 +113,9 @@ def find_peaks_2d(
         min_amplitude (float): Peak minimum amplitude (ignore peaks with values
             less than ``min_amplitude``). If ``None``, all peaks are returned.
 
-        Returns:
-            peaks (np.ndarray): Mask of same shape as ``x`` where peaks are
-                denoted by ``True``.
+    Returns:
+        peaks (np.ndarray): Mask of same shape as ``x`` where peaks are
+            denoted by ``True``.
 
     .. _`Peak detection in a 2D array`:
         https://stackoverflow.com/questions/3684484/peak-detection-in-a-2d-array
