@@ -1,3 +1,7 @@
 bs4
+matplotlib
+numpy
+pydub
+scipy
 selenium
 youtube-dl
