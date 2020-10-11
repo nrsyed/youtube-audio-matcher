@@ -8,7 +8,10 @@ setup(
     author_email="najam.r.syed@gmail.com",
     license="MIT",
     packages=["youtube_audio_matcher", "youtube_audio_matcher.download"],
-    install_requires=["bs4", "selenium", "youtube-dl"],
+    install_requires=[
+        "bs4", "matplotlib", "numpy", "pydub", "scipy", "selenium",
+        "youtube-dl",
+    ],
     entry_points={
         "console_scripts": [
             "yamdl = youtube_audio_matcher.download.__main__:main"

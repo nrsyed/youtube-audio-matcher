@@ -1,4 +1,4 @@
-from . import download
+from . import audio, download
 
 
-__all__ = ["download"]
+__all__ = ["audio", "download"]
