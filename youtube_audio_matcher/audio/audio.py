@@ -20,7 +20,8 @@ def hash_file(fpath, block_size=2**16):
         block_size (int): Number of bytes to read from the file at a time.
 
     Returns:
-        hash (str): SHA1 digest as a hex string.
+        str: hash
+            SHA1 digest as a hex string.
     """
     hash_ = hashlib.sha1()
     with open(fpath, "rb") as f:
@@ -37,9 +38,10 @@ def read_file(fpath):
         fpath (str): Path to file.
 
     Returns:
-        channel_data (List[np.ndarray]): Data for each audio channel.
-        sample_rate (int): Audio sample rate (Hz, i.e., samples per second).
-        sha1_hash (str): SHA-1 hash of the file.
+        tuple: (channel_data, sample_rate, sha1_hash)
+            - channel_data (List[np.ndarray]): Data for each audio channel.
+            - sample_rate (int): Audio sample rate (Hz, i.e., samples per second).
+            - sha1_hash (str): SHA-1 hash of the file.
 
     .. note::
         Does not support 24-bit (use wavio for 24-bit files).
@@ -73,12 +75,13 @@ def get_spectrogram(
             `matplotlib.mlab.specgram`_.
 
     Returns:
-        spectrogram (np.ndarray): 2D array representing the signal spectrogram
-            (amplitudes are in units of dB).
-        t (np.ndarray): 1D array of time bins (in units of seconds)
-            corresponding to index 1 of ``spectrogram``.
-        freq (np.ndarray): 1D array of frequency bins (in units of Hz)
-            corresponding to index 0 of ``spectrogram``.
+        tuple: (spectrogram, t, freq)
+            - spectrogram (np.ndarray): 2D array representing the signal spectrogram
+              (amplitudes are in units of dB).
+            - t (np.ndarray): 1D array of time bins (in units of seconds)
+              corresponding to index 1 of ``spectrogram``.
+            - freq (np.ndarray): 1D array of frequency bins (in units of Hz)
+              corresponding to index 0 of ``spectrogram``.
 
     Raises:
         ValueError: If an invalid option for `backend` is specified.
@@ -132,8 +135,9 @@ def plot_spectrogram(
             plot. If `ax` is not provided, a new figure and axis are created.
 
     Returns:
-        ax (matplotlib.axes.Axes): Plot axis handle.
-        fig (matplotlib.figure.Figure): Plot figure handle.
+        tuple: (ax, fig)
+            - ax (matplotlib.axes.Axes): Plot axis handle.
+            - fig (matplotlib.figure.Figure): Plot figure handle.
     """
     if ax is None:
         fig, ax = plt.subplots()
@@ -179,9 +183,10 @@ def plot_peaks(times, frequencies, color="r", marker=".", ax=None):
             a new figure/axis will be created.
 
     Returns:
-        ax (matplotlib.axes.Axes): Axis handle on which peaks were plotted.
-        pts (matplotlib.collections.PathCollection): Object containing the
-            points plotted as a scatter plot. See `Axes.scatter`_.
+        tuple: (ax, pts)
+            - ax (matplotlib.axes.Axes): Axis handle on which peaks were plotted.
+            - pts (matplotlib.collections.PathCollection): Object containing the
+              points plotted as a scatter plot. See `Axes.scatter`_.
 
     .. _`matplotlib.markers`:
         https://matplotlib.org/api/markers_api.html
@@ -214,8 +219,8 @@ def find_peaks_2d(
             less than `min_amplitude`). If None, all peaks are returned.
 
     Returns:
-        peaks (np.ndarray): Mask of same shape as `x` where peaks are
-            denoted by True.
+        np.ndarray: peaks
+            Mask of same shape as `x` where peaks are denoted by True.
 
     .. _`Peak detection in a 2D array`:
         https://stackoverflow.com/questions/3684484/peak-detection-in-a-2d-array
@@ -256,8 +261,7 @@ def hash_peaks(
 
     * `Audio Fingerprinting with Python and Numpy`_
     * `How Shazam Works`_
-    * A. Porter, `Evaluating musical fingerprinting systems`_,
-        Montreal University, 2013. 
+    * A. Porter, `Evaluating musical fingerprinting systems`_, Montreal University, 2013. 
 
     Args:
         times (np.ndarray): Time bins of the peaks. Each element in `times`
@@ -278,13 +282,14 @@ def hash_peaks(
             likelihood of collisions.
 
     Returns:
-        hashes (List[Tuple[str, float]]): List of tuples where each tuple
-            represents a hash. The first element of each tuple contains the
-            hash string for the peak pair and the second element contains a
-            float representing the absolute offset of the reference peak (first
-            peak) from the beginning of the audio signal, in seconds.
+        List[Tuple[str, float]]: hashes
+            List of tuples where each tuple represents a hash. The first
+            element of each tuple contains the hash string for the peak pair
+            and the second element contains a float representing the absolute
+            offset of the reference peak (first peak) from the beginning of the
+            audio signal, in seconds.
 
-    .. _`Audio Fingerprinting with Python and Numpy`
+    .. _`Audio Fingerprinting with Python and Numpy`:
         https://willdrevo.com/fingerprinting-and-audio-recognition-with-python/
     .. _`How Shazam Works`:
         https://medium.com/@treycoopermusic/how-shazam-works-d97135fb4582
@@ -334,8 +339,9 @@ def fingerprint(
             (see :func:`hash_peaks`).
 
     Returns:
-        hashes (List[Tuple[str, float]]): List of tuples where each tuple
-            is a (hash, absolute_offset) pair. See :func:`hash_peaks`.
+        List[Tuple[str, float]]: hashes
+            List of tuples where each tuple is a (hash, absolute_offset) pair.
+            See :func:`hash_peaks`.
     """
     spectrogram, t, freq = get_spectrogram(
         samples, sample_rate, win_size, win_overlap_ratio
@@ -384,7 +390,7 @@ def generate_waveform(
             a WAV file. If None, file is not saved.
 
     Returns:
-        y (np.ndarray): Array representing the audio signal.
+        np.ndarray: Array representing the audio signal.
 
     .. _`scipy.signal.square`:
         https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.square.html
