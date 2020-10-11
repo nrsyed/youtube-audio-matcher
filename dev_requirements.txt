@@ -1,0 +1,8 @@
+# Style-checking and tests
+flake8
+pygments
+xdoctest
+
+# Documentation
+sphinx
+sphinx_rtd_theme
