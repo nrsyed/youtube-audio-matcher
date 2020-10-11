@@ -7,6 +7,7 @@ import matplotlib.mlab as mlab
 import matplotlib.pyplot as plt
 import numpy as np
 import pydub
+import scipy.io.wavfile
 import scipy.ndimage
 import scipy.signal
 
@@ -21,19 +22,28 @@ def hash_file(fpath, block_size=2**20):
 
 def read_file(fpath):
     """
-    Does not support 24-bit (use wavio instead if necessary).
+    Read an audio file and extract audio information and file SHA-1 hash.
+
+    Args:
+        fpath (str): Path to file.
+
+    Returns:
+        channel_data (List[np.ndarray]): Data for each audio channel.
+        sample_rate (int): Audio sample rate (Hz, i.e., samples per second).
+        sha1_hash (str): SHA-1 hash of the file.
+
+    .. note::
+        Does not support 24-bit (use wavio for 24-bit files).
     """
-    audio = pydub.AudioSegment.from_file(fpath)
-    raw_data = np.frombuffer(audio.raw_data, np.int16)
+    audio_seg = pydub.AudioSegment.from_file(fpath)
+    raw_data = np.frombuffer(audio_seg.raw_data, np.int16)
 
-    num_channels = audio.channels
+    num_channels = audio_seg.channels
     channel_data = [raw_data[ch::num_channels] for ch in range(num_channels)]
+    sample_rate = audio_seg.frame_rate
 
-    return {
-        "channel_data": channel_data,
-        "sample_rate": audio.frame_rate,
-        "sha1_hash": hash_file(fpath)
-    }
+    return channel_data, sample_rate, hash_file(fpath)
+
 
 def get_spectrogram(
     samples, sample_rate, win_size, win_overlap_ratio, backend="scipy"
@@ -163,3 +173,32 @@ def fingerprint(
     peak_amplitudes = spectrogram[peaks]
 
     return peak_times, peak_freqs, peak_amplitudes
+
+
+def generate_waveform(
+    shape="sine", duration=1, num_samples=None, sample_rate=44100,
+    frequency=440, amplitude=1.0, duty_cycle=0.5, width=1, out_path=None
+):
+    """
+    TODO
+    """
+    if num_samples is None:
+        num_samples = duration * sample_rate
+
+    x = np.arange(num_samples)
+    t = 2 * np.pi * frequency * x / sample_rate
+
+    if shape == "sine":
+        y = np.sin(t)
+    elif shape == "square":
+        y = scipy.signal.square(t, duty=duty_cycle)
+    elif shape == "sawtooth":
+        y = scipy.signal.sawtooth(t, width=width)
+
+    # Scale y from float32 range to int16 range and convert to int16.
+    amplitude = max(amplitude, 1.0)
+    y = (amplitude * y * 32767).astype(np.int16)
+
+    if out_path is not None:
+        scipy.io.wavfile.write(out_path, sample_rate, y)
+    return y
