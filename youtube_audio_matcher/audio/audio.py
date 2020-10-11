@@ -101,7 +101,14 @@ def plot_spectrogram(
     if fig is not None:
         fig.colorbar(im, ax=ax)
 
-    return ax
+    return ax, fig
+
+
+def plot_peaks(times, frequencies, color="r", marker=".", ax=None):
+    if ax is None:
+        fig, ax = plt.subplots()
+    pts = ax.scatter(times, frequencies, marker=marker, color=color)
+    return ax, pts
 
 
 def find_peaks_2d(
@@ -109,7 +116,7 @@ def find_peaks_2d(
     min_amplitude=None
 ):
     """
-    See `Peak detection in a 2D array`_.
+    Find peaks in a 2D array. See `Peak detection in a 2D array`_.
 
     Args:
         filter_connectivity (int): neighborhood connectivity of the maximum
@@ -202,3 +209,41 @@ def generate_waveform(
     if out_path is not None:
         scipy.io.wavfile.write(out_path, sample_rate, y)
     return y
+
+
+def dev_test(fpath=None):
+    """
+    TODO
+    """
+    if fpath is None:
+        # Get a sample waveform.
+        sample_rate = 44100
+        samples = generate_waveform(
+            shape="sawtooth", duration=4, sample_rate=sample_rate, frequency=10000,
+            amplitude=0.6, width=0.7
+        )
+    else:
+        samples, sample_rate, _ = read_file(fpath)
+        samples = samples[0]
+
+    # Get and plot the spectrogram for the audio.
+    spectrogram, t, freq = get_spectrogram(samples, sample_rate, 4096, 0.5)
+    ax, _ = plot_spectrogram(spectrogram, t, freq)
+
+    # Find peaks in the spectrogram ignoring any with an amplitude < 10 dB.
+    # Peaks is a boolean array of the same shape as ``spectrogram`` where
+    # ``True`` values indicate peaks.
+    peaks = find_peaks_2d(spectrogram, min_amplitude=10)
+
+    # Obtain times and frequencies corresponding to the peaks, then plot them.
+    peak_freq_idxs, peak_time_idxs = np.where(peaks)
+    peak_t = t[peak_time_idxs]
+    peak_freq = freq[peak_freq_idxs]
+    plot_peaks(peak_t, peak_freq, ax=ax)
+
+    plt.show()
+    
+
+
+if __name__ == "__main__":
+    dev_test()
