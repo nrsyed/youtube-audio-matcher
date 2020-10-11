@@ -12,12 +12,22 @@ import scipy.ndimage
 import scipy.signal
 
 
-def hash_file(fpath, block_size=2**20):
+def hash_file(fpath, block_size=2**16):
+    """
+    Get the SHA1 hash of a file.
+
+    Args:
+        fpath (str): Path to file.
+        block_size (int): Number of bytes to read from the file at a time.
+
+    Returns:
+        hash (str): SHA1 digest as a hex string.
+    """
     hash_ = hashlib.sha1()
     with open(fpath, "rb") as f:
         while (buf := f.read(block_size)):
             hash_.update(buf)
-    return hash_.hexdigest().upper()
+    return hash_.hexdigest()
 
 
 def read_file(fpath):
@@ -46,8 +56,39 @@ def read_file(fpath):
 
 
 def get_spectrogram(
-    samples, sample_rate, win_size, win_overlap_ratio, backend="scipy"
+    samples, sample_rate=44100, win_size=4096, win_overlap_ratio=0.5,
+    backend="scipy"
 ):
+    """
+    Obtain the spectrogram for an audio signal.
+
+    Args:
+        samples (np.ndarray): Audio channel data/samples.
+        sample_rate (int): Audio sample rate (Hz).
+        win_size (int): Number of samples per FFT window.
+        win_overlap_ratio (float): Number of samples to overlap between windows
+            (as a fraction of window size).
+        backend (str): {"scipy", "matplotlib"}
+            Whether to use the scipy or matplotlib spectrogram functions to
+            compute the spectrogram. See `scipy.signal.spectrogram`_ and
+            `matplotlib.mlab.specgram`_.
+
+    Returns:
+        spectrogram (np.ndarray): 2D array representing the signal spectrogram
+            (amplitudes are in units of dB).
+        t (np.ndarray): 1D array of time bins (in units of seconds)
+            corresponding to index 1 of ``spectrogram``.
+        freq (np.ndarray): 1D array of frequency bins (in units of Hz)
+            corresponding to index 0 of ``spectrogram``.
+
+    Raises:
+        ValueError: If an invalid option for `backend` is specified.
+
+    .. _`scipy.signal.spectrogram`:
+        https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.spectrogram.html
+    .. _`matplotlib.mlab.specgram`:
+        https://matplotlib.org/api/mlab_api.html#matplotlib.mlab.specgram
+    """
     if backend == "matplotlib":
         spectrogram, freq, t = mlab.specgram(
             samples, NFFT=win_size, Fs=sample_rate, window=mlab.window_hanning,
@@ -100,6 +141,9 @@ def plot_spectrogram(
 
     if fig is not None:
         fig.colorbar(im, ax=ax)
+
+    ax.set_xlabel("Time (s)")
+    ax.set_ylabel("Frequency (Hz)")
 
     return ax, fig
 
@@ -164,9 +208,32 @@ def find_peaks_2d(
     return peaks
 
 
+def hash_peaks(
+    times, frequencies, fanout=1, min_time_delta=0, max_time_delta=100,
+    hashlen=20
+):
+    """
+    TODO
+    https://medium.com/@treycoopermusic/how-shazam-works-d97135fb4582
+    """
+    # Sort peaks by time.
+    peaks = sorted(zip(times, frequencies), key=lambda p: p[0])
+
+    hashes = []
+    for i, (t, f) in enumerate(peaks):
+        for t2, f2 in peaks[(i + 1):(i + 1 + fanout)]:
+            t_delta = t2 - t
+            if min_time_delta <= t_delta <= max_time_delta:
+                hash_ = hashlib.sha1(f)
+                hash_.update(f2)
+                hash_.update(t_delta)
+                hashes.append((hash_.hexdigest()[:hashlen], t))
+    return hashes
+
+
 def fingerprint(
     samples, sample_rate=44100, win_size=4096, win_overlap_ratio=0.5,
-    fan_value=5, min_amplitude=10
+    fanout=10, min_amplitude=10
 ):
     spectrogram, t, freq = get_spectrogram(
         samples, sample_rate, win_size, win_overlap_ratio
@@ -179,7 +246,8 @@ def fingerprint(
     peak_freqs = freq[peak_freq_idxs]
     peak_amplitudes = spectrogram[peaks]
 
-    return peak_times, peak_freqs, peak_amplitudes
+    hashes = hash_peaks(peak_times, peak_freqs, fanout=fanout)
+    return hashes
 
 
 def generate_waveform(
@@ -211,20 +279,22 @@ def generate_waveform(
     return y
 
 
-def dev_test(fpath=None):
+def dev_test(fpath=None, samples=None, sample_rate=None):
     """
     TODO
     """
-    if fpath is None:
-        # Get a sample waveform.
+    if fpath is not None and os.path.exists(fpath):
+        samples, sample_rate, _ = read_file(fpath)
+        samples = samples[0]
+    elif samples is None and sample_rate is None:
+        # Get an example waveform.
         sample_rate = 44100
         samples = generate_waveform(
             shape="sawtooth", duration=4, sample_rate=sample_rate, frequency=10000,
             amplitude=0.6, width=0.7
         )
-    else:
-        samples, sample_rate, _ = read_file(fpath)
-        samples = samples[0]
+
+    hashes = fingerprint(samples, sample_rate=sample_rate)
 
     # Get and plot the spectrogram for the audio.
     spectrogram, t, freq = get_spectrogram(samples, sample_rate, 4096, 0.5)
@@ -242,8 +312,3 @@ def dev_test(fpath=None):
     plot_peaks(peak_t, peak_freq, ax=ax)
 
     plt.show()
-    
-
-
-if __name__ == "__main__":
-    dev_test()
