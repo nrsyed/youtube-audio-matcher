@@ -1,5 +1,5 @@
 import sqlalchemy
-from schema import Audio, Base, Fingerprint
+from .schema import Audio, Base, Fingerprint
 
 
 class Database:
