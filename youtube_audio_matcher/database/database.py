@@ -1,38 +1,87 @@
 import sqlalchemy
-from sqlalchemy import (
-    Column, Float, ForeignKey, Integer, MetaData, String, Table
-)
+from schema import Audio, Base, Fingerprint
 
 
-def get_db_string(
-    user, password, db_name, host="localhost", backend="postgres"
-):
-    if backend == "postgres":
-        #db_str = f"postgresql+psycopg2://{user}:{password}@{host}/{db_name}"
-        db_str = f"postgresql://{user}:{password}@{host}/{db_name}"
-    return db_str
+class Database:
+    def __init__(
+        self, user, password, db_name, host="localhost", backend="postgres"
+    ):
+        """
+        Args:
+            user (str): User name.
+            password (str): User password.
+            db_name (str): Database name.
+            host (str): Database hostname.
+            backend (str): {"postgres"} SQL database backend to use.
+        """
+
+        if backend == "postgres":
+            engine_str = f"postgresql://{user}:{password}@{host}/{db_name}"
+        engine = sqlalchemy.create_engine(engine_str)
+        Session = sqlalchemy.orm.sessionmaker(engine)
+        self.session = Session()
+
+        Base.metadata.create_all(engine)
+        self.base = Base
+        self.engine = engine
+
+    def __del__(self):
+        self.session.close()
+
+    def add_audio_file(self, attributes):
+        """
+        Args:
+            attributes (dict): A dict containing the database Audio table
+                attributes for the audio file to be inserted:
+                    {
+                        "duration": float,
+                        "filepath": str,
+                        "filehash": str,
+                        "title": str,
+                        "youtube_id": str
+                    }
+
+        Returns:
+            int: id of the inserted audio file.
+        """
+        new_audio = Audio(**attributes)
+        self.session.add(new_audio)
+        self.session.commit()
+        return new_audio.id
+
+    def add_fingerprint(self, attributes):
+        """
+        Args:
+            attributes (dict): A dict containing the database Fingerprint table
+                attributes for the fingerprint to be inserted:
+                    {
+                        "audio_id": int,
+                        "hash": str,
+                        "offset": float
+                    }
+                The "audio_id" value should correspond to the id of an audio
+                file in the Audio table.
+
+        Returns:
+            int: id of the inserted fingerprint.
+        """
+        new_fingerprint = Fingerprint(**attributes)
+        self.session.add(new_fingerprint)
+        self.session.commit()
+        return new_fingerprint.id
+
+    def _drop_tables(self, tables):
+        self.base.metadata.drop_all(bind=self.engine, tables=tables)
+
+    def drop_all_tables(self):
+        self._drop_tables([Audio.__table__, Fingerprint.__table__])
+
+    def drop_audio_table(self):
+        self._drop_tables([Audio.__table__])
+
+    def drop_fingerprint_table(self):
+        self._drop_tables([Fingerprint.__table__])
+
 
 if __name__ == "__main__":
-    db_str = get_db_string("yam", "yam", "yam")
-    db = sqlalchemy.create_engine(db_str)
-    metadata = MetaData(db)
-
-    audio_table = Table(
-        "audio", metadata,
-        Column("id", Integer, primary_key=True),
-        Column("title", String),
-        Column("youtube_id", String(10)),
-        Column("duration", Float),
-    )
-    audio_table.create()
-
-    fingerprint_table = Table(
-        "fingerprint", metadata,
-        Column("id", Integer, primary_key=True),
-        Column("hash", String(20), nullable=False),
-        Column("offset", Float, nullable=False),
-        Column("audio_id", ForeignKey("audio.id"), nullable=False),
-    )
-    fingerprint_table.create()
-
-    breakpoint()
+    db = Database("yam", "yam", "yam")
