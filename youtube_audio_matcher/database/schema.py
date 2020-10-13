@@ -3,6 +3,8 @@ from sqlalchemy import (
     UniqueConstraint,
 )
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.associationproxy import association_proxy
+from sqlalchemy.orm import relationship
 
 Base = declarative_base()
 
@@ -16,12 +18,15 @@ class Audio(Base):
     title = Column("title", String)
     youtube_id = Column("youtube_id", String(10))
 
+    # One-to-many mapping of audio file to all its associated fingerprints.
+    fingerprints = relationship("Fingerprint")
+
 
 class Fingerprint(Base):
     __tablename__ = "fingerprint"
 
     id = Column("id", Integer, primary_key=True)
     audio_id = Column("audio_id", ForeignKey("audio.id"), nullable=False)
-    hash = Column("hash", String(20), nullable=False)
-    offset = Column("offset", Integer, nullable=False)
+    hash = Column("hash", String, nullable=False)
+    offset = Column("offset", Float, nullable=False)
     UniqueConstraint("audio_id", "hash", "offset")
