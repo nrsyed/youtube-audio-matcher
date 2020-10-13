@@ -254,7 +254,7 @@ def find_peaks_2d(
 
 def hash_peaks(
     times, frequencies, fanout=1, min_time_delta=0, max_time_delta=100,
-    hashlen=20, time_bin_increment=0.05
+    hashlen=20, time_bin_size=0.5, freq_bin_size=5
 ):
     """
     Hash the peaks of a spectrogram. For reference, see:
@@ -280,9 +280,10 @@ def hash_peaks(
         hashlen (int): Length to which the final hex hash string should be
             truncated. A smaller hash length reduces memory usage but increases
             likelihood of collisions.
-        time_bin_increment (float): Number of seconds per time bin (used to
-            convert time offsets and time deltas from floats to integers
-            before hashing).
+        time_bin_size (float): Number of seconds per time bin (used to
+            convert time deltas from floats to integers before hashing).
+        freq_bin_size (float): Frequency range per frequency bin (used to
+            convert frequencies from floats to integers before hashing), in Hz.
 
     Returns:
         List[Tuple[str, float]]: hashes
@@ -307,14 +308,15 @@ def hash_peaks(
         for t2, f2 in peaks[(i + 1):(i + 1 + fanout)]:
             t_delta = t2 - t
             if min_time_delta <= t_delta <= max_time_delta:
-                # Before hashing, we convert times and frequencies to
+                # Before hashing, we convert time delta and frequencies to
                 # integers to avoid issues with float precision/rounding.
-                t = int(t / time_bin_increment)
-                t_delta = int(t_delta / time_bin_increment)
+                t_delta_bin = int(t_delta / time_bin_size)
+                f_bin = int(f / freq_bin_size)
+                f2_bin = int(f2 / freq_bin_size)
 
-                hash_ = hashlib.sha1(int(f))
-                hash_.update(int(f2))
-                hash_.update(t_delta)
+                hash_ = hashlib.sha1(
+                    f"{f_bin}{f2_bin}{t_delta_bin}".encode("utf-8")
+                )
                 hashes.append((hash_.hexdigest()[:hashlen], t))
     return hashes
 
