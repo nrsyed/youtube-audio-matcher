@@ -9,8 +9,8 @@ setup(
     license="MIT",
     packages=["youtube_audio_matcher", "youtube_audio_matcher.download"],
     install_requires=[
-        "bs4", "matplotlib", "numpy", "pydub", "scipy", "selenium",
-        "youtube-dl",
+        "bs4", "matplotlib", "numpy", "psycopg2", "pydub", "scipy", "selenium",
+        "sqlalchemy", "youtube-dl",
     ],
     entry_points={
         "console_scripts": [

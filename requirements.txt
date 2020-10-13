@@ -1,7 +1,9 @@
 bs4
 matplotlib
 numpy
+psycopg2
 pydub
 scipy
 selenium
+sqlalchemy
 youtube-dl
