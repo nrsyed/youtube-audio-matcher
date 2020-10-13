@@ -254,7 +254,7 @@ def find_peaks_2d(
 
 def hash_peaks(
     times, frequencies, fanout=1, min_time_delta=0, max_time_delta=100,
-    hashlen=20
+    hashlen=20, time_bin_increment=0.05
 ):
     """
     Hash the peaks of a spectrogram. For reference, see:
@@ -280,6 +280,9 @@ def hash_peaks(
         hashlen (int): Length to which the final hex hash string should be
             truncated. A smaller hash length reduces memory usage but increases
             likelihood of collisions.
+        time_bin_increment (float): Number of seconds per time bin (used to
+            convert time offsets and time deltas from floats to integers
+            before hashing).
 
     Returns:
         List[Tuple[str, float]]: hashes
@@ -304,8 +307,13 @@ def hash_peaks(
         for t2, f2 in peaks[(i + 1):(i + 1 + fanout)]:
             t_delta = t2 - t
             if min_time_delta <= t_delta <= max_time_delta:
-                hash_ = hashlib.sha1(f)
-                hash_.update(f2)
+                # Before hashing, we convert times and frequencies to
+                # integers to avoid issues with float precision/rounding.
+                t = int(t / time_bin_increment)
+                t_delta = int(t_delta / time_bin_increment)
+
+                hash_ = hashlib.sha1(int(f))
+                hash_.update(int(f2))
                 hash_.update(t_delta)
                 hashes.append((hash_.hexdigest()[:hashlen], t))
     return hashes

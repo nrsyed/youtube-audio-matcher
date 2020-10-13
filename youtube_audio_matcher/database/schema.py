@@ -1,5 +1,6 @@
 from sqlalchemy import (
-    Column, Float, ForeignKey, Integer, MetaData, String, Table
+    Column, Float, ForeignKey, Integer, MetaData, String, Table,
+    UniqueConstraint,
 )
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -22,4 +23,5 @@ class Fingerprint(Base):
     id = Column("id", Integer, primary_key=True)
     audio_id = Column("audio_id", ForeignKey("audio.id"), nullable=False)
     hash = Column("hash", String(20), nullable=False)
-    offset = Column("offset", Float, nullable=False)
+    offset = Column("offset", Integer, nullable=False)
+    UniqueConstraint("audio_id", "hash", "offset")
