@@ -74,8 +74,17 @@ class Database:
         self.session.commit()
         return new_fingerprint.id
 
+    def add_fingerprints(self, fingerprints):
+        """
+        TODO
+        """
+        new_fingerprints = [Fingerprint(**attrs) for attrs in fingerprints]
+        self.session.bulk_save_objects(new_fingerprints)
+        self.session.commit()
+
     def _drop_tables(self, tables):
         self.base.metadata.drop_all(bind=self.engine, tables=tables)
+        self.session.commit()
 
     def drop_all_tables(self):
         self._drop_tables([Audio.__table__, Fingerprint.__table__])
@@ -153,6 +162,7 @@ class Database:
                 Audio.id == max_matches_audio_id
             )
             match = query.first()
+
             return {
                 "id": match.id,
                 "duration": match.duration,
