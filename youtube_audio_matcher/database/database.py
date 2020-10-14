@@ -5,6 +5,37 @@ import sqlalchemy
 from .schema import Base, Fingerprint, Song
 
 
+def obj_as_dict(obj, fingerprints_in_song=False):
+    if isinstance(obj, list):
+        return [
+            obj_as_dict(elem, fingerprints_in_song=fingerprints_in_song)
+            for elem in obj
+        ]
+    elif isinstance(obj, Song):
+        song = {
+            "id": song_obj.id,
+            "duration": song_obj.duration,
+            "filehash": song_obj.filehash,
+            "filepath": song_obj.filepath,
+            "title": song_obj.title,
+            "youtube_id": song_obj.youtube_id,
+        }
+
+        if fingerprints_in_song:
+            song["fingerprints"] = [obj_as_dict(fp) for fp in obj.fingerprints]
+        else:
+            song["num_fingerprints"] = len(obj.fingerprints)
+        return song
+    elif isinstance(obj, Fingerprint):
+        return {
+            "song_id": obj.song_id,
+            "hash": obj.hash,
+            "offset": obj.offset,
+        }
+    else:
+        raise ValueError("Unsupported object")
+
+
 class Database:
     def __init__(
         self, user, password, db_name, host="localhost", backend="postgres"
@@ -81,6 +112,33 @@ class Database:
         new_fingerprints = [Fingerprint(**attrs) for attrs in fingerprints]
         self.session.bulk_save_objects(new_fingerprints)
         self.session.commit()
+
+    def as_dict(self, combine_tables=False):
+        """
+        Return the database as a Python dictionary.
+
+        Args:
+            combine_tables (bool): If True, the returned dict will have a
+                single ``songs`` field containing a list of songs, and each
+                song will have a ``fingerprints`` field containing the list
+                of fingerprints belonging to it. If False, the returned dict
+                will contain a ``songs`` field and a ``fingerprints`` field.
+
+        Returns:
+            dict: tables
+        """
+        songs_table = self.session.query(Song).all()
+        fingerprints_table = self.session.query(Fingerprint).all()
+
+        if combine_tables:
+            return {
+                "songs": obj_as_dict(songs_table, fingerprints_in_song=True),
+            }
+        else:
+            return {
+                "songs": obj_as_dict(songs_table),
+                "fingerprints": obj_as_dict(fingerprints_table),
+            }
 
     def _drop_tables(self, tables):
         self.base.metadata.drop_all(bind=self.engine, tables=tables)
@@ -217,51 +275,7 @@ class Database:
 
         for arg, val in other_args.items():
             if val is not None:
-                query = query.filter(Song_[arg].in_(list(val)))
-        return query.all()
-
-    def as_dict(self, combine_tables=False):
-        """
-        Return the database as a Python dictionary.
-
-        Args:
-            combine_tables (bool): If True, the returned dict will have a
-                single ``songs`` field containing a list of songs, and each
-                song will have a ``fingerprints`` field containing the list
-                of fingerprints belonging to it. If False, the returned dict
-                will contain a ``songs`` field and a ``fingerprints`` field.
-
-        Returns:
-            dict: tables
-        """
-        songs_table = self.session.query(Song).all()
-        fingerprints_table = self.session.query(Fingerprint).all()
-
-        def _fingerprints_to_python(obj_list):
-            return [
-                {"song_id": fp.song_id, "hash": fp.hash, "offset": fp.offset}
-                for fp in obj_list
-            ]
-
-        dict_ = {"songs": []}
-
-        for song_obj in songs_table:
-            song = {
-                "id": song_obj.id,
-                "duration": song_obj.duration,
-                "filehash": song_obj.filehash,
-                "filepath": song_obj.filepath,
-                "title": song_obj.title,
-                "youtube_id": song_obj.youtube_id,
-            }
-
-            if combine_tables:
-                song["fingerprints"] = _fingerprints_to_python(
-                    song_obj.fingerprints
-                )
-            dict_["songs"].append(song)
-
-        if not combine_tables:
-            dict_["fingerprints"] = _fingerprints_to_python(fingerprints_table)
-
-        return dict_
+                if not isinstance(val, (list, tuple)):
+                    val = [val]
+                query = query.filter(Song_[arg].in_(val))
+        return obj_as_dict(query.all())

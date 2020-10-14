@@ -8,6 +8,17 @@ from sqlalchemy.orm import relationship
 
 Base = declarative_base()
 
+
+class Fingerprint(Base):
+    __tablename__ = "fingerprint"
+
+    id = Column("id", Integer, primary_key=True)
+    song_id = Column("song_id", ForeignKey("song.id"), nullable=False)
+    hash = Column("hash", String, nullable=False)
+    offset = Column("offset", Float, nullable=False)
+    UniqueConstraint("song_id", "hash", "offset")
+
+
 class Song(Base):
     __tablename__ = "song"
 
@@ -20,13 +31,3 @@ class Song(Base):
 
     # One-to-many mapping of audio file to all its associated fingerprints.
     fingerprints = relationship("Fingerprint")
-
-
-class Fingerprint(Base):
-    __tablename__ = "fingerprint"
-
-    id = Column("id", Integer, primary_key=True)
-    song_id = Column("song_id", ForeignKey("song.id"), nullable=False)
-    hash = Column("hash", String, nullable=False)
-    offset = Column("offset", Float, nullable=False)
-    UniqueConstraint("song_id", "hash", "offset")
