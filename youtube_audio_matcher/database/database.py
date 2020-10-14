@@ -174,3 +174,50 @@ class Database:
             }
 
         return None
+
+    def query_audio_files(
+        self, id_=None, duration=None, duration_greater_than=None,
+        duration_less_than=None, filehash=None, filepath=None, title=None,
+        youtube_id=None
+    ):
+        """
+        TODO
+        """
+        duration_args_bool = [
+            duration is not None, duration_greater_than is not None,
+            duration_less_than is not None
+        ]
+
+        if sum(duration_args_bool) > 1:
+            raise ValueError(
+                "Can only choose one of duration, duration_greater_than, "
+                "or duration_less_than"
+            )
+
+        query = self.session.query(Audio)
+
+        if duration is not None:
+            query = query.filter(Audio.duration == duration)
+        elif duration_greater_than is not None:
+            query = query.filter(Audio.duration > duration_greater_than)
+        elif duration_less_than is not None:
+            query = query.filter(Audio.duration < duration_less_than)
+
+        # Handle remaining non-duration args separately.
+        other_args = {
+            "id": id_,
+            "filehash": filehash,
+            "filepath": filepath,
+            "title": title,
+            "youtube_id": youtube_id,
+        }
+
+        # Make the Audio sqlalchemy DeclarativeMeta a dict so we can iterate
+        # over its attributes.
+        Audio_ = vars(Audio)
+
+        for arg, val in other_args.items():
+            if val is not None:
+                query = query.filter(Audio_[arg].in_(list(val)))
+
+        return query.all()
