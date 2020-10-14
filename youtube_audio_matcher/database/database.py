@@ -2,7 +2,7 @@ from collections import defaultdict
 
 import sqlalchemy
 
-from .schema import Audio, Base, Fingerprint
+from .schema import Base, Fingerprint, Song
 
 
 class Database:
@@ -32,10 +32,10 @@ class Database:
     def __del__(self):
         self.session.close()
 
-    def add_audio_file(self, attributes):
+    def add_song(self, attributes):
         """
         Args:
-            attributes (dict): A dict containing the database Audio table
+            attributes (dict): A dict containing the database Song table
                 attributes for the audio file to be inserted:
                     {
                         "duration": float,
@@ -46,12 +46,12 @@ class Database:
                     }
 
         Returns:
-            int: id of the inserted audio file.
+            int: id of the inserted song.
         """
-        new_audio = Audio(**attributes)
-        self.session.add(new_audio)
+        new_song = Song(**attributes)
+        self.session.add(new_song)
         self.session.commit()
-        return new_audio.id
+        return new_song.id
 
     def add_fingerprint(self, attributes):
         """
@@ -59,12 +59,12 @@ class Database:
             attributes (dict): A dict containing the database Fingerprint table
                 attributes for the fingerprint to be inserted:
                     {
-                        "audio_id": int,
+                        "song_id": int,
                         "hash": str,
                         "offset": float
                     }
-                The "audio_id" value should correspond to the id of an audio
-                file in the Audio table.
+                The "song_id" value should correspond to the id of an audio
+                file in the Song table.
 
         Returns:
             int: id of the inserted fingerprint.
@@ -87,10 +87,10 @@ class Database:
         self.session.commit()
 
     def drop_all_tables(self):
-        self._drop_tables([Audio.__table__, Fingerprint.__table__])
+        self._drop_tables([Fingerprint.__table__, Song.__table__])
 
-    def drop_audio_table(self):
-        self._drop_tables([Audio.__table__])
+    def drop_song_table(self):
+        self._drop_tables([Song.__table__])
 
     def drop_fingerprint_table(self):
         self._drop_tables([Fingerprint.__table__])
@@ -120,10 +120,10 @@ class Database:
             Fingerprint.hash.in_(hashes)
         )
 
-        # Compute relative offsets, mapping each relative offset to audio ids;
-        # map each audio id to an int representing the number of matching
+        # Compute relative offsets, mapping each relative offset to song ids;
+        # map each song id to an int representing the number of matching
         # hashes. Simultaneously keep track of the total number of matches
-        # across all audio ids for each relative offset.
+        # across all song ids for each relative offset.
         map_ = defaultdict(lambda: defaultdict(int))
         matches_per_rel_offset = defaultdict(int)
 
@@ -133,9 +133,9 @@ class Database:
             inp_offset = inp_hash_to_offset[hash_]
             abs_offset = result.offset
             rel_offset = int(abs_offset - inp_offset)
-            audio_id = result.audio_id
+            song_id = result.song_id
 
-            map_[rel_offset][audio_id] += 1
+            map_[rel_offset][song_id] += 1
             matches_per_rel_offset[rel_offset] += 1
 
         if map_:
@@ -147,19 +147,18 @@ class Database:
                     max_matches = num_matches
                     max_matches_rel_offset = rel_offset
 
-            # Find the audio/song id with the most matches of that relative
-            # offset.
+            # Find the song id with the most matches of that relative offset.
             max_matches = -1
-            max_matches_audio_id = None
-            for audio_id, num_matches in map_[max_matches_rel_offset].items():
+            max_matches_song_id = None
+            for song_id, num_matches in map_[max_matches_rel_offset].items():
                 if num_matches > max_matches:
                     max_matches = num_matches
-                    max_matches_audio_id = audio_id
+                    max_matches_song_id = song_id
 
-            # Use the audio id to fetch the corresponding audio/song
-            # information from the database.
-            query = self.session.query(Audio).filter(
-                Audio.id == max_matches_audio_id
+            # Use the song id to fetch the corresponding song information from
+            # the database.
+            query = self.session.query(Song).filter(
+                Song.id == max_matches_song_id
             )
             match = query.first()
 
@@ -175,7 +174,7 @@ class Database:
 
         return None
 
-    def query_audio_files(
+    def query_songs(
         self, id_=None, duration=None, duration_greater_than=None,
         duration_less_than=None, filehash=None, filepath=None, title=None,
         youtube_id=None
@@ -194,14 +193,14 @@ class Database:
                 "or duration_less_than"
             )
 
-        query = self.session.query(Audio)
+        query = self.session.query(Song)
 
         if duration is not None:
-            query = query.filter(Audio.duration == duration)
+            query = query.filter(Song.duration == duration)
         elif duration_greater_than is not None:
-            query = query.filter(Audio.duration > duration_greater_than)
+            query = query.filter(Song.duration > duration_greater_than)
         elif duration_less_than is not None:
-            query = query.filter(Audio.duration < duration_less_than)
+            query = query.filter(Song.duration < duration_less_than)
 
         # Handle remaining non-duration args separately.
         other_args = {
@@ -212,12 +211,12 @@ class Database:
             "youtube_id": youtube_id,
         }
 
-        # Make the Audio sqlalchemy DeclarativeMeta a dict so we can iterate
+        # Make the Song sqlalchemy DeclarativeMeta a dict so we can iterate
         # over its attributes.
-        Audio_ = vars(Audio)
+        Song_ = vars(Song)
 
         for arg, val in other_args.items():
             if val is not None:
-                query = query.filter(Audio_[arg].in_(list(val)))
+                query = query.filter(Song_[arg].in_(list(val)))
 
         return query.all()

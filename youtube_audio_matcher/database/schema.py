@@ -8,8 +8,8 @@ from sqlalchemy.orm import relationship
 
 Base = declarative_base()
 
-class Audio(Base):
-    __tablename__ = "audio"
+class Song(Base):
+    __tablename__ = "song"
 
     id = Column("id", Integer, primary_key=True)
     duration = Column("duration", Float)
@@ -26,7 +26,7 @@ class Fingerprint(Base):
     __tablename__ = "fingerprint"
 
     id = Column("id", Integer, primary_key=True)
-    audio_id = Column("audio_id", ForeignKey("audio.id"), nullable=False)
+    song_id = Column("song_id", ForeignKey("song.id"), nullable=False)
     hash = Column("hash", String, nullable=False)
     offset = Column("offset", Float, nullable=False)
-    UniqueConstraint("audio_id", "hash", "offset")
+    UniqueConstraint("song_id", "hash", "offset")
