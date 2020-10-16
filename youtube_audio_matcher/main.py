@@ -1,63 +1,68 @@
+import asyncio
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 import pathlib
+import threading
+import time
 
+import bs4
+import selenium.webdriver
 import youtube_audio_matcher as yam
 
 
-def add_song_to_database(db, fpath, song_title=None, fingerprint_kwargs=None):
-    """
-    Args:
-        db (youtube_audio_matcher.database.Database): Database class instance.
-        fpath (str): Path to audio file.
-        song_title (str): Audio file song title. If None, the file stem will
-            be used as the title.
-        fingerprint_kwargs (dict): Dict containing keyword argument/value
-            pairs for :func:`youtube_audio_matcher.audio.fingerprint`.
+async def async_get_source(url, init_wait_time=2, scroll_wait_time=1):
+    driver = selenium.webdriver.Chrome()
+    driver.get(url)
+    await asyncio.sleep(init_wait_time)
 
-    Returns:
-        int: num_fingerprints
-            Total number of fingerprints extracted from the audio file and
-            added to the database.
-    """
-    fpath = pathlib.Path(fpath).expanduser().resolve()
-    channels, sample_rate, filehash = yam.audio.read_file(str(fpath))
+    source = None
+    scroll_by = 5000
+    while source != driver.page_source:
+        source = driver.page_source
+        driver.execute_script(f"window.scrollBy(0, {scroll_by});")
+        await asyncio.sleep(scroll_wait_time)
+    driver.quit()
+    return source
 
-    if not song_title:
-        song_title = str(fpath.stem)
-
-    # Add song to database Song table and get the id of the newly added song.
-    song_id = db.add_song(
-        {
-            "duration": len(channels[0]) / sample_rate,
-            "filepath": str(fpath),
-            "filehash": filehash,
-            "title": song_title,
-        }
+async def async_get_metadata(url):
+    source = await async_get_source(url)
+    videos = yam.download.get_videos_page_metadata(
+        source, exclude_longer_than=200
     )
+    for video in videos:
+        video["url"] = url
+    return videos
 
-    # TODO: handle if song already exists in DB. Update its fingerprints?
+async def produce_videos(urls, queue):
+    for f in asyncio.as_completed([async_get_metadata(url) for url in urls]):
+        videos = await f
+        for video in videos:
+            await queue.put(video)
+    await queue.put(None)
 
-    # Obtain fingerprints for each channel in the audio file and add them to
-    # the database Fingerprint table.
-    if fingerprint_kwargs is None:
-        fingerprint_kwargs = dict()
+async def dl_videos(queue):
+    while True:
+        video = await queue.get()
+        if video is None:
+            break
 
-    num_fingerprints = 0
-    for channel in channels:
-        samples = channel
-        fingerprints = yam.audio.fingerprint(
-            samples, sample_rate, **fingerprint_kwargs
-        )
-        num_fingerprints += len(fingerprints)
+def main():
+    """
+    1. Concurrently get each page source, extract metadata based on filters.
+    2. Add each video (metadata) to an async Download queue.
+    3. Async fetch videos from Download queue and run (in a separate process)
+       fingerprinting. Add the song's fingerprints to a Fingerprinted queue.
+    4. Fetch each set of fingerprint's from the Fingerprint queue and, in the
+       main process, query the DB for matching hashes.
+    5. Align matches, add/write result (test whether parallelizing this helps?)
+    """
+    urls = [
+        "https://www.youtube.com/user/Bratisla991",
+        "https://www.youtube.com/channel/UC-HtuYLClaEBnxHxdaTTrmw",
+    ]
+    urls = [yam.download.get_videos_page_url(url) for url in urls]
+    queue = asyncio.Queue()
+    x = asyncio.run(produce_videos(urls, queue))
+    breakpoint()
 
-        # Construct list of fingerprints and bulk insert into the database.
-        fingerprint_db_entries = []
-        for fp_hash, offset in fingerprints:
-            fingerprint_db_entries.append(
-                {
-                    "song_id": song_id,
-                    "hash": fp_hash,
-                    "offset": offset,
-                }
-            )
-            db.add_fingerprints(fingerprint_db_entries)
-    return num_fingerprints
+if __name__ == "__main__":
+    main()
