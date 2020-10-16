@@ -1,6 +1,7 @@
 from collections import defaultdict
 
 import sqlalchemy
+from sqlalchemy.pool import NullPool
 
 from .schema import Base, Fingerprint, Song
 
@@ -13,12 +14,12 @@ def obj_as_dict(obj, fingerprints_in_song=False):
         ]
     elif isinstance(obj, Song):
         song = {
-            "id": song_obj.id,
-            "duration": song_obj.duration,
-            "filehash": song_obj.filehash,
-            "filepath": song_obj.filepath,
-            "title": song_obj.title,
-            "youtube_id": song_obj.youtube_id,
+            "id": obj.id,
+            "duration": obj.duration,
+            "filehash": obj.filehash,
+            "filepath": obj.filepath,
+            "title": obj.title,
+            "youtube_id": obj.youtube_id,
         }
 
         if fingerprints_in_song:
@@ -52,6 +53,7 @@ class Database:
         if backend == "postgres":
             engine_str = f"postgresql://{user}:{password}@{host}/{db_name}"
 
+        #engine = sqlalchemy.create_engine(engine_str, poolclass=NullPool)
         engine = sqlalchemy.create_engine(engine_str)
         Session = sqlalchemy.orm.sessionmaker(engine)
         self.session = Session()
@@ -139,6 +141,11 @@ class Database:
                 "songs": obj_as_dict(songs_table),
                 "fingerprints": obj_as_dict(fingerprints_table),
             }
+
+    def delete_all(self):
+        self.session.query(Fingerprint).delete()
+        self.session.query(Song).delete()
+        self.session.commit()
 
     def _drop_tables(self, tables):
         self.base.metadata.drop_all(bind=self.engine, tables=tables)
