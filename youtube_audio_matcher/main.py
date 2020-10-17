@@ -1,5 +1,6 @@
 import asyncio
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+from datetime import datetime
 import multiprocessing
 import pathlib
 import threading
@@ -10,7 +11,7 @@ import selenium.webdriver
 import youtube_audio_matcher as yam
 
 
-async def async_get_source(url, init_wait_time=2, scroll_wait_time=1):
+async def async_get_source(url, init_wait_time=1, scroll_wait_time=1):
     driver = selenium.webdriver.Chrome()
     driver.get(url)
     await asyncio.sleep(init_wait_time)
@@ -27,7 +28,7 @@ async def async_get_source(url, init_wait_time=2, scroll_wait_time=1):
 async def async_get_metadata(url):
     source = await async_get_source(url)
     videos = yam.download.get_videos_page_metadata(
-        source, exclude_longer_than=200
+        source, exclude_shorter_than=12
     )
     for video in videos:
         video["url"] = url
@@ -40,36 +41,62 @@ async def produce_videos(urls, queue):
             await queue.put(video)
     await queue.put(None)
 
+async def dl_video(video, loop, executor, dst_dir, queue):
+    fpath = await loop.run_in_executor(
+        executor, yam.download.download_video_mp3, video["id"], dst_dir,
+        0, None, None, True, 3, True
+    )
+    video["path"] = fpath
+    await queue.put(video)
+
 async def dl_videos(in_queue, out_queue, loop, executor, dst_dir):
+    tasks = []
     while True:
         video = await in_queue.get()
         if video is None:
-            await in_queue.put(None)
-        fpath = await loop.run_in_executor(
-            executor, yam.download.download_video_mp3,
-            video["id"], dst_dir, 0, None, None, False, True
-        )
-        if fpath is not None:
-            await out_queue.put(fpath)
+            break
+
+        task = loop.create_task(dl_video(video, loop, executor, dst_dir, out_queue))
+        tasks.append(task)
+    await asyncio.wait(tasks)
     await out_queue.put(None)
 
+def cpu_func(*args, **kwargs):
+    start_t = time.time()
+    x = 10
+    while time.time() - start_t < 10:
+        y = x * x
+    return [1, 2, 3], "abcdefg"
 
-async def fingerprint_videos(queue, loop, executor):
+async def fp_video(video, out_queue, loop, executor):
+    hashes, filehash = await loop.run_in_executor(
+        executor, yam.audio.fingerprint_from_file, video["path"]
+    )
+    video["fingerprint"] = hashes
+    video["filehash"] = filehash
+    await out_queue.put(video)
+
+async def fingerprint_videos(in_queue, out_queue, loop, executor):
+    tasks = []
     while True:
-        fpath = await queue.get()
-        fingerprint = await loop.run_in_executor()
+        video = await in_queue.get()
+        if video is None:
+            break
+
+        video["fingerprint"] = None
+        video["filehash"] = None
+        if video["path"] is not None:
+            task = loop.create_task(fp_video(video, out_queue, loop, executor))
+            tasks.append(task)
+        else:
+            await out_queue.put(video)
+    await asyncio.wait(tasks)
+    await out_queue.put(None)
 
 def main():
-    """
-    3. Async fetch videos from Download queue and run (in a separate process)
-       fingerprinting. Add the song's fingerprints to a Fingerprinted queue.
-    4. Fetch each set of fingerprint's from the Fingerprint queue and, in the
-       main process, query the DB for matching hashes.
-    5. Align matches, add/write result (test whether parallelizing this helps?)
-    """
     urls = [
         "https://www.youtube.com/user/Bratisla991",
-        "https://www.youtube.com/channel/UC-HtuYLClaEBnxHxdaTTrmw",
+        #"https://www.youtube.com/channel/UC-HtuYLClaEBnxHxdaTTrmw",
     ]
     urls = [yam.download.get_videos_page_url(url) for url in urls]
     dst_dir = "/home/najam/repos/youtube-audio-matcher/testdl"
@@ -78,15 +105,23 @@ def main():
     loop = asyncio.get_event_loop()
     dl_queue = asyncio.Queue()
     fp_queue = asyncio.Queue()
+    match_queue = asyncio.Queue()
 
     tpe = ThreadPoolExecutor()
-    ppe = ProcessPoolExecutor(max_workers=multiprocessing.cpu_count())
-    y = produce_videos(urls, dl_queue)
-    z = dl_videos(dl_queue, fp_queue, loop, tpe, dst_dir)
-    loop.run_until_complete(asyncio.gather(y, z))
+    ppe = ProcessPoolExecutor()
+    x = produce_videos(urls, dl_queue)
+    y = dl_videos(dl_queue, fp_queue, loop, tpe, dst_dir)
+    z = fingerprint_videos(fp_queue, match_queue, loop, ppe)
+    loop.run_until_complete(asyncio.gather(x, y, z))
+
     end_t = time.time()
     print(f"{end_t - start_t}")
-    #loop.close()
+    print(dl_queue)
+    print(fp_queue)
+    print(match_queue)
+    #breakpoint()
 
 if __name__ == "__main__":
+    # Needed to prevent deadlock with loop.run_in_executor and asyncio. Why?
+    #multiprocessing.set_start_method("spawn")
     main()
