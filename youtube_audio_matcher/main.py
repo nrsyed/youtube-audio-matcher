@@ -1,5 +1,6 @@
 import asyncio
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+import multiprocessing
 import pathlib
 import threading
 import time
@@ -39,16 +40,27 @@ async def produce_videos(urls, queue):
             await queue.put(video)
     await queue.put(None)
 
-async def dl_videos(queue):
+async def dl_videos(in_queue, out_queue, loop, executor, dst_dir):
     while True:
-        video = await queue.get()
+        video = await in_queue.get()
         if video is None:
-            break
+            await in_queue.put(None)
+        fpath = await loop.run_in_executor(
+            executor, yam.download.download_video_mp3,
+            video["id"], dst_dir, 0, None, None, False, True
+        )
+        if fpath is not None:
+            await out_queue.put(fpath)
+    await out_queue.put(None)
+
+
+async def fingerprint_videos(queue, loop, executor):
+    while True:
+        fpath = await queue.get()
+        fingerprint = await loop.run_in_executor()
 
 def main():
     """
-    1. Concurrently get each page source, extract metadata based on filters.
-    2. Add each video (metadata) to an async Download queue.
     3. Async fetch videos from Download queue and run (in a separate process)
        fingerprinting. Add the song's fingerprints to a Fingerprinted queue.
     4. Fetch each set of fingerprint's from the Fingerprint queue and, in the
@@ -60,9 +72,21 @@ def main():
         "https://www.youtube.com/channel/UC-HtuYLClaEBnxHxdaTTrmw",
     ]
     urls = [yam.download.get_videos_page_url(url) for url in urls]
-    queue = asyncio.Queue()
-    x = asyncio.run(produce_videos(urls, queue))
-    breakpoint()
+    dst_dir = "/home/najam/repos/youtube-audio-matcher/testdl"
+
+    start_t = time.time()
+    loop = asyncio.get_event_loop()
+    dl_queue = asyncio.Queue()
+    fp_queue = asyncio.Queue()
+
+    tpe = ThreadPoolExecutor()
+    ppe = ProcessPoolExecutor(max_workers=multiprocessing.cpu_count())
+    y = produce_videos(urls, dl_queue)
+    z = dl_videos(dl_queue, fp_queue, loop, tpe, dst_dir)
+    loop.run_until_complete(asyncio.gather(y, z))
+    end_t = time.time()
+    print(f"{end_t - start_t}")
+    #loop.close()
 
 if __name__ == "__main__":
     main()
