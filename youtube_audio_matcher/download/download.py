@@ -241,6 +241,7 @@ def download_video_mp3(
                 else:
                     log_msg += " Max attempts reached."
                     logging.error(log_msg)
+                    logging.error(str(e))
                     return None
             else:
                 logging.info(
