@@ -321,7 +321,7 @@ def hash_peaks(
     return hashes
 
 
-def fingerprint(
+def fingerprint_from_signal(
     samples, sample_rate=44100, win_size=4096, win_overlap_ratio=0.5,
     min_amplitude=10, fanout=10, min_time_delta=0, max_time_delta=100,
     hashlen=20
@@ -369,6 +369,34 @@ def fingerprint(
         max_time_delta=max_time_delta, hashlen=hashlen
     )
     return hashes
+
+
+def fingerprint_from_file(fpath, **kwargs):
+    """
+    Fingerprint an audio file by reading the file and obtaining the fingerprint
+    for each audio channel. Wraps :func:`fingerprint_from_signal`.
+
+    Args:
+        fpath (str): Path to audio file.
+        **kwargs: See :func:`fingerprint_from_signal`.
+
+    Returns:
+        tuple: (hashes, filehash)
+        TODO
+
+    .. note::
+        Sample rate is obtained from the file. ``sample_rate`` should not be
+        passed as part of ``**kwargs``.
+    """
+    channels, sample_rate, filehash = read_file(fpath)
+
+    hashes = []
+    for channel in channels:
+        samples = channel
+        hashes.extend(
+            fingerprint_from_signal(samples, sample_rate=sample_rate, **kwargs)
+        )
+    return hashes, filehash
 
 
 def generate_waveform(
