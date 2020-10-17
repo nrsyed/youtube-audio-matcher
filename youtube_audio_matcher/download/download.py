@@ -164,7 +164,7 @@ def get_videos_page_metadata(
 
 def download_video_mp3(
     video_id, dst_dir, start_time=None, duration=None, end_time=None,
-    ignore_existing=False, quiet=False
+    ignore_existing=False, num_retries=3, quiet=False
 ):
     """
     Download a YouTube video as an mp3 using youtube-dl.
@@ -181,6 +181,8 @@ def download_video_mp3(
             defined in ffmpeg usage) if both are provided. Whole video is
             extracted if `duration` and `end_time` are both omitted.
         ignore_existing (bool): Skip existing files.
+        num_retries (int): Number of times to re-attempt failed download. Pass
+            ``num_retries=None`` to retry indefinitely.
         quiet (bool): Suppress youtube_dl/ffmpeg terminal output.
 
     Returns:
@@ -217,27 +219,43 @@ def download_video_mp3(
     dst_path = os.path.join(dst_dir, f"{video_id}.mp3")
     if ignore_existing and os.path.exists(dst_path):
         logging.info(
-            f"Skipping video id {video_id}; file {dst_path} already exists"
+            f"[{video_id}] Skipping video. File {dst_path} already exists."
         )
     else:
         video_url = f"https://www.youtube.com/watch?v={video_id}"
-        try:
-            with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-                ydl.download([video_url])
-        except youtube_dl.utils.DownloadError:
-            logging.error(f"Error downloading video id {video_id}")
-            return None
-        else:
-            logging.info(
-                f"Successfully downloaded {dst_path} (video id {video_id})"
-            )
+        if num_retries is None:
+            num_retries = math.inf
 
+        tries = 0
+        download_successful = False
+        while not download_successful and tries <= num_retries:
+            try:
+                with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+                    ydl.download([video_url])
+            except youtube_dl.utils.DownloadError:
+                log_msg = f"[{video_id}] Error downloading video."
+                log_msg += f" (attempt {tries + 1} of {num_retries + 1})."
+                if tries < num_retries:
+                    log_msg += " Retrying download."
+                    logging.info(log_msg)
+                else:
+                    log_msg += " Max attempts reached."
+                    logging.error(log_msg)
+                    return None
+            else:
+                logging.info(
+                    f"[{video_id}] Successfully downloaded {dst_path}"
+                )
+                download_successful = True
+            finally:
+                tries += 1
     return dst_path
 
 
 def download_video_mp3s(
-    video_ids, dst_dir, max_workers=None, start_time=None, duration=None,
-    end_time=None, ignore_existing=False, quiet=False
+    video_ids, dst_dir, max_workers=None, wait_between=0, start_time=None,
+    duration=None, end_time=None, ignore_existing=False, num_retries=3,
+    quiet=False
 ):
     """
     Multithreaded wrapper for :func:`download_video_mp3` to download/convert
@@ -249,15 +267,21 @@ def download_video_mp3s(
         video_ids (List[str]): A list of YouTube video ids to download.
         dst_dir (str): Path to destination directory for downloaded files.
         max_workers (int): Max threads to spawn.
-        start_time (float): See `download_video_mp3`.
-        duration (float): See `download_video_mp3`.
-        end_time (float): See `download_video_mp3`.
-
-        ``start_time``, ``duration``, and ``end_time`` (if specified) are
-        applied to all videos (see :func:`download_video_mp3`).
+        wait_between (float): Seconds to wait before spawning each thread (to
+            reduce number of requests made in rapid succession).
+        start_time (float): See :func:`download_video_mp3`.
+        duration (float): See :func:`download_video_mp3`.
+        end_time (float): See :func:`download_video_mp3`.
+        ignore_existing (bool): See :func:`download_video_mp3`.
+        num_retries (int): See :func:`download_video_mp3`.
+        quiet (bool): See :func:`download_video_mp3`.
 
     Returns:
         A list of paths (one per video) returned by :func:`download_video_mp3`.
+
+    .. note:
+        ``start_time``, ``duration``, and ``end_time`` (if specified) are
+        applied to all videos (see :func:`download_video_mp3`).
     """
     thread_pool = ThreadPoolExecutor(max_workers=max_workers)
     futures = []
@@ -267,10 +291,12 @@ def download_video_mp3s(
             thread_pool.submit(
                 download_video_mp3, video_id, dst_dir, start_time=start_time,
                 duration=duration, end_time=end_time,
-                ignore_existing=ignore_existing, quiet=quiet
+                ignore_existing=ignore_existing, num_retries=num_retries,
+                quiet=quiet
             )
         )
-        # TODO: add sleep between option
+        if wait_between:
+            time.sleep(wait_between)
     thread_pool.shutdown()
 
     # Get paths to output files returned by calls to download_video_mp3().
@@ -280,8 +306,8 @@ def download_video_mp3s(
 
 def download_channel(
     url, dst_dir, num_retries=3, ignore_existing=False,
-    exclude_longer_than=None, exclude_shorter_than=None, start_time=None,
-    duration=None, end_time=None, quiet=False
+    exclude_longer_than=None, exclude_shorter_than=None, wait_between=0,
+    start_time=None, duration=None, end_time=None, quiet=False
 ):
     """
     Download all videos from a YouTube channel/user subject to the specified
@@ -300,15 +326,15 @@ def download_channel(
         url (str): URL of the desired channel/user. From this URL, the URL of
             the channel/user's Videos page is automatically constructed.
         dst_dir (str): Path to download destination directory.
-        num_retries (int): Number of times to re-attempt download when one or
-            more files fails to download. Only the failed files are retried.
-            Pass `None` to retry indefinitely (not recommended).
+        num_retries (int): Number of times to re-attempt failed downloads. Pass
+            `None` to retry indefinitely.
         ignore_existing (bool): Skip existing files
             (see :func:`download_video_mp3`).
         exclude_longer_than (float): Exclude videos longer than the
             specified value (in seconds). See :func:`get_videos_page_metadata`.
         exclude_shorter_than (float): Exclude videos shorter than the
             specified value (in seconds). See :func:`get_videos_page_metadata`.
+        wait_between (float): See :func:`download_video_mp3s`.
         start_time (float): See :func:`download_video_mp3`.
         duration (float): See :func:`download_video_mp3`.
         end_time (float): See :func:`download_video_mp3`.
@@ -333,64 +359,32 @@ def download_channel(
     videos_page_source = get_source(videos_page_url)
 
     # Get metadata for each video in the Videos page source.
-    metadata = get_videos_page_metadata(
+    videos = get_videos_page_metadata(
         videos_page_source, exclude_longer_than=exclude_longer_than,
         exclude_shorter_than=exclude_shorter_than
     )
 
-    # Add output file path and channel URL to video metadata.
-    for video in metadata:
-        video["channel_url"] = videos_page_url
-        video["path"] = None
-
-    # Download all videos. Re-attempt failed videos `num_retries` times.
-    if num_retries is None:
-        num_retries = math.inf
-    tries = 0
-
-    # List of indexes into the list of video metadata [0, ..., num_videos - 1]
-    idxs_to_download = [i for i, _ in enumerate(metadata)]
-
-    while (tries < num_retries + 1) and idxs_to_download:
-        logging.info(
-            f"Downloading files from {videos_page_url} (attempt #{tries + 1})"
-        )
-
-        video_ids = [metadata[idx]["id"] for idx in idxs_to_download]
-        dst_paths = download_video_mp3s(
-            video_ids, dst_dir, start_time=start_time,
-            duration=duration, end_time=end_time,
-            ignore_existing=ignore_existing, quiet=quiet
-        )
-        tries += 1
-
-        updated_idxs_to_download = []
-        for j, path in enumerate(dst_paths):
-            idx = idxs_to_download[j]
-            if path is None:
-                # File was not downloaded correctly. Re-add its index in
-                # `metadata` to the list of indexes to be downloaded.
-                failed_video_id = metadata[idx]["id"]
-                log_msg = f"Failed to download video id {failed_video_id}."
-                if tries >= num_retries + 1:
-                    log_msg += " Not retrying (max attempts reached)."
-                    logging.error(log_msg)
-                else:
-                    log_msg += " Download will be retried."
-                    logging.warning(log_msg)
-                updated_idxs_to_download.append(idx)
-            else:
-                metadata[idx]["path"] = path
-        idxs_to_download = updated_idxs_to_download
-
-    num_successful_downloads = len(
-        [video for video in metadata if video["path"] is not None]
+    video_ids = [video["id"] for video in videos]
+    dst_paths = download_video_mp3s(
+        video_ids, dst_dir, wait_between=wait_between,
+        start_time=start_time, duration=duration, end_time=end_time,
+        ignore_existing=ignore_existing, num_retries=num_retries,
+        quiet=quiet
     )
+
+    # Add output file path and channel URL to video metadata.
+    num_successful_downloads = 0
+    for video, dst_path in zip(videos, dst_paths):
+        video["channel_url"] = videos_page_url
+        video["path"] = dst_path
+        if dst_path is not None:
+            num_successful_downloads += 1
+
     logging.info(
         f"Successfully downloaded audio from {num_successful_downloads} of "
-        f"{len(metadata)} videos for URL {videos_page_url}"
+        f"{len(videos)} videos for URL {videos_page_url}"
     )
-    return metadata
+    return videos
 
 
 def download_channels(urls, dst_dir, *args, **kwargs):
@@ -424,13 +418,13 @@ def download_channels(urls, dst_dir, *args, **kwargs):
         )
     thread_pool.shutdown()
 
-    metadata = [video for future in futures for video in future.result()]
+    videos = [video for future in futures for video in future.result()]
 
     num_successful_downloads = len(
-        [video for video in metadata if video["path"] is not None]
+        [_ for video in videos if video["path"] is not None]
     )
     logging.info(
         f"Successfully downloaded audio from {num_successful_downloads} of "
-        f"{len(metadata)} total videos"
+        f"{len(videos)} total videos"
     )
-    return metadata
+    return videos
