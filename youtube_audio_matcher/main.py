@@ -1,8 +1,11 @@
 import asyncio
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from datetime import datetime
+import logging
 import multiprocessing
+import os
 import pathlib
+import sys
 import threading
 import time
 
@@ -44,7 +47,7 @@ async def produce_videos(urls, queue):
 async def dl_video(video, loop, executor, dst_dir, queue):
     fpath = await loop.run_in_executor(
         executor, yam.download.download_video_mp3, video["id"], dst_dir,
-        0, None, None, True, 3, True
+        0, None, None, True, 3, False
     )
     video["path"] = fpath
     await queue.put(video)
@@ -59,6 +62,7 @@ async def dl_videos(in_queue, out_queue, loop, executor, dst_dir):
         task = loop.create_task(dl_video(video, loop, executor, dst_dir, out_queue))
         tasks.append(task)
     await asyncio.wait(tasks)
+    #await asyncio.gather(*tasks)
     await out_queue.put(None)
 
 def cpu_func(*args, **kwargs):
@@ -69,11 +73,14 @@ def cpu_func(*args, **kwargs):
     return [1, 2, 3], "abcdefg"
 
 async def fp_video(video, out_queue, loop, executor):
+    func = yam.audio.fingerprint_from_file
+    logging.info(f"Fingerprinting {video['id']}")
     hashes, filehash = await loop.run_in_executor(
-        executor, yam.audio.fingerprint_from_file, video["path"]
+        executor, func, video["path"]
     )
     video["fingerprint"] = hashes
     video["filehash"] = filehash
+    logging.info(f"{video['id']}: {len(hashes)}")
     await out_queue.put(video)
 
 async def fingerprint_videos(in_queue, out_queue, loop, executor):
@@ -91,6 +98,7 @@ async def fingerprint_videos(in_queue, out_queue, loop, executor):
         else:
             await out_queue.put(video)
     await asyncio.wait(tasks)
+    #await asyncio.gather(*tasks)
     await out_queue.put(None)
 
 def main():
@@ -116,12 +124,21 @@ def main():
 
     end_t = time.time()
     print(f"{end_t - start_t}")
-    print(dl_queue)
-    print(fp_queue)
-    print(match_queue)
+    tpe.shutdown()
+    ppe.shutdown()
+    loop.close()
+    #print(dl_queue)
+    #print(fp_queue)
+    #print(match_queue)
     #breakpoint()
 
 if __name__ == "__main__":
-    # Needed to prevent deadlock with loop.run_in_executor and asyncio. Why?
-    #multiprocessing.set_start_method("spawn")
-    main()
+    log_format = "[%(levelname)s] %(message)s"
+    log_level = logging.INFO
+    logging.basicConfig(format=log_format, level=log_level)
+    try:
+        main()
+    except Exception as e:
+        print(str(e))
+    finally:
+        os.system("stty sane")
