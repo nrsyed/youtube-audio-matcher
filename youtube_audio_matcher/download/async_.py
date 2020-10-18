@@ -37,7 +37,7 @@ async def async_video_metadata_from_urls(
     """
     TODO
     """
-    tasks = [get_source(url, init_wait_time, scroll_wait_time) for url in urls]
+    tasks = [async_get_source(url, init_wait_time, scroll_wait_time) for url in urls]
     for url, task in zip(urls, asyncio.as_completed(tasks)):
         source = await task
         videos = video_metadata_from_page_source(
