@@ -89,23 +89,6 @@ def main():
         args.dst_dir = pathlib.Path(".")
     dst_dir = args.dst_dir.expanduser().resolve()
 
-    """
-    download_func_kwargs = {
-        "num_retries": args.num_retries if args.num_retries >= 0 else None,
-        "exclude_longer_than": args.exclude_longer_than,
-        "exclude_shorter_than": args.exclude_shorter_than,
-        "ignore_existing": args.ignore_existing,
-        "start_time": args.start_time,
-        "duration": args.duration,
-        "end_time": args.end_time,
-        "quiet": args.quiet,
-    }
-
-    youtube_audio_matcher.download.download_channels(
-        args.url, dst_dir, **download_func_kwargs
-    )
-    """
-
     video_metadata_from_urls_kwargs = {
         "exclude_longer_than": args.exclude_longer_than,
         "exclude_shorter_than": args.exclude_shorter_than,
@@ -120,7 +103,7 @@ def main():
         "quiet": args.quiet,
     }
 
-    youtube_audio_matcher.download.download_channels(
+    youtube_audio_matcher.download.async_download_channels(
         args.url, dst_dir,
         video_metadata_from_urls_kwargs=video_metadata_from_urls_kwargs,
         download_video_mp3s_kwargs=download_video_mp3s_kwargs

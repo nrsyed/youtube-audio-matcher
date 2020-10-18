@@ -1,18 +1,12 @@
-import asyncio
-from concurrent.futures import ThreadPoolExecutor
-import functools
 import logging
 import math
 import os
 import re
-import time
 
 import bs4
-import selenium.webdriver
 import youtube_dl
 
 
-#common
 def get_videos_page_url(url):
     """
     Get a valid videos page URL from a YouTube channel/user URL. See
@@ -52,27 +46,6 @@ def get_videos_page_url(url):
     return None
 
 
-async def get_source(url, init_wait_time=1, scroll_wait_time=1):
-    try:
-        driver = selenium.webdriver.Chrome()
-        driver.get(url)
-        await asyncio.sleep(init_wait_time)
-
-        source = None
-        scroll_by = 5000
-        while source != driver.page_source:
-            source = driver.page_source
-            driver.execute_script(f"window.scrollBy(0, {scroll_by});")
-            await asyncio.sleep(scroll_wait_time)
-        driver.quit()
-    except Exception as e:
-        logging.error(f"Error getting page source for URL {url}")
-        raise e
-    finally:
-        return source
-
-
-#common
 def video_metadata_from_page_source(
     source, exclude_longer_than=None, exclude_shorter_than=None
 ):
@@ -150,27 +123,6 @@ def video_metadata_from_page_source(
     return videos
 
 
-async def video_metadata_from_urls(
-    urls, download_queue, init_wait_time=1, scroll_wait_time=1,
-    exclude_longer_than=None, exclude_shorter_than=None
-):
-    """
-    TODO
-    """
-    tasks = [get_source(url, init_wait_time, scroll_wait_time) for url in urls]
-    for url, task in zip(urls, asyncio.as_completed(tasks)):
-        source = await task
-        videos = video_metadata_from_page_source(
-            source, exclude_longer_than=exclude_longer_than,
-            exclude_shorter_than=exclude_shorter_than
-        )
-        for video in videos:
-            video["url"] = url
-            await download_queue.put(video)
-    await download_queue.put(None)
-
-# common
-# Accept a dict instead of keyword args
 def download_video_mp3(
     video_id, dst_dir, start_time=None, duration=None, end_time=None,
     ignore_existing=False, num_retries=3, quiet=False
@@ -260,74 +212,3 @@ def download_video_mp3(
             finally:
                 tries += 1
     return dst_path
-
-
-async def _download_video_mp3(
-    video, dst_dir, loop, executor, out_queue=None, start_time=None,
-    duration=None, end_time=None, ignore_existing=False, num_retries=3,
-    quiet=False
-):
-    """
-    async wrapper for :func:`download_video_mp3`.
-    """
-    download_func_partial = functools.partial(
-        download_video_mp3, video["id"], dst_dir, start_time=start_time,
-        duration=duration, end_time=end_time, ignore_existing=ignore_existing,
-        num_retries=num_retries, quiet=quiet
-    )
-    fpath = await loop.run_in_executor(executor, download_func_partial)
-    video["fpath"] = fpath
-    if out_queue:
-        await out_queue.put(video)
-
-async def download_video_mp3s(
-    dst_dir, loop, executor, in_queue, out_queue=None,
-    start_time=None, duration=None, end_time=None, ignore_existing=False,
-    num_retries=3, quiet=False
-):
-    tasks = []
-    while True:
-        video = await in_queue.get()
-        if video is None:
-            break
-        task = loop.create_task(
-            _download_video_mp3(
-                video, dst_dir, loop, executor, out_queue=out_queue,
-                start_time=start_time, duration=duration, end_time=end_time,
-                ignore_existing=ignore_existing, num_retries=num_retries,
-                quiet=quiet
-            )
-        )
-        tasks.append(task)
-    await asyncio.wait(tasks)
-    if out_queue is not None:
-        out_queue.put(None)
-
-
-def download_channels(
-    urls, dst_dir, loop=None, executor=None, out_queue=None,
-    video_metadata_from_urls_kwargs=None, download_video_mp3s_kwargs=None
-):
-    urls = [get_videos_page_url(url) for url in urls]
-
-    if loop is None:
-        loop = asyncio.get_event_loop()
-    if executor is None:
-        executor = ThreadPoolExecutor()
-    if video_metadata_from_urls_kwargs is None:
-        video_metadata_from_urls_kwargs = dict()
-    if download_video_mp3s_kwargs is None:
-        download_video_mp3s_kwargs = dict()
-
-    download_queue = asyncio.Queue()
-
-    get_videos_task = video_metadata_from_urls(
-        urls, download_queue, **video_metadata_from_urls_kwargs
-    )
-
-    download_task = download_video_mp3s(
-        dst_dir, loop, executor, download_queue, out_queue=out_queue,
-        **download_video_mp3s_kwargs
-    )
-
-    loop.run_until_complete(asyncio.gather(get_videos_task, download_task))
