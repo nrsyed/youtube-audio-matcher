@@ -1,89 +1,58 @@
 import asyncio
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
-from datetime import datetime
+import functools
 import logging
 import multiprocessing
 import os
-import pathlib
-import sys
-import threading
-import time
 
-import bs4
-import selenium.webdriver
 import youtube_audio_matcher as yam
 
 
-async def async_get_source(url, init_wait_time=1, scroll_wait_time=1):
-    driver = selenium.webdriver.Chrome()
-    driver.get(url)
-    await asyncio.sleep(init_wait_time)
+async def _fingerprint_audio(video, loop, executor, out_queue=None, **kwargs):
+    """
+    Helper function for :func:`fingerprint_audio`. Fingerprints an audio file,
+    adds the fingerprints (as a list) and file MD5 hash to the video metadata
+    dict, and adds it to an output queue (if provided).
 
-    source = None
-    scroll_by = 5000
-    while source != driver.page_source:
-        source = driver.page_source
-        driver.execute_script(f"window.scrollBy(0, {scroll_by});")
-        await asyncio.sleep(scroll_wait_time)
-    driver.quit()
-    return source
+    Args:
+        video (dict): Dict corresponding to a video. Must contain a ``path``
+            key containing the path to the downloaded audio file (or ``None``)
+            if the download wasn't successful and the file doesn't exist.
+        loop (asyncio.BaseEventLoop): `asyncio` EventLoop.
+        executor (concurrent.futures.Executor): ``concurrent.futures``
+            ThreadPoolExecutor or ProcessPoolExecutor in which the audio file
+            will be processed.
+        out_queue (asyncio.queues.Queue): Output queue to which video metadata
+            will be pushed.
+        kwargs: Keyword arguments for
+            :func:`youtube_audio_matcher.audio.fingerprint_from_file`.
 
-async def async_get_metadata(url):
-    source = await async_get_source(url)
-    videos = yam.download.get_videos_page_metadata(
-        source, exclude_shorter_than=12
-    )
-    for video in videos:
-        video["url"] = url
-    return videos
+    Returns:
+        dict: video
+            Dict representing metadata for the fingerprinted video.
+    """
+    video["filehash"] = None
+    video["fingerprint"] = None
 
-async def produce_videos(urls, queue):
-    for f in asyncio.as_completed([async_get_metadata(url) for url in urls]):
-        videos = await f
-        for video in videos:
-            await queue.put(video)
-    await queue.put(None)
+    if video["path"]:
+        # Create function partial with keyword args for fingerprint_from_file
+        # because loop.run_in_executor only takes function *args, not **kwargs.
+        fingerprint_from_file_partial = functools.partial(
+            yam.audio.fingerprint_from_file, video["path"], **kwargs
+        )
 
-async def dl_video(video, loop, executor, dst_dir, queue):
-    fpath = await loop.run_in_executor(
-        executor, yam.download.download_video_mp3, video["id"], dst_dir,
-        0, None, None, True, 3, False
-    )
-    video["path"] = fpath
-    await queue.put(video)
+        hashes, filehash = await loop.run_in_executor(
+            executor, fingerprint_from_file_partial
+        )
+        video["fingerprint"] = hashes
+        video["filehash"] = filehash
 
-async def dl_videos(in_queue, out_queue, loop, executor, dst_dir):
-    tasks = []
-    while True:
-        video = await in_queue.get()
-        if video is None:
-            break
+    if out_queue:
+        await out_queue.put(video)
+    return video
 
-        task = loop.create_task(dl_video(video, loop, executor, dst_dir, out_queue))
-        tasks.append(task)
-    await asyncio.wait(tasks)
-    #await asyncio.gather(*tasks)
-    await out_queue.put(None)
 
-def cpu_func(*args, **kwargs):
-    start_t = time.time()
-    x = 10
-    while time.time() - start_t < 10:
-        y = x * x
-    return [1, 2, 3], "abcdefg"
-
-async def fp_video(video, out_queue, loop, executor):
-    func = yam.audio.fingerprint_from_file
-    logging.info(f"Fingerprinting {video['id']}")
-    hashes, filehash = await loop.run_in_executor(
-        executor, func, video["path"]
-    )
-    video["fingerprint"] = hashes
-    video["filehash"] = filehash
-    logging.info(f"{video['id']}: {len(hashes)}")
-    await out_queue.put(video)
-
-async def fingerprint_videos(in_queue, out_queue, loop, executor):
+async def fingerprint_videos(loop, executor, in_queue, out_queue=None):
     tasks = []
     while True:
         video = await in_queue.get()
@@ -98,7 +67,6 @@ async def fingerprint_videos(in_queue, out_queue, loop, executor):
         else:
             await out_queue.put(video)
     await asyncio.wait(tasks)
-    #await asyncio.gather(*tasks)
     await out_queue.put(None)
 
 def main():
@@ -109,7 +77,6 @@ def main():
     urls = [yam.download.get_videos_page_url(url) for url in urls]
     dst_dir = "/home/najam/repos/youtube-audio-matcher/testdl"
 
-    start_t = time.time()
     loop = asyncio.get_event_loop()
     dl_queue = asyncio.Queue()
     fp_queue = asyncio.Queue()
@@ -122,8 +89,6 @@ def main():
     z = fingerprint_videos(fp_queue, match_queue, loop, ppe)
     loop.run_until_complete(asyncio.gather(x, y, z))
 
-    end_t = time.time()
-    print(f"{end_t - start_t}")
     tpe.shutdown()
     ppe.shutdown()
     loop.close()

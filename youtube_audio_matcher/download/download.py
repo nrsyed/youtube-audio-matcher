@@ -302,12 +302,13 @@ async def _download_video_mp3(
     video, dst_dir, loop, executor, out_queue=None, **kwargs
 ):
     """
-    Async wrapper for :func:`download_video_mp3 <download.download_video_mp3>`
-    and helper function for :func:`download_video_mp3s`. Downloads a
-    single video as an mp3, appends the filepath of the downloaded file to the
-    video metadata dict, and adds it to a queue (if provided).
+    Async wrapper for :func:`download_video_mp3` and helper function for
+    :func:`download_video_mp3s`. Downloads a single video as an mp3, appends
+    the filepath of the downloaded file to the video metadata dict, and adds it
+    to a queue (if provided).
 
     Args:
+    TODO
         kwargs: Keyword arguments for
             :func:`download_video_mp3 <download.download_video_mp3>`.
 
@@ -316,8 +317,7 @@ async def _download_video_mp3(
             Dict representing metadata for the downloaded video.
     """
     # Create function partial with keyword args for download_video_mp3
-    # because loop.run_in_executor only takes *args for the function, not
-    # **kwargs.
+    # because loop.run_in_executor only takes function *args, not **kwargs.
     download_video_mp3_partial = functools.partial(
         download_video_mp3, video["id"], dst_dir, **kwargs
     )
@@ -427,9 +427,11 @@ def download_channels(
     Returns:
         tuple: (get_videos_task, download_task)
             - get_videos_task (coroutine): Async coroutine that grabs videos
-                from ``urls`` and adds them to a download queue.
+                from ``urls`` and adds them to a download queue. See
+                :func:`video_metadata_from_urls`.
             - download_task (coroutine): Async coroutine that downloads videos
-                from the download queue populated by ``get_videos_task``.
+                from the download queue populated by ``get_videos_task``. See
+                :func:`download_video_mp3s`.
 
     .. note::
         This function should be called if the returned coroutines are to be
