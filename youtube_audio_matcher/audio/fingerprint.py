@@ -70,7 +70,8 @@ def get_spectrogram(
 
 
 def plot_spectrogram(
-    spectrogram, times, frequencies, title=None, ax=None, fig=None
+    spectrogram, times, frequencies, title=None, ax=None, fig=None,
+    show_xlabel=True
 ):
     """
     Plot the spectrogram of an audio signal.
@@ -88,6 +89,7 @@ def plot_spectrogram(
         fig (matplotlib.figure.Figure): Matplotlib figure handle for the figure
             containing `ax` (if any). Used for placing colormap scale beside
             plot. If `ax` is not provided, a new figure and axis are created.
+        show_xlabel (bool): Display x-axis label.
 
     Returns:
         tuple: (ax, fig)
@@ -117,10 +119,11 @@ def plot_spectrogram(
     if fig is not None:
         fig.colorbar(im, ax=ax)
 
-    ax.set_xlabel("Time (s)")
+    if show_xlabel:
+        ax.set_xlabel("Time (s)")
     ax.set_ylabel("Frequency (Hz)")
 
-    return ax, fig
+    return ax, fig, im
 
 
 def plot_peaks(times, frequencies, color="r", marker=".", ax=None):
@@ -162,6 +165,7 @@ def find_peaks_2d(
     Find peaks in a 2D array. See `Peak detection in a 2D array`_.
 
     Args:
+        x (np.ndarray): 2D array, e.g., spectrogram.
         filter_connectivity (int): neighborhood connectivity of the maximum
             filter (``1`` produces a diamond, ``2`` produces a square). See
             `scipy.ndimage.generate_binary_structure`_.
@@ -209,7 +213,7 @@ def find_peaks_2d(
 
 def hash_peaks(
     times, frequencies, fanout=1, min_time_delta=0, max_time_delta=100,
-    hashlen=20, time_bin_size=0.5, freq_bin_size=5
+    hash_length=20, time_bin_size=0.5, freq_bin_size=5
 ):
     """
     Hash the peaks of a spectrogram. For reference, see:
@@ -232,7 +236,7 @@ def hash_peaks(
         max_time_delta (float): Target zone maximum time offset (only generate
             hashes for adjacent peaks that occur up to `max_time_delta` after
             a given peak).
-        hashlen (int): Length to which the final hex hash string should be
+        hash_length (int): Length to which the final hex hash string should be
             truncated. A smaller hash length reduces memory usage but increases
             likelihood of collisions.
         time_bin_size (float): Number of seconds per time bin (used to
@@ -272,16 +276,18 @@ def hash_peaks(
                 hash_ = hashlib.sha1(
                     f"{f_bin}{f2_bin}{t_delta_bin}".encode("utf-8")
                 )
-                hashes.append((hash_.hexdigest()[:hashlen], t))
+                hashes.append((hash_.hexdigest()[:hash_length], t))
     return hashes
 
 
 def fingerprint_from_signal(
     samples, sample_rate=44100, win_size=4096, win_overlap_ratio=0.5,
     min_amplitude=10, fanout=10, min_time_delta=0, max_time_delta=100,
-    hashlen=20
+    hash_length=20
 ):
     """
+    TODO: add find_peaks_2d kwargs
+
     Fingerprint an audio signal by obtaining its spectrogram and returning
     its hashes.
 
@@ -300,7 +306,7 @@ def fingerprint_from_signal(
             (see :func:`hash_peaks`).
         max_time_delta (float): Target zone maximum time offset for hashes
             (see :func:`hash_peaks`).
-        hashlen (int): Length to which the hash string should be truncated
+        hash_length (int): Length to which the hash string should be truncated
             (see :func:`hash_peaks`).
 
     Returns:
@@ -321,7 +327,7 @@ def fingerprint_from_signal(
 
     hashes = hash_peaks(
         peak_times, peak_freqs, fanout=fanout, min_time_delta=min_time_delta,
-        max_time_delta=max_time_delta, hashlen=hashlen
+        max_time_delta=max_time_delta, hash_length=hash_length
     )
     return hashes
 
@@ -384,7 +390,7 @@ def _dev_test(fpath=None, samples=None, sample_rate=None):
 
     # Get and plot the spectrogram for the audio.
     spectrogram, t, freq = get_spectrogram(samples, sample_rate, 4096, 0.5)
-    ax, _ = plot_spectrogram(spectrogram, t, freq)
+    ax, _, _ = plot_spectrogram(spectrogram, t, freq)
 
     # Find peaks in the spectrogram ignoring any with an amplitude < 10 dB.
     # Peaks is a boolean array of the same shape as ``spectrogram`` where
