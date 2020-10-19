@@ -5,7 +5,7 @@ import pathlib
 import youtube_audio_matcher.download
 
 
-def main():
+def get_parser():
     parser = argparse.ArgumentParser(
         description="""Efficiently and quickly download the audio from all
             videos on one or more YouTube channels, filter based on video
@@ -80,6 +80,12 @@ def main():
         "-s", "--silent", action="store_true",
         help="Suppress terminal output for this program"
     )
+
+    return parser
+
+
+def main():
+    parser = get_parser()
     args = parser.parse_args()
 
     log_level = logging.INFO

@@ -397,7 +397,8 @@ def download_channels(
     Download all videos from one or more YouTube channels/users subject to the
     specified criteria.
 
-    TODO: update this docstring
+    TODO: update docstring
+
     ``exclude_longer_than`` and ``exclude_shorter_than`` DO NOT truncate MP3s;
     they prevent them from being downloaded at all (see
     :func:`video_metadata_from_source`). To truncate MP3s to only the desired
