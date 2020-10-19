@@ -49,7 +49,15 @@ async def async_video_metadata_from_urls(
             :func:`async_get_source`.
         video_metadata_from_source_kwargs (dict): Dict of keyword args for
             :func:`video_metadata_from_source <download.video_metadata_from_source>`
+
+    Returns:
+        List[dict]: videos
+            List of dicts of video metadata, where each dict represents a
+            video processed by this coroutine.
     """
+    # All videos produced by this coroutine (returned after completion).
+    all_videos = []
+
     tasks = [
         async_get_source(url, **get_source_kwargs) for url in urls
     ]
@@ -60,8 +68,10 @@ async def async_video_metadata_from_urls(
         )
         for video in videos:
             video["url"] = url
+            all_videos.append(video)
             await download_queue.put(video)
     await download_queue.put(None)
+    return all_videos
 
 
 async def _async_download_video_mp3(
@@ -76,6 +86,10 @@ async def _async_download_video_mp3(
     Args:
         kwargs: Keyword arguments for
             :func:`download_video_mp3 <download.download_video_mp3>`.
+
+    Returns:
+        dict: video
+            Dict representing metadata for the downloaded video.
     """
     # Create function partial with keyword args for download_video_mp3
     # because loop.run_in_executor only takes *args for the function, not
@@ -87,8 +101,10 @@ async def _async_download_video_mp3(
 
     # Add filepath of downloaded file to video metadata dict.
     video["fpath"] = fpath
+
     if out_queue:
         await out_queue.put(video)
+    return video
 
 
 async def async_download_video_mp3s(
@@ -117,6 +133,11 @@ async def async_download_video_mp3s(
             it has been downloaded.
         kwargs: Keyword arguments for
             :func:`download_video_mp3 <download.download_video_mp3>`.
+
+    Returns:
+        List(dict): videos
+            List of dicts of video metadata, where each dict represents a
+            video processed by this coroutine.
     """
     tasks = []
     while True:
@@ -130,10 +151,12 @@ async def async_download_video_mp3s(
             )
         )
         tasks.append(task)
-
     await asyncio.wait(tasks)
+
     if out_queue is not None:
         out_queue.put(None)
+
+    return [task.result() for task in tasks]
 
 
 def async_download_channels(
@@ -159,6 +182,11 @@ def async_download_channels(
             :func:`async_video_data_from_urls`.
         download_video_mp3_kwargs (dict): Keyword args for
             :func:`download_video_mp3 <download.download_video_mp3>`.
+
+    Returns:
+        List(dict): videos
+            List of dicts of video metadata, where each dict represents a
+            downloaded video.
     """
     urls = [get_videos_page_url(url) for url in urls]
 
@@ -183,4 +211,8 @@ def async_download_channels(
         **download_video_mp3_kwargs
     )
 
-    loop.run_until_complete(asyncio.gather(get_videos_task, download_task))
+    task_group = asyncio.gather(get_videos_task, download_task)
+    loop.run_until_complete(task_group)
+
+    videos = task_group.result()[1]
+    return videos
