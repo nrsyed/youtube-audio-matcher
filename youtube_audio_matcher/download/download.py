@@ -390,7 +390,7 @@ async def download_video_mp3s(
 
 
 def download_channels(
-    urls, dst_dir, loop=None, executor=None, out_queue=None,
+    loop, urls, dst_dir, executor=None, out_queue=None,
     video_metadata_from_urls_kwargs=None, download_video_mp3_kwargs=None
 ):
     """
@@ -408,10 +408,10 @@ def download_channels(
     cause the video to not be downloaded at all.
 
     Args:
+        loop (asyncio.BaseEventLoop): `asyncio` EventLoop (e.g., as returned by
+            ``asyncio.get_event_loop()``).
         urls (List[str]): List of YouTube channel/user URLs.
         dst_dir (str): Download destination directory.
-        loop (asyncio.BaseEventLoop): `asyncio` EventLoop (e.g., as returned by
-            ``asyncio.get_event_loop()``.
         executor (concurrent.futures.Executor): ``concurrent.futures``
             ThreadPoolExecutor or ProcessPoolExecutor in which each download
             will be run.
@@ -425,23 +425,21 @@ def download_channels(
             :func:`download_video_mp3 <download.download_video_mp3>`.
 
     Returns:
-        A list of dicts containing the video id, video title, (original) video
-        duration, channel/user videos page URL from which the video was
-        downloaded, and path to the downloaded MP3 file on the local machine
-        (path will be ``None`` if download was unsuccessful)::
+        tuple: (get_videos_task, download_task)
+            - get_videos_task (coroutine): Async coroutine that grabs videos
+                from ``urls`` and adds them to a download queue.
+            - download_task (coroutine): Async coroutine that downloads videos
+                from the download queue populated by ``get_videos_task``.
 
-            {
-                "id": str,
-                "title": str,
-                "duration": int,
-                "channel_url": str,
-                "path": str
-            }
+    .. note::
+        This function should be called if the returned coroutines are to be
+        run/managed directly as part of an existing event loop (e.g., if the
+        videos are to be processed after download). To simply download videos
+        and return the list of downloaded videos, :func:`run_download_channels`
+        should be used instead.
     """
     urls = [get_videos_page_url(url) for url in urls]
 
-    if loop is None:
-        loop = asyncio.get_event_loop()
     if executor is None:
         executor = ThreadPoolExecutor()
 
@@ -461,6 +459,43 @@ def download_channels(
         **download_video_mp3_kwargs
     )
 
+    return get_videos_task, download_task
+
+
+def run_download_channels(*args, **kwargs):
+    """
+    Wrapper function for :func:`download_channels`. Creates an asyncio event
+    loop, downloads videos, and returns the list of videos.
+
+    Args:
+        args: See :func:`download_channels`.
+        kwargs: See :func:`download_channels`.
+
+    Returns:
+        A list of dicts containing the video id, video title, (original) video
+        duration, channel/user videos page URL from which the video was
+        downloaded, and path to the downloaded MP3 file on the local machine
+        (path will be ``None`` if download was unsuccessful)::
+
+            {
+                "id": str,
+                "title": str,
+                "duration": int,
+                "channel_url": str,
+                "path": str
+            }
+
+    .. note::
+        If the video download coroutines need to be managed directly via an
+        existing event loop and/or to add downloaded videos to a process queue
+        (e.g., for fingerprinting videos after download),
+        :func:`download_channels` should be called directly. To simply run the
+        coroutines and download videos without creating an external event loop,
+        this function can be called instead.
+    """
+    loop = asyncio.get_event_loop()
+
+    get_videos_task, download_task = download_channels(loop, *args, **kwargs)
     task_group = asyncio.gather(get_videos_task, download_task)
     loop.run_until_complete(task_group)
 
