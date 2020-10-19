@@ -14,7 +14,7 @@ def get_parser():
     parser.add_argument(
         "url", type=str, nargs="+",
         help="One or more channel/user URLs (e.g., "
-        "www.youtube.com/c/YouTubeCreators). All options apply to all URLs."
+        "www.youtube.com/c/YouTubeCreators). All options apply to all URLs"
     )
     parser.add_argument(
         "-d", "--dst-dir", type=pathlib.Path, metavar="<path>",
@@ -26,15 +26,15 @@ def get_parser():
         help="Do not download files that already exist"
     )
     parser.add_argument(
+        "-p", "--page-load-wait", type=float, default=1, metavar="<seconds>",
+        help="Time to wait (in seconds) to allow page to load on initial page "
+        "load and and after each page scroll"
+    )
+    parser.add_argument(
         "-r", "--retries", type=int, default=3, metavar="<num>",
         dest="num_retries",
         help="Number of times to re-attempt failed downloads (default: 3). "
         "Pass -1 to retry indefinitely until successful (not recommended)"
-    )
-    parser.add_argument(
-        "-w", "--page-load-wait", type=float, default=1, metavar="<seconds>",
-        help="Time to wait (in seconds) to allow page to load on initial page "
-        "load and and after each page scroll"
     )
     parser.add_argument(
         "-L", "--exclude-longer-than", type=float, metavar="<seconds>",
@@ -66,9 +66,8 @@ def get_parser():
     parser.add_argument(
         "-q", "--youtubedl-quiet", action="store_true", dest="quiet",
         help="Disable all youtube-dl and ffmpeg terminal output. This option "
-        "does NOT control the terminal output of this program "
-        "(youtube-audio-matcher); to set this program's output, use "
-        "--silent or --debug"
+        "does NOT control the terminal output of this program (use --silent "
+        "or --debug for this)"
     )
 
     _verbosity_args = parser.add_argument_group("verbosity options")
