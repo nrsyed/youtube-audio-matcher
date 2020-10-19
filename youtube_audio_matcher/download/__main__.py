@@ -32,6 +32,11 @@ def main():
         "Pass -1 to retry indefinitely until successful (not recommended)"
     )
     parser.add_argument(
+        "-w", "--page-load-wait", type=float, default=1, metavar="<seconds>",
+        help="Time to wait (in seconds) to allow page to load on initial page "
+        "load and and after each page scroll"
+    )
+    parser.add_argument(
         "-L", "--exclude-longer-than", type=float, metavar="<seconds>",
         help="Do not download/convert videos longer than specified duration. "
         "This does NOT truncate videos to a maximum desired length; to "
@@ -90,8 +95,13 @@ def main():
     dst_dir = args.dst_dir.expanduser().resolve()
 
     video_metadata_from_urls_kwargs = {
-        "exclude_longer_than": args.exclude_longer_than,
-        "exclude_shorter_than": args.exclude_shorter_than,
+        "video_metadata_from_source_kwargs": {
+            "exclude_longer_than": args.exclude_longer_than,
+            "exclude_shorter_than": args.exclude_shorter_than,
+        },
+        "get_source_kwargs": {
+            "page_load_wait": args.page_load_wait,
+        }
     }
 
     download_video_mp3_kwargs = {

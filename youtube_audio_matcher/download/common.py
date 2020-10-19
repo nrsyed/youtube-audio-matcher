@@ -46,7 +46,7 @@ def get_videos_page_url(url):
     return None
 
 
-def video_metadata_from_page_source(
+def video_metadata_from_source(
     source, exclude_longer_than=None, exclude_shorter_than=None
 ):
     """
@@ -134,13 +134,10 @@ def download_video_mp3(
         video_id (str): The video id, i.e., www.youtube.com/watch?v=<video_id>
         dst_dir (str): Path to destination directory for downloaded file.
         start_time (float): Start time (in seconds) of the portion of the
-            video to extract. Zero (beginning of video) if omitted.
-        duration (float): Duration of video (in seconds) to extract. Whole
-            video extracted if omitted.
+            video to extract. ``0`` (beginning of video) if omitted.
+        duration (float): Duration of video (in seconds) to extract.
         end_time (float): End time (in seconds) of the portion of the video to
-            extract. Note that `duration` takes precedence over `end_time` (as
-            defined in ffmpeg usage) if both are provided. Whole video is
-            extracted if `duration` and `end_time` are both omitted.
+            extract.
         ignore_existing (bool): Skip existing files.
         num_retries (int): Number of times to re-attempt failed download. Pass
             ``num_retries=None`` to retry indefinitely.
@@ -148,6 +145,15 @@ def download_video_mp3(
 
     Returns:
         Path (str) to output file if download successful, else None.
+
+    .. note::
+        ``duration`` takes precedence over ``end_time`` (as defined in
+        `ffmpeg usage`_) if both are provided. If both ``duration`` and
+        ``end_time`` are omitted, the whole video is extracted (beginning
+        at ``start_time``).
+
+    .. _`ffmpeg usage`:
+        https://ffmpeg.org/ffmpeg.html#Main-options
     """
     # youtube_dl output file template/path.
     out_template = os.path.join(dst_dir, f"{video_id}.%(ext)s")
