@@ -67,7 +67,7 @@ async def async_video_metadata_from_urls(
             source, **video_metadata_from_source_kwargs
         )
         for video in videos:
-            video["url"] = url
+            video["channel_url"] = url
             all_videos.append(video)
             await download_queue.put(video)
     await download_queue.put(None)
@@ -100,7 +100,7 @@ async def _async_download_video_mp3(
     fpath = await loop.run_in_executor(executor, download_video_mp3_partial)
 
     # Add filepath of downloaded file to video metadata dict.
-    video["fpath"] = fpath
+    video["path"] = fpath
 
     if out_queue:
         await out_queue.put(video)
@@ -117,6 +117,10 @@ async def async_download_video_mp3s(
     each video metadata dict from the download (input) queue, whose value is
     the filepath of the downloaded file (or ``None`` if the download was
     unsuccessful).
+
+    TODO:
+    ``youtube_dl.YoutubeDL.download``, which accepts a list of video URLs (but
+    is not multithreaded and downloads videos sequentially).
 
     Args:
         dst_dir (str): Download destination directory.
@@ -164,7 +168,18 @@ def async_download_channels(
     video_metadata_from_urls_kwargs=None, download_video_mp3_kwargs=None
 ):
     """
-    Async version of :func:`download_channels <download.download_channels>`.
+    Download all videos from one or more YouTube channels/users subject to the
+    specified criteria.
+
+    TODO: update this docstring
+    ``exclude_longer_than`` and ``exclude_shorter_than`` DO NOT truncate MP3s;
+    they prevent them from being downloaded at all (see
+    :func:`video_metadata_from_source`). To truncate MP3s to only the desired
+    segment, provide ``start_time``, ``duration``, and/or ``end_time`` in
+    ``download_video_mp3_kwargs`` (see :func:`download_video_mp3`). For
+    example, if a video is 3000 seconds long and the first 500 seconds are
+    desired, use `duration=500`; providing ``exclude_longer_than=500`` would
+    cause the video to not be downloaded at all.
 
     Args:
         urls (List[str]): List of YouTube channel/user URLs.
@@ -184,9 +199,18 @@ def async_download_channels(
             :func:`download_video_mp3 <download.download_video_mp3>`.
 
     Returns:
-        List(dict): videos
-            List of dicts of video metadata, where each dict represents a
-            downloaded video.
+        A list of dicts containing the video id, video title, (original) video
+        duration, channel/user videos page URL from which the video was
+        downloaded, and path to the downloaded MP3 file on the local machine
+        (path will be ``None`` if download was unsuccessful)::
+
+            {
+                "id": str,
+                "title": str,
+                "duration": int,
+                "channel_url": str,
+                "path": str
+            }
     """
     urls = [get_videos_page_url(url) for url in urls]
 
@@ -215,4 +239,13 @@ def async_download_channels(
     loop.run_until_complete(task_group)
 
     videos = task_group.result()[1]
+
+    num_successful_downloads = len(
+        [video for video in videos if video["path"] is not None]
+    )
+    logging.info(
+        f"Successfully downloaded audio from {num_successful_downloads} of "
+        f"{len(videos)} total videos"
+    )
+
     return videos
