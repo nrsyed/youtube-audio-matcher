@@ -1,63 +1,108 @@
-import pathlib
+import asyncio
+from concurrent.futures import ProcessPoolExecutor
+import functools
+import logging
+import multiprocessing
+import os
 
 import youtube_audio_matcher as yam
 
 
-def add_song_to_database(db, fpath, song_title=None, fingerprint_kwargs=None):
+async def _fingerprint_song(song, loop, executor, out_queue=None, **kwargs):
     """
+    Helper function for :func:`fingerprint_songs`. Fingerprints an audio file,
+    adds the fingerprints (as a list) and file SHA1 hash to the audio file
+    metadata dict, and adds it to an output queue (if provided).
+
     Args:
-        db (youtube_audio_matcher.database.Database): Database class instance.
-        fpath (str): Path to audio file.
-        song_title (str): Audio file song title. If None, the file stem will
-            be used as the title.
-        fingerprint_kwargs (dict): Dict containing keyword argument/value
-            pairs for :func:`youtube_audio_matcher.audio.fingerprint`.
+        song (dict): Dict corresponding to an audio file. Must contain a
+            ``path`` key containing the path to the downloaded audio file
+            (or ``None``) if the download wasn't successful and the file
+            doesn't exist.
+        loop (asyncio.BaseEventLoop): `asyncio` EventLoop.
+        executor (concurrent.futures.Executor): ``concurrent.futures``
+            ThreadPoolExecutor or ProcessPoolExecutor in which the audio file
+            will be processed.
+        out_queue (asyncio.queues.Queue): Output queue to which video metadata
+            will be pushed.
+        kwargs: Keyword arguments for
+            :func:`youtube_audio_matcher.audio.fingerprint_from_file`.
 
     Returns:
-        int: num_fingerprints
-            Total number of fingerprints extracted from the audio file and
-            added to the database.
+        dict: song
+            Dict representing metadata for the fingerprinted audio file.
     """
-    fpath = pathlib.Path(fpath).expanduser().resolve()
-    channels, sample_rate, filehash = yam.audio.read_file(str(fpath))
+    song["filehash"] = None
+    song["fingerprint"] = None
 
-    if not song_title:
-        song_title = str(fpath.stem)
-
-    # Add song to database Song table and get the id of the newly added song.
-    song_id = db.add_song(
-        {
-            "duration": len(channels[0]) / sample_rate,
-            "filepath": str(fpath),
-            "filehash": filehash,
-            "title": song_title,
-        }
-    )
-
-    # TODO: handle if song already exists in DB. Update its fingerprints?
-
-    # Obtain fingerprints for each channel in the audio file and add them to
-    # the database Fingerprint table.
-    if fingerprint_kwargs is None:
-        fingerprint_kwargs = dict()
-
-    num_fingerprints = 0
-    for channel in channels:
-        samples = channel
-        fingerprints = yam.audio.fingerprint(
-            samples, sample_rate, **fingerprint_kwargs
+    if song["path"]:
+        # Create function partial with keyword args for fingerprint_from_file
+        # because loop.run_in_executor only takes function *args, not **kwargs.
+        fingerprint_from_file_partial = functools.partial(
+            yam.audio.fingerprint_from_file, song["path"], **kwargs
         )
-        num_fingerprints += len(fingerprints)
 
-        # Construct list of fingerprints and bulk insert into the database.
-        fingerprint_db_entries = []
-        for fp_hash, offset in fingerprints:
-            fingerprint_db_entries.append(
-                {
-                    "song_id": song_id,
-                    "hash": fp_hash,
-                    "offset": offset,
-                }
+        hashes, filehash = await loop.run_in_executor(
+            executor, fingerprint_from_file_partial
+        )
+        song["fingerprint"] = hashes
+        song["filehash"] = filehash
+
+    if out_queue:
+        await out_queue.put(song)
+    return song
+
+
+async def fingerprint_songs(
+    loop, executor, in_queue, out_queue=None, **kwargs
+):
+    """
+    Args:
+        loop (asyncio.BaseEventLoop): `asyncio` EventLoop.
+        executor (concurrent.futures.Executor): ``concurrent.futures``
+            ThreadPoolExecutor or ProcessPoolExecutor in which the audio file
+            will be processed.
+        in_queue (asyncio.queues.Queue): Process queue from which audio
+            metadata is fetched for each song to be processed.
+        out_queue (asyncio.queues.Queue): Output queue to which audio metadata
+            will be pushed.
+        kwargs: Keyword arguments for
+            :func:`youtube_audio_matcher.audio.fingerprint_from_file`.
+
+    Returns:
+        dict: song
+            Dict representing metadata for the fingerprinted audio file.
+    """
+    tasks = []
+    while True:
+        song = await in_queue.get()
+        if song is None:
+            break
+
+        task = loop.create_task(
+            _fingerprint_song(
+                song, loop, executor, out_queue=out_queue, **kwargs
             )
-            db.add_fingerprints(fingerprint_db_entries)
-    return num_fingerprints
+        )
+        tasks.append(task)
+    await asyncio.wait(tasks)
+
+    if out_queue is not None:
+        out_queue.put(None)
+
+    return [task.result() for task in tasks]
+
+
+def main():
+    raise NotImplementedError
+
+if __name__ == "__main__":
+    log_format = "[%(levelname)s] %(message)s"
+    log_level = logging.INFO
+    logging.basicConfig(format=log_format, level=log_level)
+    try:
+        main()
+    except Exception as e:
+        raise e
+    finally:
+        os.system("stty sane")

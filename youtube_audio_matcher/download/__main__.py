@@ -5,7 +5,7 @@ import pathlib
 import youtube_audio_matcher.download
 
 
-def main():
+def get_parser():
     parser = argparse.ArgumentParser(
         description="""Efficiently and quickly download the audio from all
             videos on one or more YouTube channels, filter based on video
@@ -30,6 +30,11 @@ def main():
         dest="num_retries",
         help="Number of times to re-attempt failed downloads (default: 3). "
         "Pass -1 to retry indefinitely until successful (not recommended)"
+    )
+    parser.add_argument(
+        "-w", "--page-load-wait", type=float, default=1, metavar="<seconds>",
+        help="Time to wait (in seconds) to allow page to load on initial page "
+        "load and and after each page scroll"
     )
     parser.add_argument(
         "-L", "--exclude-longer-than", type=float, metavar="<seconds>",
@@ -75,6 +80,12 @@ def main():
         "-s", "--silent", action="store_true",
         help="Suppress terminal output for this program"
     )
+
+    return parser
+
+
+def main():
+    parser = get_parser()
     args = parser.parse_args()
 
     log_level = logging.INFO
@@ -89,10 +100,18 @@ def main():
         args.dst_dir = pathlib.Path(".")
     dst_dir = args.dst_dir.expanduser().resolve()
 
-    download_func_kwargs = {
+    video_metadata_from_urls_kwargs = {
+        "video_metadata_from_source_kwargs": {
+            "exclude_longer_than": args.exclude_longer_than,
+            "exclude_shorter_than": args.exclude_shorter_than,
+        },
+        "get_source_kwargs": {
+            "page_load_wait": args.page_load_wait,
+        }
+    }
+
+    download_video_mp3_kwargs = {
         "num_retries": args.num_retries if args.num_retries >= 0 else None,
-        "exclude_longer_than": args.exclude_longer_than,
-        "exclude_shorter_than": args.exclude_shorter_than,
         "ignore_existing": args.ignore_existing,
         "start_time": args.start_time,
         "duration": args.duration,
@@ -100,6 +119,8 @@ def main():
         "quiet": args.quiet,
     }
 
-    youtube_audio_matcher.download.download_channels(
-        args.url, dst_dir, **download_func_kwargs
+    youtube_audio_matcher.download.run_download_channels(
+        args.url, dst_dir,
+        video_metadata_from_urls_kwargs=video_metadata_from_urls_kwargs,
+        download_video_mp3_kwargs=download_video_mp3_kwargs
     )
