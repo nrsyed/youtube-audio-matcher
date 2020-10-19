@@ -113,7 +113,7 @@ def main():
         "quiet": args.quiet,
     }
 
-    youtube_audio_matcher.download.async_download_channels(
+    youtube_audio_matcher.download.download_channels(
         args.url, dst_dir,
         video_metadata_from_urls_kwargs=video_metadata_from_urls_kwargs,
         download_video_mp3_kwargs=download_video_mp3_kwargs

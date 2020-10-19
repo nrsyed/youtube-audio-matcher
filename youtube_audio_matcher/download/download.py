@@ -11,7 +11,6 @@ import selenium.webdriver
 import youtube_dl
 
 
-
 def get_videos_page_url(url):
     """
     Get a valid videos page URL from a YouTube channel/user URL. See
@@ -225,7 +224,7 @@ def download_video_mp3(
     return dst_path
 
 
-async def async_get_source(url, page_load_wait=1, scroll_by=5000):
+async def get_source(url, page_load_wait=1, scroll_by=5000):
     """
     Get source for the given URL by scrolling to the end of the page.
 
@@ -257,21 +256,21 @@ async def async_get_source(url, page_load_wait=1, scroll_by=5000):
         return source
 
 
-async def async_video_metadata_from_urls(
+async def video_metadata_from_urls(
     urls, download_queue, get_source_kwargs=None,
     video_metadata_from_source_kwargs=None
 ):
     """
     Asychronously get information on each video from the YouTube channels
     corresponding to the given YouTube URLs. This function acts as the producer
-    of a producer-consumer relationship with :func:`async_download_video_mp3s`.
+    of a producer-consumer relationship with :func:`download_video_mp3s`.
 
     Args:
         urls (List[str]): List of YouTube users/channels.
         download_queue (asyncio.queues.Queue): Queue to which video metadata
             for each video is added for download.
         get_source_kwargs (dict): Dict of keyword args for
-            :func:`async_get_source`.
+            :func:`get_source`.
         video_metadata_from_source_kwargs (dict): Dict of keyword args for
             :func:`video_metadata_from_source <download.video_metadata_from_source>`
 
@@ -284,7 +283,7 @@ async def async_video_metadata_from_urls(
     all_videos = []
 
     tasks = [
-        async_get_source(url, **get_source_kwargs) for url in urls
+        get_source(url, **get_source_kwargs) for url in urls
     ]
     for url, task in zip(urls, asyncio.as_completed(tasks)):
         source = await task
@@ -299,12 +298,12 @@ async def async_video_metadata_from_urls(
     return all_videos
 
 
-async def _async_download_video_mp3(
+async def _download_video_mp3(
     video, dst_dir, loop, executor, out_queue=None, **kwargs
 ):
     """
     Async wrapper for :func:`download_video_mp3 <download.download_video_mp3>`
-    and helper function for :func:`async_download_video_mp3s`. Downloads a
+    and helper function for :func:`download_video_mp3s`. Downloads a
     single video as an mp3, appends the filepath of the downloaded file to the
     video metadata dict, and adds it to a queue (if provided).
 
@@ -332,13 +331,13 @@ async def _async_download_video_mp3(
     return video
 
 
-async def async_download_video_mp3s(
+async def download_video_mp3s(
     dst_dir, loop, executor, in_queue, out_queue=None, **kwargs
 ):
     """
     Asynchronously download videos from a queue as they are received. This
     functions acts as the consumer of a producer-consumer relationship with
-    :func:`async_video_metadata_from_urls`. A ``path`` key is added to the
+    :func:`video_metadata_from_urls`. A ``path`` key is added to the
     each video metadata dict from the download (input) queue, whose value is
     the filepath of the downloaded file (or ``None`` if the download was
     unsuccessful).
@@ -377,7 +376,7 @@ async def async_download_video_mp3s(
             break
 
         task = loop.create_task(
-            _async_download_video_mp3(
+            _download_video_mp3(
                 video, dst_dir, loop, executor, out_queue=out_queue, **kwargs
             )
         )
@@ -390,7 +389,7 @@ async def async_download_video_mp3s(
     return [task.result() for task in tasks]
 
 
-def async_download_channels(
+def download_channels(
     urls, dst_dir, loop=None, executor=None, out_queue=None,
     video_metadata_from_urls_kwargs=None, download_video_mp3_kwargs=None
 ):
@@ -453,11 +452,11 @@ def async_download_channels(
 
     download_queue = asyncio.Queue()
 
-    get_videos_task = async_video_metadata_from_urls(
+    get_videos_task = video_metadata_from_urls(
         urls, download_queue, **video_metadata_from_urls_kwargs
     )
 
-    download_task = async_download_video_mp3s(
+    download_task = download_video_mp3s(
         dst_dir, loop, executor, download_queue, out_queue=out_queue,
         **download_video_mp3_kwargs
     )
