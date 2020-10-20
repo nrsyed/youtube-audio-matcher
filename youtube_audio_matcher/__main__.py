@@ -34,8 +34,6 @@ def get_parser():
     return parser
 
 
-def main():
+def cli():
     parser = get_parser()
     args = parser.parse_args()
-    # TODO
-    #raise NotImplementedError

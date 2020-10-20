@@ -5,7 +5,7 @@ import youtube_audio_matcher.download
 from ._argparsers import get_parser
 
 
-def main():
+def cli():
     parser = get_parser()
     args = parser.parse_args()
 
