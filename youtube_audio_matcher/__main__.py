@@ -28,13 +28,14 @@ def get_parser():
     )
 
     # TODO: add input <url/path>, log, and delete after download args.
+    # TODO: move verbose to bottom
+    # TODO: move database above fingerprint and above download
 
     return parser
 
 
 def main():
+    parser = get_parser()
+    args = parser.parse_args()
     # TODO
-    #parser = get_parser()
-    #args = parser.parse_args()
-    raise NotImplementedError
-    pass
+    #raise NotImplementedError
