@@ -129,7 +129,7 @@ def video_metadata_from_source(
 
 def download_video_mp3(
     video_id, dst_dir, start_time=None, duration=None, end_time=None,
-    ignore_existing=False, num_retries=3, quiet=False
+    ignore_existing=False, num_retries=3, youtubedl_verbose=False
 ):
     """
     Download a YouTube video as an mp3 using youtube-dl.
@@ -145,7 +145,7 @@ def download_video_mp3(
         ignore_existing (bool): Skip existing files.
         num_retries (int): Number of times to re-attempt failed download. Pass
             ``num_retries=None`` to retry indefinitely.
-        quiet (bool): Suppress youtube_dl/ffmpeg terminal output.
+        youtubedl_verbose (bool): Enable youtube_dl/ffmpeg terminal output.
 
     Returns:
         Path (str) to output file if download successful, else None.
@@ -183,8 +183,8 @@ def download_video_mp3(
             }
         ],
         "postprocessor_args": postprocessor_args,
-        "quiet": quiet,
-        "no_warnings": quiet,
+        "quiet": not youtubedl_verbose,
+        "no_warnings": not youtubedl_verbose,
     }
 
     dst_path = os.path.join(dst_dir, f"{video_id}.mp3")
