@@ -213,7 +213,7 @@ def find_peaks_2d(
 
 def hash_peaks(
     times, frequencies, fanout=1, min_time_delta=0, max_time_delta=100,
-    hash_length=20, time_bin_size=0.5, freq_bin_size=5
+    hash_length=20, time_bin_size=0.5, freq_bin_size=2
 ):
     """
     Hash the peaks of a spectrogram. For reference, see:

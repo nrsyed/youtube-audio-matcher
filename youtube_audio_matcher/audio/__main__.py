@@ -16,6 +16,7 @@ def get_parser():
     parser.add_argument(
         "filepath", type=pathlib.Path, help="Path to audio file"
     )
+    # TODO: rename to spectrogram_backend
     parser.add_argument(
         "--backend", type=str, choices=("scipy", "matplotlib"),
         default="scipy",
