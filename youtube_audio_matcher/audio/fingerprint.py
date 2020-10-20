@@ -212,10 +212,12 @@ def find_peaks_2d(
 
 
 def hash_peaks(
-    times, frequencies, fanout=1, min_time_delta=0, max_time_delta=100,
+    times, frequencies, fanout=10, min_time_delta=0, max_time_delta=100,
     hash_length=20, time_bin_size=0.5, freq_bin_size=2
 ):
     """
+    TODO: update terminology (time/frequency bins)
+
     Hash the peaks of a spectrogram. For reference, see:
 
     * `Audio Fingerprinting with Python and Numpy`_
@@ -280,11 +282,7 @@ def hash_peaks(
     return hashes
 
 
-def fingerprint_from_signal(
-    samples, sample_rate=44100, win_size=4096, win_overlap_ratio=0.5,
-    min_amplitude=10, fanout=10, min_time_delta=0, max_time_delta=100,
-    hash_length=20
-):
+def fingerprint_from_signal(samples, **kwargs):
     """
     TODO: add find_peaks_2d kwargs
 
@@ -294,30 +292,30 @@ def fingerprint_from_signal(
     Args:
         samples (np.ndarray): Array representing the audio signal.
         sample_rate (int): Audio signal sample rate (in Hz).
-        win_size (int): Number of samples per FFT window (see
-            :func:`get_spectrogram`).
-        win_overlap_ratio (float): Number of samples to overlap between windows
-            (see :func:`get_spectrogram`).
-        min_amplitude (float): Amplitude threshold (in dB) for spectrogram
-            peaks (see :func:`find_peaks_2d`).
-        fanout (int): Number of adjacent peaks to consider for generating
-            hashes (see :func:`hash_peaks`).
-        min_time_delta (float): Target zone minimum time offset for hashes
-            (see :func:`hash_peaks`).
-        max_time_delta (float): Target zone maximum time offset for hashes
-            (see :func:`hash_peaks`).
-        hash_length (int): Length to which the hash string should be truncated
-            (see :func:`hash_peaks`).
+        kwargs: Optional keyword args for :func:`get_spectrogram`,
+            :func:`find_peaks_2d`, and :func:`hash_peaks`.
 
     Returns:
         List[Tuple[str, float]]: hashes
             List of tuples where each tuple is a (hash, absolute_offset) pair.
             See :func:`hash_peaks`.
     """
-    spectrogram, t, freq = get_spectrogram(
-        samples, sample_rate, win_size, win_overlap_ratio
-    )
-    peaks = find_peaks_2d(spectrogram, min_amplitude=10)
+    get_spectrogram_keys = [
+        "sample_rate", "win_size", "win_overlap_ratio", "spectrogram_backend",
+    ]
+    get_spectrogram_kwargs = {
+        k: v for k, v in kwargs.items() if k in get_spectrogram_keys
+    }
+    spectrogram, t, freq = get_spectrogram(samples, **get_spectrogram_kwargs)
+
+    find_peaks_2d_keys = [
+        "filter_connectivity", "filter_dilation", "erosion_iterations",
+        "min_amplitude",
+    ]
+    find_peaks_2d_kwargs = {
+        k: v for k, v in kwargs.items() if k in find_peaks_2d_keys
+    }
+    peaks = find_peaks_2d(spectrogram, **find_peaks_2d_kwargs)
 
     peak_freq_idxs, peak_time_idxs = np.where(peaks)
 
@@ -325,10 +323,15 @@ def fingerprint_from_signal(
     peak_freqs = freq[peak_freq_idxs]
     peak_amplitudes = spectrogram[peaks]
 
-    hashes = hash_peaks(
-        peak_times, peak_freqs, fanout=fanout, min_time_delta=min_time_delta,
-        max_time_delta=max_time_delta, hash_length=hash_length
-    )
+    hash_peaks_keys = [
+        "fanout", "min_time_delta", "max_time_delta", "hash_length",
+        "time_bin_size", "freq_bin_size",
+    ]
+    hash_peaks_kwargs = {
+        k: v for k, v in kwargs.items() if k in hash_peaks_keys
+    }
+    hashes = hash_peaks(peak_times, peak_freqs, **hash_peaks_kwargs)
+
     return hashes
 
 
