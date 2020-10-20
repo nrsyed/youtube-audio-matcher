@@ -39,22 +39,39 @@ def obj_as_dict(obj, fingerprints_in_song=False):
 
 class Database:
     def __init__(
-        self, user, password, db_name, host="localhost", backend="postgres"
+        self, user, password, db_name, host="localhost", port=None,
+        dialect="postgresql", driver=None
     ):
         """
+        Constructs a sqlalchemy database URL of the form
+        `dialect+driver://username:password@host:port/db_name` to create a
+        sqlalchemy database engine. Refer to `SQLAlchemy Database URLs`_.
+
         Args:
             user (str): User name.
             password (str): User password.
             db_name (str): Database name.
             host (str): Database hostname.
-            backend (str): {"postgres"} SQL database backend to use.
+            port (int): Port on ``host``.
+            dialect (str): SQL database dialect to use. See
+                `SQLAlchemy Dialects`_.
+            driver (str): SQL database driver to use. See
+                `SQLAlchemy Database URLs`_.
+
+        .. _`SQLAlchemy Dialects`:
+            https://docs.sqlalchemy.org/en/13/dialects/
+        .. _`SQLAlchemy Database URLs`:
+            https://docs.sqlalchemy.org/en/13/core/engines.html#database-urls
         """
+        # Construct database URL.
+        # TODO: check/add sqlite support.
+        if driver is not None:
+            driver = f"+{driver}"
+        if port is not None:
+            port = f":{port}"
+        url = f"{dialect}{driver}://{user}:{password}@{host}{port}/{db_name}"
 
-        if backend == "postgres":
-            engine_str = f"postgresql://{user}:{password}@{host}/{db_name}"
-
-        #engine = sqlalchemy.create_engine(engine_str, poolclass=NullPool)
-        engine = sqlalchemy.create_engine(engine_str)
+        engine = sqlalchemy.create_engine(url)
         Session = sqlalchemy.orm.sessionmaker(engine)
         self.session = Session()
 
