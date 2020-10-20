@@ -1,66 +1,10 @@
-import argparse
 import os
-import pathlib
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 import youtube_audio_matcher.audio
-
-
-def get_core_parser():
-    """
-    Sub-parser containing core audio module arguments. Used by both yamfp
-    in this module and by the top-level yam command.
-    """
-    core_parser = argparse.ArgumentParser(add_help=False)
-
-    fingerprint_args = core_parser.add_argument_group("Fingerprint args")
-    fingerprint_args.add_argument(
-        "-a", "--min-amplitude", type=float, default=10, metavar="<dB>",
-        help="Spectogram peak minimum amplitude in dB"
-    )
-    fingerprint_args.add_argument(
-        "--erosion-iterations", type=int, default=1, metavar="<int>",
-        help="Number of times to apply binary erosion for peak finding"
-    )
-    fingerprint_args.add_argument(
-        "--filter-connectivity", type=int, default=1, choices=(1, 2),
-        help="Max filter neighborhood connectivity for peak finding"
-    )
-    fingerprint_args.add_argument(
-        "--filter-dilation", type=int, default=10, metavar="<int>",
-        help="Max filter dilation (neighborhood size) for peak finding"
-    )
-    fingerprint_args.add_argument(
-        "--spectrogram-backend", type=str, choices=("scipy", "matplotlib"),
-        default="scipy",
-        help="Library to use for computing spectrogram"
-    )
-    fingerprint_args.add_argument(
-        "--win-overlap-ratio", type=float, default=0.5, metavar="<float>",
-        help="Window overlap as a fraction of window size, in the range [0, 1)"
-    )
-    fingerprint_args.add_argument(
-        "--win-size", type=int, default=4096, metavar="<int>",
-        help="Number of samples per FFT window"
-    )
-    return core_parser
-
-
-def get_parser():
-    core_parser = get_core_parser()
-    parser = argparse.ArgumentParser(
-        parents=[core_parser],
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        description="Visualize an audio file fingerprint by plotting its "
-        "spectrogram and the spectrogram peaks."
-    )
-    parser.add_argument(
-        "filepath", type=pathlib.Path, metavar="<path>",
-        help="Path to audio file"
-    )
-    return parser
+from ._argparsers import get_parser
 
 
 def main():

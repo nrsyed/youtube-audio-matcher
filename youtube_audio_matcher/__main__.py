@@ -1,34 +1,24 @@
 import argparse
 
 
-from . import audio, database, download
+import youtube_audio_matcher
+from .database import _argparsers as db_argparsers
+from .download import _argparsers as dl_argparsers
+from .audio import _argparsers as fp_argparsers
 
 
 def get_parser():
+    """
+    TODO
+    """
     # Get core arguments from download module parser.
-    dl_parser = download.__main__.get_core_parser()
+    dl_parser = dl_argparsers.get_core_parser()
 
     # Get core fingerprint arguments from audio module parser and add args.
-    fp_parser = audio.__main__.get_core_parser()
-    fp_parser.add_argument(
-        "-f", "--fanout", type=int, default=10, metavar="<int>",
-        help="Number of adjacent peaks to consider for generating hashes"
-    )
-    fp_parser.add_argument(
-        "-l", "--hash-length", type=int, default=20, metavar="<int>",
-        help="Length to truncate each fingerprint SHA1 hash to (max 40)"
-    )
-    fp_parser.add_argument(
-        "--max-time-delta", type=float, default=100, metavar="<float>",
-        help="Target zone max time offset difference for hashes"
-    )
-    fp_parser.add_argument(
-        "--min-time-delta", type=float, default=0, metavar="<float>",
-        help="Target zone min time offset difference for hashes"
-    )
+    fp_parser = fp_argparsers.get_core_parser(extra_args=True)
 
     # Get core database arguments from database module parser.
-    db_parser = database.__main__.get_core_parser()
+    db_parser = db_argparsers.get_core_parser()
 
     # Construct main parser from sub-parsers and add necessary arguments.
     parser = argparse.ArgumentParser(
@@ -37,9 +27,14 @@ def get_parser():
         parents=[dl_parser, fp_parser, db_parser]
     )
 
-    """
-    TODO:
-    input <url/path>
-    log
-    delete_after
-    """
+    # TODO: add input <url/path>, log, and delete after download args.
+
+    return parser
+
+
+def main():
+    # TODO
+    #parser = get_parser()
+    #args = parser.parse_args()
+    raise NotImplementedError
+    pass
