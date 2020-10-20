@@ -13,7 +13,7 @@ from . import util
 
 def get_spectrogram(
     samples, sample_rate=44100, win_size=4096, win_overlap_ratio=0.5,
-    backend="scipy"
+    spectrogram_backend="scipy"
 ):
     """
     Obtain the spectrogram for an audio signal.
@@ -24,7 +24,7 @@ def get_spectrogram(
         win_size (int): Number of samples per FFT window.
         win_overlap_ratio (float): Number of samples to overlap between windows
             (as a fraction of window size).
-        backend (str): {"scipy", "matplotlib"}
+        spectrogram_backend (str): {"scipy", "matplotlib"}
             Whether to use the scipy or matplotlib spectrogram functions to
             compute the spectrogram. See `scipy.signal.spectrogram`_ and
             `matplotlib.mlab.specgram`_.
@@ -39,25 +39,25 @@ def get_spectrogram(
               corresponding to index 0 of ``spectrogram``.
 
     Raises:
-        ValueError: If an invalid option for `backend` is specified.
+        ValueError: If an invalid option for `spectrogram_backend` is specified.
 
     .. _`scipy.signal.spectrogram`:
         https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.spectrogram.html
     .. _`matplotlib.mlab.specgram`:
         https://matplotlib.org/api/mlab_api.html#matplotlib.mlab.specgram
     """
-    if backend == "matplotlib":
+    if spectrogram_backend == "matplotlib":
         spectrogram, freq, t = mlab.specgram(
             samples, NFFT=win_size, Fs=sample_rate, window=mlab.window_hanning,
             noverlap=int(win_size * win_overlap_ratio)
         )
-    elif backend == "scipy":
+    elif spectrogram_backend == "scipy":
         freq, t, spectrogram = scipy.signal.spectrogram(
             samples, fs=sample_rate, window="hann", nperseg=win_size,
             noverlap=int(win_size * win_overlap_ratio)
         )
     else:
-        raise ValueError("Invalid backend")
+        raise ValueError("Invalid spectrogram backend")
 
     # Convert to dB by taking log and multiplying by 10.
     # https://stackoverflow.com/a/5730830

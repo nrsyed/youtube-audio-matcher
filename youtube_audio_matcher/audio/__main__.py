@@ -16,12 +16,10 @@ def get_parser():
     parser.add_argument(
         "filepath", type=pathlib.Path, help="Path to audio file"
     )
-    # TODO: rename to spectrogram_backend
     parser.add_argument(
-        "--backend", type=str, choices=("scipy", "matplotlib"),
+        "--spectrogram-backend", type=str, choices=("scipy", "matplotlib"),
         default="scipy",
-        help="Library to use for computing spectrogram "
-        "{matplotlib, scipy (default)}"
+        help="Library to use for computing spectrogram"
     )
     parser.add_argument(
         "-c", "--filter-connectivity", type=int, default=1, choices=(1, 2),
@@ -70,7 +68,8 @@ def main():
         samples = channel
         spectrogram, t, freq = youtube_audio_matcher.audio.get_spectrogram(
             samples, sample_rate=sample_rate, win_size=args.win_size,
-            win_overlap_ratio=args.win_overlap_ratio, backend=args.backend
+            win_overlap_ratio=args.win_overlap_ratio,
+            spectrogram_backend=args.spectrogram_backend
         )
 
         title = ""
