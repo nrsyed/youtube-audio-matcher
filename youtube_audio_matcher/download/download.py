@@ -127,6 +127,88 @@ def video_metadata_from_source(
     return videos
 
 
+async def get_source(url, page_load_wait=1, scroll_by=5000):
+    """
+    Get source for the given URL by scrolling to the end of the page.
+
+    Args:
+        url (str): Webpage URL.
+        page_load_wait (float): Time to wait (in seconds) for page to load on
+            initial page load and after each page scroll.
+        scroll_by (int): Number of pixels to scroll down at each page scroll.
+
+    Returns:
+        str: source
+            Page source code.
+    """
+    try:
+        driver = selenium.webdriver.Chrome()
+        driver.get(url)
+        await asyncio.sleep(page_load_wait)
+
+        source = None
+        while source != driver.page_source:
+            source = driver.page_source
+            driver.execute_script(f"window.scrollBy(0, {scroll_by});")
+            await asyncio.sleep(page_load_wait)
+        driver.quit()
+    except Exception as e:
+        logging.error(f"Error getting page source for URL {url}")
+        raise e
+    finally:
+        return source
+
+
+async def video_metadata_from_urls(urls, download_queue, **kwargs):
+    """
+    Asychronously get information on each video from the YouTube channels
+    corresponding to the given YouTube URLs. This function acts as the producer
+    of a producer-consumer relationship with :func:`download_video_mp3s`.
+
+    Args:
+        urls (List[str]): List of YouTube users/channels.
+        download_queue (asyncio.queues.Queue): Queue to which video metadata
+            for each video is added for download.
+        kwargs: Keyword args for :func:`get_source` and 
+            :func:`video_metadata_from_source`.
+
+    Returns:
+        List[dict]: videos
+            List of dicts of video metadata, where each dict represents a
+            video processed by this coroutine.
+    """
+    # All videos produced by this coroutine (returned after completion).
+    all_videos = []
+
+    get_source_kwarg_keys = ["page_load_wait", "scroll_by"]
+    get_source_kwargs = {
+        k: v for k, v in kwargs.items() if k in get_source_kwarg_keys
+    }
+
+    video_metadata_from_source_kwarg_keys = [
+        "exclude_longer_than", "exclude_shorter_than"
+    ]
+    video_metadata_from_source_kwargs = {
+        k: v for k, v in kwargs.items()
+        if k in video_metadata_from_source_kwargs
+    }
+
+    tasks = [
+        get_source(url, **get_source_kwargs) for url in urls
+    ]
+    for url, task in zip(urls, asyncio.as_completed(tasks)):
+        source = await task
+        videos = video_metadata_from_source(
+            source, **video_metadata_from_source_kwargs
+        )
+        for video in videos:
+            video["channel_url"] = url
+            all_videos.append(video)
+            await download_queue.put(video)
+    await download_queue.put(None)
+    return all_videos
+
+
 def download_video_mp3(
     video_id, dst_dir, start_time=None, duration=None, end_time=None,
     ignore_existing=False, num_retries=3, youtubedl_verbose=False
@@ -224,80 +306,6 @@ def download_video_mp3(
     return dst_path
 
 
-async def get_source(url, page_load_wait=1, scroll_by=5000):
-    """
-    Get source for the given URL by scrolling to the end of the page.
-
-    Args:
-        url (str): Webpage URL.
-        page_load_wait (float): Time to wait (in seconds) for page to load on
-            initial page load and after each page scroll.
-        scroll_by (int): Number of pixels to scroll down at each page scroll.
-
-    Returns:
-        str: source
-            Page source code.
-    """
-    try:
-        driver = selenium.webdriver.Chrome()
-        driver.get(url)
-        await asyncio.sleep(page_load_wait)
-
-        source = None
-        while source != driver.page_source:
-            source = driver.page_source
-            driver.execute_script(f"window.scrollBy(0, {scroll_by});")
-            await asyncio.sleep(page_load_wait)
-        driver.quit()
-    except Exception as e:
-        logging.error(f"Error getting page source for URL {url}")
-        raise e
-    finally:
-        return source
-
-
-async def video_metadata_from_urls(
-    urls, download_queue, get_source_kwargs=None,
-    video_metadata_from_source_kwargs=None
-):
-    """
-    Asychronously get information on each video from the YouTube channels
-    corresponding to the given YouTube URLs. This function acts as the producer
-    of a producer-consumer relationship with :func:`download_video_mp3s`.
-
-    Args:
-        urls (List[str]): List of YouTube users/channels.
-        download_queue (asyncio.queues.Queue): Queue to which video metadata
-            for each video is added for download.
-        get_source_kwargs (dict): Dict of keyword args for
-            :func:`get_source`.
-        video_metadata_from_source_kwargs (dict): Dict of keyword args for
-            :func:`video_metadata_from_source <download.video_metadata_from_source>`
-
-    Returns:
-        List[dict]: videos
-            List of dicts of video metadata, where each dict represents a
-            video processed by this coroutine.
-    """
-    # All videos produced by this coroutine (returned after completion).
-    all_videos = []
-
-    tasks = [
-        get_source(url, **get_source_kwargs) for url in urls
-    ]
-    for url, task in zip(urls, asyncio.as_completed(tasks)):
-        source = await task
-        videos = video_metadata_from_source(
-            source, **video_metadata_from_source_kwargs
-        )
-        for video in videos:
-            video["channel_url"] = url
-            all_videos.append(video)
-            await download_queue.put(video)
-    await download_queue.put(None)
-    return all_videos
-
-
 async def _download_video_mp3(
     video, dst_dir, loop, executor, out_queue=None, **kwargs
 ):
@@ -309,8 +317,7 @@ async def _download_video_mp3(
 
     Args:
     TODO
-        kwargs: Keyword arguments for
-            :func:`download_video_mp3 <download.download_video_mp3>`.
+        kwargs: Keyword arguments for :func:`download_video_mp3`.
 
     Returns:
         dict: video
@@ -366,7 +373,7 @@ async def download_video_mp3s(
         ``youtube_dl.YoutubeDL.download`` accepts a list of video URLs but is
         not multithreaded and downloads videos sequentially, not concurrently.
         This coroutine wraps this youtube_dl function
-        (via :func:`download_video_mp3`) to d to download and encode videos
+        (via :func:`download_video_mp3`) to download and encode videos
         asynchronously/concurrently.
     """
     tasks = []
@@ -390,8 +397,7 @@ async def download_video_mp3s(
 
 
 def download_channels(
-    loop, urls, dst_dir, executor=None, out_queue=None,
-    video_metadata_from_urls_kwargs=None, download_video_mp3_kwargs=None
+    loop, urls, dst_dir, executor=None, out_queue=None, **kwargs
 ):
     """
     Download all videos from one or more YouTube channels/users subject to the
@@ -420,10 +426,8 @@ def download_channels(
             will be pushed after download attempt. This can be used as a
             process queue for asynchronously post-processing each video after
             it has been downloaded.
-        video_metadata_from_urls_kwargs (dict): Keyword args for
-            :func:`async_video_data_from_urls`.
-        download_video_mp3_kwargs (dict): Keyword args for
-            :func:`download_video_mp3 <download.download_video_mp3>`.
+        kwargs: Keyword args for :func:`video_metadata_from_urls` and
+            :func:`download_video_mp3`.
 
     Returns:
         tuple: (get_videos_task, download_task)
@@ -446,16 +450,28 @@ def download_channels(
     if executor is None:
         executor = ThreadPoolExecutor()
 
-    if video_metadata_from_urls_kwargs is None:
-        video_metadata_from_urls_kwargs = dict()
-    if download_video_mp3_kwargs is None:
-        download_video_mp3_kwargs = dict()
-
     download_queue = asyncio.Queue()
+
+    video_metadata_from_urls_kwarg_keys = [
+        "page_load_wait", "scroll_by", "exclude_longer_than",
+        "exclude_shorter_than",
+    ]
+    video_metadata_from_urls_kwargs = {
+        k: v for k, v in kwargs.items()
+        if k in video_metadata_from_urls_kwarg_keys
+    }
 
     get_videos_task = video_metadata_from_urls(
         urls, download_queue, **video_metadata_from_urls_kwargs
     )
+
+    download_video_mp3_kwarg_keys = [
+        "start_time", "duration", "end_time", "ignore_existing", "num_retries",
+        "youtubedl_verbose"
+    ]
+    download_video_mp3_kwargs = {
+        k: v for k, v in kwargs.items() if k in download_video_mp3_kwarg_keys
+    }
 
     download_task = download_video_mp3s(
         dst_dir, loop, executor, download_queue, out_queue=out_queue,

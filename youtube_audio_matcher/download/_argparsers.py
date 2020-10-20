@@ -11,9 +11,8 @@ def get_core_parser():
 
     download_args = core_parser.add_argument_group(title="Download arguments")
     download_args.add_argument(
-        "-d", "--dst-dir", type=pathlib.Path, metavar="<path>",
-        help="Path to destination directory for downloaded files "
-        "(default: current directory)"
+        "-d", "--dst-dir", type=pathlib.Path, metavar="<path>", default=".",
+        help="Path to destination directory for downloaded files"
     )
     download_args.add_argument(
         "-i", "--ignore-existing", action="store_true",
@@ -27,8 +26,8 @@ def get_core_parser():
     download_args.add_argument(
         "-r", "--retries", type=int, default=3, metavar="<num>",
         dest="num_retries",
-        help="Number of times to re-attempt failed downloads (default: 3). "
-        "Pass -1 to retry indefinitely until successful (not recommended)"
+        help="Number of times to re-attempt failed downloads. Pass -1 to "
+        "retry indefinitely until successful"
     )
     download_args.add_argument(
         "-L", "--exclude-longer-than", type=float, metavar="<seconds>",
