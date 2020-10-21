@@ -24,9 +24,9 @@ async def update_database(db, in_queue, out_queue=None):
                 delete_file = True
 
             song_id = db.add_song(
-                duration=song.get("duration"), filepath=song.get("filepath"),
+                duration=song.get("duration"), filepath=song.get("path"),
                 filehash=song.get("filehash"), title=song.get("title"),
-                youtube_id=song.get("youtube_id")
+                youtube_id=song.get("id")
             )
             db.add_fingerprints(song_id, song["fingerprints"])
             logging.info(f"Added {song['path']} to database")
