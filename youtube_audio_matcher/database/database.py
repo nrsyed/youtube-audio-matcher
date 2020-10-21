@@ -1,9 +1,45 @@
+import asyncio
 from collections import defaultdict
+import logging
 
 import sqlalchemy
 from sqlalchemy.pool import NullPool
 
 from .schema import Base, Fingerprint, Song
+
+
+# TODO: handle song already existing in database
+# TODO: handle delete after
+async def update_database(db, in_queue, out_queue=None):
+    while True:
+        song = await in_queue.get()
+        if song is None:
+            if out_queue is not None:
+                await out_queue.put(None)
+            break
+
+        delete_file = False
+        try:
+            if "delete" in song:
+                delete_file = True
+
+            """
+            song_id = db.add_song(
+                duration=song.get("duration"), filepath=song.get("filepath"),
+                filehash=song.get("filehash"), title=song.get("title"),
+                youtube_id=song.get("youtube_id")
+            )
+            db.add_fingerprints(song_id, song["fingerprints"])
+            """
+            logging.info(f"Added {song['path']} to database")
+        except:
+            logging.error(f"Error adding {song['path']} to database")
+        finally:
+            if delete_file:
+                logging.info(f"Deleting file {song['path']}")
+                # delete song
+        if out_queue is not None:
+            await out_queue.put(song)
 
 
 def obj_as_dict(obj, fingerprints_in_song=False):
@@ -37,6 +73,7 @@ def obj_as_dict(obj, fingerprints_in_song=False):
         raise ValueError("Unsupported object")
 
 
+# TODO: try/except, db rollbacks
 class Database:
     def __init__(
         self, user, password, db_name, host="localhost", port=None,
@@ -65,10 +102,9 @@ class Database:
         """
         # Construct database URL.
         # TODO: check/add sqlite support.
-        if driver is not None:
-            driver = f"+{driver}"
-        if port is not None:
-            port = f":{port}"
+
+        driver = f"+{driver}" if driver else ""
+        port = f":{port}" if port is not None else ""
         url = f"{dialect}{driver}://{user}:{password}@{host}{port}/{db_name}"
 
         engine = sqlalchemy.create_engine(url)
@@ -82,53 +118,56 @@ class Database:
     def __del__(self):
         self.session.close()
 
-    def add_song(self, attributes):
+    def add_song(
+        self, duration=None, filepath=None, filehash=None, title=None,
+        youtube_id=None
+    ):
         """
         Args:
-            attributes (dict): A dict containing the database Song table
-                attributes for the audio file to be inserted:
-                    {
-                        "duration": float,
-                        "filepath": str,
-                        "filehash": str,
-                        "title": str,
-                        "youtube_id": str
-                    }
+            duration (float): Song duration.
+            filepath (str): Path to file on local machine.
+            filehash (str): File hash.
+            title (str): Song title.
+            youtube_id (str): YouTube ID, i.e., watch?v=<youtube_id>.
 
         Returns:
             int: id of the inserted song.
         """
-        new_song = Song(**attributes)
+        new_song = Song(
+            duration=duration, filepath=filepath, filehash=filehash,
+            title=title, youtube_id=youtube_id
+        )
         self.session.add(new_song)
         self.session.commit()
         return new_song.id
 
-    def add_fingerprint(self, attributes):
+    def add_fingerprint(self, song_id, hash_, offset):
         """
         Args:
-            attributes (dict): A dict containing the database Fingerprint table
-                attributes for the fingerprint to be inserted:
-                    {
-                        "song_id": int,
-                        "hash": str,
-                        "offset": float
-                    }
-                The "song_id" value should correspond to the id of an audio
-                file in the Song table.
+            song_id (int): Song id corresponding to song in the Song table.
+            hash_ (str): Fingerprint hash.
+            offset (float): Fingerprint offset.
 
         Returns:
             int: id of the inserted fingerprint.
         """
-        new_fingerprint = Fingerprint(**attributes)
+        new_fingerprint = Fingerprint(
+            song_id=song_id, hash=hash_, offset=offset
+        )
         self.session.add(new_fingerprint)
         self.session.commit()
         return new_fingerprint.id
 
-    def add_fingerprints(self, fingerprints):
+    def add_fingerprints(self, song_id, fingerprints):
         """
-        TODO
+        Args:
+            song_id (int): Song table song id the fingerprints correspond to.
+            fingerprints (List[tuple]): A list of (hash, offset) fingerprints.
         """
-        new_fingerprints = [Fingerprint(**attrs) for attrs in fingerprints]
+        new_fingerprints = [
+            Fingerprint(song_id=song_id, hash=hash_, offset=offset)
+            for hash_, offset in fingerprints
+        ]
         self.session.bulk_save_objects(new_fingerprints)
         self.session.commit()
 
@@ -255,6 +294,19 @@ class Database:
             }
 
         return None
+
+    def query_fingerprints(self, hashes):
+        """
+        Args:
+            hashes (str|List[str]): Hash or list of hashes from a
+                fingerprinted audio signal.
+        """
+        # Perform query; this is the equivalent of
+        # SELECT * FROM fingerprint WHERE fingerprint.hash IN (`hashes`)
+        query = self.session.query(Fingerprint).filter(
+            Fingerprint.hash.in_(hashes)
+        )
+        return obj_as_dict(query.all())
 
     def query_songs(
         self, id_=None, duration=None, duration_greater_than=None,

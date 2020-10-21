@@ -25,6 +25,9 @@ def get_videos_page_url(url):
     Returns:
         URL for videos page if valid URL, else None.
 
+    Raises:
+        ValueError: if ``url`` is not a valid YouTube user/channel URL.
+
     Examples:
         >>> url = 'youtube.com/channel/UCUZHFZ9jIKrLroW8LcyJEQQ'
         >>> get_videos_page_url(url)
@@ -47,7 +50,9 @@ def get_videos_page_url(url):
     if match:
         videos_page_path = match.groups()[0]
         return f"https://www.youtube.com{videos_page_path}/videos"
-    return None
+    else:
+        # TODO: custom exception?
+        raise ValueError("Invalid YouTube URL")
 
 
 def video_metadata_from_source(
@@ -73,6 +78,9 @@ def video_metadata_from_source(
                 "duration": int
             }
 
+    Raises:
+        ValueError: if page source represents a 404 Not Found page.
+
     .. note::
         ``exclude_longer_than`` and ``exclude_shorter_than`` may both be
         supplied to return videos meeting both criteria.
@@ -91,6 +99,14 @@ def video_metadata_from_source(
     )
 
     soup = bs4.BeautifulSoup(source, "html.parser")
+
+    # Check html comments to determine if a 404 page was returned:
+    # https://stackoverflow.com/a/33139458
+    # TODO: use custom exception for this?
+    comments = soup.find_all(string=lambda text: isinstance(text, bs4.Comment))
+    for comment in comments:
+        if "404handler" in comment:
+            raise ValueError("Page returned 404 Not Found")
 
     videos = []
     video_id_expr = r"^.*/watch\?v=([a-zA-Z0-9_-]+)"
@@ -154,7 +170,6 @@ async def get_source(url, page_load_wait=1, scroll_by=5000):
         driver.quit()
     except Exception as e:
         logging.error(f"Error getting page source for URL {url}")
-        raise e
     finally:
         return source
 
@@ -197,13 +212,17 @@ async def video_metadata_from_urls(urls, download_queue, **kwargs):
     ]
     for url, task in zip(urls, asyncio.as_completed(tasks)):
         source = await task
-        videos = video_metadata_from_source(
-            source, **video_metadata_from_source_kwargs
-        )
-        for video in videos:
-            video["channel_url"] = url
-            all_videos.append(video)
-            await download_queue.put(video)
+
+        try:
+            videos = video_metadata_from_source(
+                source, **video_metadata_from_source_kwargs
+            )
+            for video in videos:
+                video["channel_url"] = url
+                all_videos.append(video)
+                await download_queue.put(video)
+        except ValueError:
+            logging.error(f"URL {url} returned 404 Not Found")
     await download_queue.put(None)
     return all_videos
 
@@ -387,7 +406,10 @@ async def download_video_mp3s(
             )
         )
         tasks.append(task)
-    await asyncio.wait(tasks)
+
+    # Wrap asyncio.wait() in if statement to avoid ValueError if no tasks.
+    if tasks:
+        await asyncio.wait(tasks)
 
     if out_queue is not None:
         await out_queue.put(None)
@@ -444,7 +466,16 @@ def download_channels(
         and return the list of downloaded videos, :func:`run_download_channels`
         should be used instead.
     """
-    urls = [get_videos_page_url(url) for url in urls]
+    rectified_urls = []
+    for url in urls:
+        try:
+            rectified_url = get_videos_page_url(url)
+        except ValueError:
+            logging.error(
+                f"Could not convert {url} to a YouTube user/channel URL"
+            )
+        else:
+            rectified_urls.append(rectified_url)
 
     if executor is None:
         executor = ThreadPoolExecutor()
@@ -461,7 +492,7 @@ def download_channels(
     }
 
     get_videos_task = video_metadata_from_urls(
-        urls, download_queue, **video_metadata_from_urls_kwargs
+        rectified_urls, download_queue, **video_metadata_from_urls_kwargs
     )
 
     download_video_mp3_kwarg_keys = [

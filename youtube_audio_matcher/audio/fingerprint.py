@@ -13,6 +13,7 @@ import scipy.signal
 
 from . import util
 
+# TODO: get duration on file read
 
 def get_spectrogram(
     samples, sample_rate=44100, win_size=4096, win_overlap_ratio=0.5,
@@ -390,7 +391,7 @@ async def _fingerprint_song(song, loop, executor, out_queue=None, **kwargs):
             Dict representing metadata for the fingerprinted audio file.
     """
     song["filehash"] = None
-    song["fingerprint"] = None
+    song["fingerprints"] = None
 
     if song["path"]:
         # Create function partial with keyword args for fingerprint_from_file
@@ -402,11 +403,12 @@ async def _fingerprint_song(song, loop, executor, out_queue=None, **kwargs):
         hashes, filehash = await loop.run_in_executor(
             executor, fingerprint_from_file_partial
         )
-        song["fingerprint"] = hashes
+
+        song["fingerprints"] = hashes
         song["filehash"] = filehash
         logging.info(f"Fingerprinted {song['path']}")
 
-    if out_queue:
+    if out_queue is not None:
         await out_queue.put(song)
     return song
 
@@ -444,7 +446,10 @@ async def fingerprint_songs(
             )
         )
         tasks.append(task)
-    await asyncio.wait(tasks)
+
+    # Wrap asyncio.wait() in if statement to avoid ValueError if no tasks.
+    if tasks:
+        await asyncio.wait(tasks)
 
     if out_queue is not None:
         await out_queue.put(None)
