@@ -54,20 +54,10 @@ def get_core_parser():
         "--start not specified, otherwise at --start. If --duration is used "
         "with --end, --duration takes precedence."
     )
-
-    verbose_args = core_parser.add_argument_group("Verbosity arguments")
-    verbose_args.add_argument(
+    download_args.add_argument(
         "-y", "--youtubedl-verbose", action="store_true",
         help="Enable youtube-dl and ffmpeg terminal output"
     )
-    verbose_args.add_argument(
-        "--debug", action="store_true", help="Print verbose debugging info"
-    )
-    verbose_args.add_argument(
-        "-s", "--silent", action="store_true",
-        help="Suppress youtube-audio-matcher terminal output"
-    )
-
     return core_parser
 
 
@@ -85,4 +75,14 @@ def get_parser():
         help="One or more space-separated channel/user URLs (e.g., "
         "www.youtube.com/c/YouTubeCreators). Options apply to all URLs."
     )
+
+    verbose_args = parser.add_argument_group("Verbosity arguments")
+    verbose_args.add_argument(
+        "--debug", action="store_true", help="Print verbose debugging info"
+    )
+    verbose_args.add_argument(
+        "-s", "--silent", action="store_true",
+        help="Suppress youtube-audio-matcher terminal output"
+    )
+
     return parser
