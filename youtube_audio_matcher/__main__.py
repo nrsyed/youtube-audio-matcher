@@ -11,6 +11,8 @@ def get_parser():
     """
     TODO
     """
+    # TODO: add log arg.
+
     # Get core database arguments from database module parser.
     db_parser = db_argparsers.get_core_parser()
 
@@ -43,9 +45,6 @@ def get_parser():
         help="Suppress youtube-audio-matcher terminal output"
     )
 
-    # TODO: add input <url/path>, log, and delete after download args.
-    # TODO: move verbose to bottom
-
     return parser
 
 
@@ -66,5 +65,9 @@ def cli():
     if args["num_retries"] < 0:
         args["num_retries"] = None
 
-    # Remove verbosity/debug arguments so they aren't passed to main().
-    del args["debug"], args["silent"]
+    inputs = args["inputs"]
+
+    # Remove input and verbosity/debug args so they aren't passed to main().
+    del args["inputs"], args["debug"], args["silent"]
+
+    youtube_audio_matcher.main(inputs, **args)

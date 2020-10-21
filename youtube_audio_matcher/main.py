@@ -14,6 +14,21 @@ def main(inputs, **kwargs):
         inputs (List[str]): List of input YouTube channel/user URLs and/or
             local paths to audio files or directories of audio files.
     """
+    urls = []
+    files = []
+
+    for inp in inputs:
+        # Check if the input refers to a local file or directory.
+        inp_as_local_path = os.path.absolute(os.path.expanduser(inp))
+        if os.path.exists(inp_as_local_path):
+            if os.path.isdir(inp_as_local_path):
+                files.extend(os.listdir(inp_as_local_path))
+            else:
+                files.append(inp_as_local_path)
+        else:
+            # Assume the input is a YouTube URL.
+            urls.append(inp)
+
     proc_pool = ProcessPoolExecutor(max_workers=multiprocessing.cpu_count())
     thread_pool = ThreadPoolExecutor()
 
@@ -22,6 +37,18 @@ def main(inputs, **kwargs):
     # Queue to which files to be fingerprinted are added. Each file will be
     # processed by the ProcessPoolExecutor.
     fingerprint_queue = asyncio.Queue()
+
+    # Add local files, if any, to fingerprint queue.
+    for file_ in files:
+        fingerprint_queue.put_nowait(
+            {
+                "id": None,
+                "title": None,
+                "duration": None,
+                "channel_url": None,
+                "path": file_,
+            }
+        )
 
     # Queue to which files will be added after fingerprinting to compare the
     # fingerprint to the database to determine if there are any matches.
@@ -59,13 +86,10 @@ def main(inputs, **kwargs):
         out_queue=match_queue, **fingerprint_kwargs
     )
 
-    # TODO: add local files to fingerprint queue.
-
     task_group = asyncio.gather(
         get_videos_task, download_task, fingerprint_task
     )
     loop.run_until_complete(task_group)
-    breakpoint()
 
 
 if __name__ == "__main__":
