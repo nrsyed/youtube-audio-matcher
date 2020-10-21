@@ -514,7 +514,7 @@ def run_download_channels(*args, **kwargs):
     """
     loop = asyncio.get_event_loop()
 
-    get_videos_task, download_task = download_channels(loop, *args, **kwargs)
+    get_videos_task, download_task = download_channels(loop, **kwargs)
     task_group = asyncio.gather(get_videos_task, download_task)
     loop.run_until_complete(task_group)
 

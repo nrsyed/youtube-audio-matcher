@@ -81,8 +81,8 @@ def get_parser():
             length, and extract audio only from the segments of interest."""
     )
     parser.add_argument(
-        "url", type=str, nargs="+",
-        help="One or more channel/user URLs (e.g., "
-        "www.youtube.com/c/YouTubeCreators). All options apply to all URLs"
+        "urls", type=str, nargs="+",
+        help="One or more space-separated channel/user URLs (e.g., "
+        "www.youtube.com/c/YouTubeCreators). Options apply to all URLs."
     )
     return parser
