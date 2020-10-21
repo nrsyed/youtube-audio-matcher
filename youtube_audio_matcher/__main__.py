@@ -37,6 +37,12 @@ def get_parser():
         "audio files)"
     )
 
+    parser.add_argument(
+        "-A", "--add-to-database", action="store_true",
+        help="Add fingerprinted files to the database instead of searching "
+        "the database for matches"
+    )
+
     verbose_args = parser.add_argument_group("Verbosity arguments")
     verbose_args.add_argument(
         "--debug", action="store_true", help="Print verbose debugging info"
@@ -68,7 +74,9 @@ def cli():
 
     inputs = args["inputs"]
 
-    # Remove input and verbosity/debug args so they aren't passed to main().
+    # Remove verbosity/debug args so they aren't passed to main(). Remove
+    # inputs so it's not passed as a keyword arg (we want to pass it as a
+    # positional for clarity).
     del args["inputs"], args["debug"], args["silent"]
 
     try:

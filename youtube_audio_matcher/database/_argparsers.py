@@ -7,7 +7,7 @@ def get_core_parser():
     """
     core_parser = argparse.ArgumentParser(add_help=False)
 
-    database_args = core_parser.add_argument_group(title="Database arguments")
+    database_args = core_parser.add_argument_group(title="database arguments")
     database_args.add_argument(
         "-N", "--db-name", type=str, default="yam", metavar="<database_name>",
         help="Database name"

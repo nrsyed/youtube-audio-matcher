@@ -14,7 +14,7 @@ def get_core_parser(extra_args=False):
     """
     core_parser = argparse.ArgumentParser(add_help=False)
 
-    fingerprint_args = core_parser.add_argument_group("Fingerprint args")
+    fingerprint_args = core_parser.add_argument_group("fingerprint arguments")
 
     fingerprint_args.add_argument(
         "--erosion-iterations", type=int, default=1, metavar="<int>",

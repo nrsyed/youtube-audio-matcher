@@ -13,7 +13,7 @@ def get_core_parser(extra_args=False):
     """
     core_parser = argparse.ArgumentParser(add_help=False)
 
-    download_args = core_parser.add_argument_group(title="Download arguments")
+    download_args = core_parser.add_argument_group(title="download arguments")
 
     if extra_args:
         download_args.add_argument(

@@ -104,5 +104,6 @@ def read_file(fpath):
     num_channels = audio_seg.channels
     channel_data = [raw_data[ch::num_channels] for ch in range(num_channels)]
     sample_rate = audio_seg.frame_rate
+    filehash = hash_file(fpath)
 
-    return channel_data, sample_rate, hash_file(fpath)
+    return channel_data, sample_rate, filehash
