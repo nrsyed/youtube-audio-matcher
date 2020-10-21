@@ -16,6 +16,11 @@ def main(inputs, add_to_database=False, **kwargs):
         inputs (List[str]): List of input YouTube channel/user URLs and/or
             local paths to audio files or directories of audio files.
     """
+    # NOTE: THIS IS ABSOLUTELY CRITICAL! Without changing mp start method to
+    # spawn (from default fork), download task hangs 99 times out of 100.
+    # No idea why this is.
+    multiprocessing.set_start_method("spawn")
+
     # Setup and input parsing.
     urls = []
     files = []
@@ -60,9 +65,10 @@ def main(inputs, add_to_database=False, **kwargs):
         "db_name", "dialect", "driver", "host", "password", "port", "user"
     ]
     db_kwargs = {k: v for k, v in kwargs.items() if k in db_keys}
-    #db = yam.database.Database(**db_kwargs)
-    #db.delete_all()
-    #db = None
+    db = yam.database.Database(**db_kwargs)
+
+    # TODO: remove this for final version
+    db.delete_all()
 
     # Add local files, if any, to fingerprint queue.
     for file_ in files:
