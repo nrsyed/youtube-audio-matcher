@@ -180,17 +180,16 @@ async def video_metadata_from_urls(urls, download_queue, **kwargs):
     # All videos produced by this coroutine (returned after completion).
     all_videos = []
 
-    get_source_kwarg_keys = ["page_load_wait", "scroll_by"]
+    get_source_keys = ["page_load_wait", "scroll_by"]
     get_source_kwargs = {
-        k: v for k, v in kwargs.items() if k in get_source_kwarg_keys
+        k: v for k, v in kwargs.items() if k in get_source_keys
     }
 
-    video_metadata_from_source_kwarg_keys = [
+    video_metadata_from_source_keys = [
         "exclude_longer_than", "exclude_shorter_than"
     ]
     video_metadata_from_source_kwargs = {
-        k: v for k, v in kwargs.items()
-        if k in video_metadata_from_source_kwargs
+        k: v for k, v in kwargs.items() if k in video_metadata_from_source_keys
     }
 
     tasks = [
@@ -391,7 +390,7 @@ async def download_video_mp3s(
     await asyncio.wait(tasks)
 
     if out_queue is not None:
-        out_queue.put(None)
+        await out_queue.put(None)
 
     return [task.result() for task in tasks]
 

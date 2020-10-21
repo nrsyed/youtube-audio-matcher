@@ -4,6 +4,7 @@ import functools
 import logging
 import multiprocessing
 import os
+import pathlib
 
 import youtube_audio_matcher as yam
 
@@ -19,7 +20,7 @@ def main(inputs, **kwargs):
 
     for inp in inputs:
         # Check if the input refers to a local file or directory.
-        inp_as_local_path = os.path.absolute(os.path.expanduser(inp))
+        inp_as_local_path = os.path.abspath(os.path.expanduser(inp))
         if os.path.exists(inp_as_local_path):
             if os.path.isdir(inp_as_local_path):
                 files.extend(os.listdir(inp_as_local_path))
@@ -55,34 +56,36 @@ def main(inputs, **kwargs):
     match_queue = asyncio.Queue()
 
     # Keyword args for all download-related functions/tasks.
-    download_kwarg_keys = [
-        "start_time", "duration", "end_time", "ignore_existing", "num_retries",
-        "youtubedl_verbose", "page_load_wait", "scroll_by",
+    download_keys = [
+        "dst_dir", "start_time", "duration", "end_time", "ignore_existing",
+        "num_retries", "youtubedl_verbose", "page_load_wait", "scroll_by",
         "exclude_longer_than", "exclude_shorter_than",
     ]
     download_kwargs = {
-        k: v for k, v in kwargs.items() if k in download_kwarg_keys
+        k: v for k, v in kwargs.items() if k in download_keys
     }
 
     # Tasks for the async pipeline: 1) task for getting video metadata from
     # YouTube channels and 2) task for downloading videos.
     get_videos_task, download_task = yam.download.download_channels(
-        loop, urls, dst_dir, executor=thread_pool, out_queue=fingerprint_queue,
-        **download_kwargs
+        loop, urls, executor=thread_pool,
+        out_queue=fingerprint_queue, **download_kwargs
     )
 
     # Keyword args for fingerprint-related functions/task.
-    fingerprint_kwarg_keys = [
-        "win_size", "win_overlap_ratio", "min_amplitude", "fanout",
-        "min_time_delta", "max_time_delta", "hash_length",
+    fingerprint_keys = [
+        "win_size", "win_overlap_ratio", "spectrogram_backend",
+        "filter_connectivity", "filter_dilation", "erosion_iterations",
+        "min_amplitude",  "fanout", "min_time_delta", "max_time_delta",
+        "hash_length", "time_bin_size", "freq_bin_size",
     ]
     fingerprint_kwargs = {
-        k: v for k, v in kwargs.items() if k in fingerprint_kwarg_keys
+        k: v for k, v in kwargs.items() if k in fingerprint_keys
     }
 
     # Tasks for the async pipeline: 3) task for fingerprinting files.
     fingerprint_task = yam.audio.fingerprint_songs(
-        loop, ProcessPoolExecutor, in_queue=fingerprint_queue,
+        loop=loop, executor=proc_pool, in_queue=fingerprint_queue,
         out_queue=match_queue, **fingerprint_kwargs
     )
 
@@ -90,15 +93,3 @@ def main(inputs, **kwargs):
         get_videos_task, download_task, fingerprint_task
     )
     loop.run_until_complete(task_group)
-
-
-if __name__ == "__main__":
-    log_format = "[%(levelname)s] %(message)s"
-    log_level = logging.INFO
-    logging.basicConfig(format=log_format, level=log_level)
-    try:
-        main()
-    except Exception as e:
-        raise e
-    finally:
-        os.system("stty sane")

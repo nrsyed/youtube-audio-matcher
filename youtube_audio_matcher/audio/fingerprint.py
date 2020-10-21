@@ -1,5 +1,8 @@
+import asyncio
 import copy
+import functools
 import hashlib
+import logging
 import os
 
 import matplotlib.mlab as mlab
@@ -401,6 +404,7 @@ async def _fingerprint_song(song, loop, executor, out_queue=None, **kwargs):
         )
         song["fingerprint"] = hashes
         song["filehash"] = filehash
+        logging.info(f"Fingerprinted {song['path']}")
 
     if out_queue:
         await out_queue.put(song)
@@ -443,7 +447,7 @@ async def fingerprint_songs(
     await asyncio.wait(tasks)
 
     if out_queue is not None:
-        out_queue.put(None)
+        await out_queue.put(None)
 
     return [task.result() for task in tasks]
 

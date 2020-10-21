@@ -1,5 +1,6 @@
 import argparse
-
+import logging
+import os
 
 import youtube_audio_matcher
 from .database import _argparsers as db_argparsers
@@ -57,7 +58,7 @@ def cli():
         log_level = logging.DEBUG
     elif args["silent"]:
         log_level = logging.CRITICAL
-    log_format = "[%levelname)s] %(message)s"
+    log_format = "[%(levelname)s] %(message)s"
     logging.basicConfig(format=log_format, level=log_level)
 
     args["dst_dir"] = args["dst_dir"].expanduser().resolve()
@@ -70,4 +71,9 @@ def cli():
     # Remove input and verbosity/debug args so they aren't passed to main().
     del args["inputs"], args["debug"], args["silent"]
 
-    youtube_audio_matcher.main(inputs, **args)
+    try:
+        youtube_audio_matcher.main(inputs, **args)
+    except Exception as e:
+        raise e
+    finally:
+        os.system("stty sane")
