@@ -17,8 +17,8 @@ def get_core_parser(extra_args=False):
     fingerprint_args = core_parser.add_argument_group("Fingerprint args")
 
     fingerprint_args.add_argument(
-        "-a", "--min-amplitude", type=float, default=10, metavar="<dB>",
-        help="Spectogram peak minimum amplitude in dB"
+        "--erosion-iterations", type=int, default=1, metavar="<int>",
+        help="Number of times to apply binary erosion for peak finding"
     )
 
     if extra_args:
@@ -26,15 +26,7 @@ def get_core_parser(extra_args=False):
             "-f", "--fanout", type=int, default=10, metavar="<int>",
             help="Number of adjacent peaks to consider for generating hashes"
         )
-        fingerprint_args.add_argument(
-            "-l", "--hash-length", type=int, default=20, metavar="<int>",
-            help="Truncate each fingerprint SHA1 hash to --hash-length (max 40)"
-        )
 
-    fingerprint_args.add_argument(
-        "--erosion-iterations", type=int, default=1, metavar="<int>",
-        help="Number of times to apply binary erosion for peak finding"
-    )
     fingerprint_args.add_argument(
         "--filter-connectivity", type=int, default=1, choices=(1, 2),
         help="Max filter neighborhood connectivity for peak finding"
@@ -46,6 +38,10 @@ def get_core_parser(extra_args=False):
 
     if extra_args:
         fingerprint_args.add_argument(
+            "-l", "--hash-length", type=int, default=20, metavar="<int>",
+            help="Truncate each fingerprint SHA1 hash to --hash-length (max 40)"
+        )
+        fingerprint_args.add_argument(
             "--max-time-delta", type=float, default=100, metavar="<float>",
             help="Target zone max time offset difference for hashes"
         )
@@ -54,6 +50,10 @@ def get_core_parser(extra_args=False):
             help="Target zone min time offset difference for hashes"
         )
 
+    fingerprint_args.add_argument(
+        "-a", "--min-amplitude", type=float, default=10, metavar="<dB>",
+        help="Spectogram peak minimum amplitude in dB"
+    )
     fingerprint_args.add_argument(
         "--spectrogram-backend", type=str, choices=("scipy", "matplotlib"),
         default="scipy",
