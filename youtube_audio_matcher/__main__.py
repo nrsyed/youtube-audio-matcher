@@ -11,29 +11,60 @@ def get_parser():
     """
     TODO
     """
+    # Get core database arguments from database module parser.
+    db_parser = db_argparsers.get_core_parser()
+
     # Get core arguments from download module parser.
-    dl_parser = dl_argparsers.get_core_parser()
+    dl_parser = dl_argparsers.get_core_parser(extra_args=True)
 
     # Get core fingerprint arguments from audio module parser and add args.
     fp_parser = fp_argparsers.get_core_parser(extra_args=True)
-
-    # Get core database arguments from database module parser.
-    db_parser = db_argparsers.get_core_parser()
 
     # Construct main parser from sub-parsers and add necessary arguments.
     parser = argparse.ArgumentParser(
         description=None,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        parents=[dl_parser, fp_parser, db_parser]
+        parents=[db_parser, dl_parser, fp_parser]
+    )
+    
+    parser.add_argument(
+        "inputs", type=str, nargs="+",
+        help="One or more space-separated input sources (YouTube channel/user "
+        "URL, local path to audio file, or local path to a directory of "
+        "audio files)"
+    )
+
+    verbose_args = parser.add_argument_group("Verbosity arguments")
+    verbose_args.add_argument(
+        "--debug", action="store_true", help="Print verbose debugging info"
+    )
+    verbose_args.add_argument(
+        "-s", "--silent", action="store_true",
+        help="Suppress youtube-audio-matcher terminal output"
     )
 
     # TODO: add input <url/path>, log, and delete after download args.
     # TODO: move verbose to bottom
-    # TODO: move database above fingerprint and above download
 
     return parser
 
 
 def cli():
     parser = get_parser()
-    args = parser.parse_args()
+    args = vars(parser.parse_args())
+
+    log_level = logging.INFO
+    if args["debug"]:
+        log_level = logging.DEBUG
+    elif args["silent"]:
+        log_level = logging.CRITICAL
+    log_format = "[%levelname)s] %(message)s"
+    logging.basicConfig(format=log_format, level=log_level)
+
+    args["dst_dir"] = args["dst_dir"].expanduser().resolve()
+
+    if args["num_retries"] < 0:
+        args["num_retries"] = None
+
+    # Remove verbosity/debug arguments so they aren't passed to main().
+    del args["debug"], args["silent"]

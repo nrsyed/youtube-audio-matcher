@@ -8,7 +8,12 @@ import os
 import youtube_audio_matcher as yam
 
 
-def main(*args, **kwargs):
+def main(inputs, **kwargs):
+    """
+    Args:
+        inputs (List[str]): List of input YouTube channel/user URLs and/or
+            local paths to audio files or directories of audio files.
+    """
     proc_pool = ProcessPoolExecutor(max_workers=multiprocessing.cpu_count())
     thread_pool = ThreadPoolExecutor()
 

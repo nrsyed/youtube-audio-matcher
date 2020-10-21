@@ -2,17 +2,39 @@ import argparse
 import pathlib
 
 
-def get_core_parser():
+def get_core_parser(extra_args=False):
     """
     Sub-parser containing core download module arguments. Used by both yamdl
     in this module and by the top-level yam command.
+
+    Args:
+        extra_args (bool): Include --delete option for main (top-level)
+            youtube_audio_matcher CLI.
     """
     core_parser = argparse.ArgumentParser(add_help=False)
 
     download_args = core_parser.add_argument_group(title="Download arguments")
+
+    if extra_args:
+        download_args.add_argument(
+            "-D", "--delete", action="store_true",
+            help="Delete downloaded files after processing"
+        )
+
     download_args.add_argument(
         "-d", "--dst-dir", type=pathlib.Path, metavar="<path>", default=".",
         help="Path to destination directory for downloaded files"
+    )
+    download_args.add_argument(
+        "-L", "--exclude-longer-than", type=float, metavar="<seconds>",
+        help="Do not download/convert videos longer than specified duration. "
+        "This does NOT truncate videos to a maximum desired length; to "
+        "extract or truncate specific segments of audio from downloaded "
+        "videos, use --start, --end, and/or --duration"
+    )
+    download_args.add_argument(
+        "-S", "--exclude-shorter-than", type=float, metavar="<seconds>",
+        help="Do not download/convert videos shorter than specified duration"
     )
     download_args.add_argument(
         "-i", "--ignore-existing", action="store_true",
@@ -30,16 +52,10 @@ def get_core_parser():
         "retry indefinitely until successful"
     )
     download_args.add_argument(
-        "-L", "--exclude-longer-than", type=float, metavar="<seconds>",
-        help="Do not download/convert videos longer than specified duration. "
-        "This does NOT truncate videos to a maximum desired length; to "
-        "extract or truncate specific segments of audio from downloaded "
-        "videos, use --start, --end, and/or --duration"
+        "-y", "--youtubedl-verbose", action="store_true",
+        help="Enable youtube-dl and ffmpeg terminal output"
     )
-    download_args.add_argument(
-        "-S", "--exclude-shorter-than", type=float, metavar="<seconds>",
-        help="Do not download/convert videos shorter than specified duration"
-    )
+    
     download_args.add_argument(
         "--start", type=float, metavar="<seconds>", dest="start_time",
         help="Extract audio beginning at the specified video time (in seconds)"
@@ -54,10 +70,6 @@ def get_core_parser():
         "--start not specified, otherwise at --start. If --duration is used "
         "with --end, --duration takes precedence."
     )
-    download_args.add_argument(
-        "-y", "--youtubedl-verbose", action="store_true",
-        help="Enable youtube-dl and ffmpeg terminal output"
-    )
     return core_parser
 
 
@@ -70,6 +82,7 @@ def get_parser():
             videos on one or more YouTube channels, filter based on video
             length, and extract audio only from the segments of interest."""
     )
+
     parser.add_argument(
         "urls", type=str, nargs="+",
         help="One or more space-separated channel/user URLs (e.g., "
