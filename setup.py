@@ -15,6 +15,7 @@ setup(
     entry_points={
         "console_scripts": [
             "yam = youtube_audio_matcher.__main__:cli",
+            "yamdb = youtube_audio_matcher.database.__main__:cli",
             "yamdl = youtube_audio_matcher.download.__main__:cli",
             "yamfp = youtube_audio_matcher.audio.__main__:cli"
         ],

@@ -1,4 +1,5 @@
 import argparse
+import pathlib
 
 
 def get_core_parser():
@@ -36,3 +37,17 @@ def get_core_parser():
         help="Database user name"
     )
     return core_parser
+
+
+def get_parser():
+    core_parser = get_core_parser()
+    parser = argparse.ArgumentParser(
+        parents=[core_parser],
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        description="",
+    )
+
+    parser.add_argument(
+        "-o", "--output", type=pathlib.Path, help="Path to JSON output file"
+    )
+    return parser
