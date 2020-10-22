@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import time
 
 import sqlalchemy
 from sqlalchemy.pool import NullPool
@@ -40,12 +41,13 @@ def database_obj_to_py(obj, fingerprints_in_song=False):
 
 # TODO: handle song already existing in database
 # TODO: handle delete after
-async def update_database(db, in_queue, out_queue=None):
+async def update_database(db, in_queue):
     while True:
         song = await in_queue.get()
         if song is None:
             break
 
+        start_t = time.time()
         delete_file = False
         try:
             if "delete" in song:
@@ -57,18 +59,15 @@ async def update_database(db, in_queue, out_queue=None):
                 youtube_id=song.get("id")
             )
             db.add_fingerprints(song_id, song["fingerprints"])
-            logging.info(f"Added {song['path']} to database")
+            elapsed = time.time() - start_t
+            logging.info(f"Added {song['path']} to database ({elapsed:.2f} s)")
         except:
             logging.error(f"Error adding {song['path']} to database")
         finally:
             if delete_file:
                 logging.info(f"Deleting file {song['path']}")
                 # delete song
-        if out_queue is not None:
-            await out_queue.put(song)
-
-    if out_queue is not None:
-        await out_queue.put(None)
+        del song["fingerprints"]
 
 
 # TODO: try/except, db rollbacks

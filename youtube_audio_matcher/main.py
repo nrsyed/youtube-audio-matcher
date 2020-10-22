@@ -5,6 +5,7 @@ import logging
 import multiprocessing
 import os
 import pathlib
+import time
 
 import youtube_audio_matcher as yam
 
@@ -19,6 +20,7 @@ async def match_fingerprints(db, in_queue):
         if song is None:
             break
 
+        start_t = time.time()
         # List of hashes (for the database query) and a list of dicts
         # containing the hash and offset (to align matches).
         hashes = []
@@ -60,6 +62,9 @@ async def match_fingerprints(db, in_queue):
                         "match": match,
                     }
                 )
+        # Free up some memory.
+        del song["fingerprints"]
+        # TODO
     return all_matches
 
 
@@ -123,7 +128,7 @@ def main(inputs, add_to_database=False, **kwargs):
     db = yam.database.Database(**db_kwargs)
 
     # TODO: remove this for final version
-    #db.delete_all()
+    db.delete_all()
     #db.drop_all_tables()
 
     # Add local files, if any, to fingerprint queue.
