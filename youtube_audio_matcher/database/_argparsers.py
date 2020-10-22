@@ -47,7 +47,15 @@ def get_parser():
         description="",
     )
 
-    parser.add_argument(
+    action_group = parser.add_argument_group("actions")
+    action_args = action_group.add_mutually_exclusive_group()
+    action_args.add_argument(
+        "-d", "--delete", action="store_true", help="Delete all rows"
+    )
+    action_args.add_argument(
+        "-r", "--drop", action="store_true", help="Drop all tables"
+    )
+    action_args.add_argument(
         "-o", "--output", type=pathlib.Path, help="Path to JSON output file"
     )
     return parser

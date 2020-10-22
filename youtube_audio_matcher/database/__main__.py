@@ -18,3 +18,7 @@ def cli():
         db_json = db.as_dict()
         with open(args.output, "w") as f:
             json.dump(db_json, f, indent=2)
+    elif args.delete:
+        db.delete_all()
+    elif args.drop:
+        db.drop_all_tables()

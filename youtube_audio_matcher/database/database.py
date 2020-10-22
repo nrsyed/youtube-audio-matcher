@@ -39,35 +39,56 @@ def database_obj_to_py(obj, fingerprints_in_song=False):
         raise ValueError("Unsupported object")
 
 
+def _threadsafe_add_fingerprints(db_kwargs, song):
+    logging.info(f"Adding {song['path']} to database...")
+    db = Database(**db_kwargs)
+    song_id = db.add_song(
+        duration=song.get("duration"), filepath=song.get("path"),
+        filehash=song.get("filehash"), title=song.get("title"),
+        youtube_id=song.get("id")
+    )
+    db.add_fingerprints(song_id, song["fingerprints"])
+    del db
+    del song["fingerprints"]
+
+
+async def _update_database(song, loop, executor, db_kwargs):
+    start_t = time.time()
+    delete_file = False
+    try:
+        if "delete" in song:
+            delete_file = True
+        await loop.run_in_executor(
+            executor, _threadsafe_add_fingerprints, db_kwargs, song
+        )
+        elapsed = time.time() - start_t
+        logging.info(f"Added {song['path']} to database ({elapsed:.2f} s)")
+    except Exception as e:
+        logging.error(f"Error adding {song['path']} to database ({str(e)})")
+    finally:
+        if delete_file:
+            logging.info(f"Deleting file {song['path']}")
+            # TODO delete song
+
+
 # TODO: handle song already existing in database
 # TODO: handle delete after
-async def update_database(db, in_queue):
+async def update_database(loop, executor, db_kwargs, in_queue):
+    start_t = time.time()
+    tasks = []
     while True:
         song = await in_queue.get()
         if song is None:
             break
 
-        start_t = time.time()
-        delete_file = False
-        try:
-            if "delete" in song:
-                delete_file = True
+        task = loop.create_task(_update_database(song, loop, executor, db_kwargs))
+        tasks.append(task)
 
-            song_id = db.add_song(
-                duration=song.get("duration"), filepath=song.get("path"),
-                filehash=song.get("filehash"), title=song.get("title"),
-                youtube_id=song.get("id")
-            )
-            db.add_fingerprints(song_id, song["fingerprints"])
-            elapsed = time.time() - start_t
-            logging.info(f"Added {song['path']} to database ({elapsed:.2f} s)")
-        except:
-            logging.error(f"Error adding {song['path']} to database")
-        finally:
-            if delete_file:
-                logging.info(f"Deleting file {song['path']}")
-                # delete song
-        del song["fingerprints"]
+    # Wrap asyncio.wait() in if statement to avoid ValueError if no tasks.
+    if tasks:
+        await asyncio.wait(tasks)
+    elapsed = time.time() - start_t
+    logging.info(f"All songs added to database ({elapsed:.2f} s)")
 
 
 # TODO: try/except, db rollbacks
@@ -155,6 +176,7 @@ class Database:
         self.session.commit()
         return new_fingerprint.id
 
+    # TODO: handle new session more gracefully
     def add_fingerprints(self, song_id, fingerprints):
         """
         Args:
@@ -212,6 +234,11 @@ class Database:
 
     def drop_fingerprint_table(self):
         self._drop_tables([Fingerprint.__table__])
+
+    # TODO: unnecessary function?
+    def new_session(self):
+        Session = sqlalchemy.orm.sessionmaker(self.engine)
+        self.session = Session()
 
     def query_fingerprints(self, hashes):
         """
