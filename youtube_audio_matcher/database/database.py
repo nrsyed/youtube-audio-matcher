@@ -1,5 +1,4 @@
 import asyncio
-from collections import defaultdict
 import logging
 
 import sqlalchemy
@@ -8,14 +7,43 @@ from sqlalchemy.pool import NullPool
 from .schema import Base, Fingerprint, Song
 
 
+def database_obj_to_py(obj, fingerprints_in_song=False):
+    if isinstance(obj, list):
+        return [
+            database_obj_to_py(elem, fingerprints_in_song=fingerprints_in_song)
+            for elem in obj
+        ]
+    elif isinstance(obj, Song):
+        song = {
+            "id": obj.id,
+            "duration": obj.duration,
+            "filehash": obj.filehash,
+            "filepath": obj.filepath,
+            "title": obj.title,
+            "youtube_id": obj.youtube_id,
+        }
+
+        if fingerprints_in_song:
+            song["fingerprints"] = [database_obj_to_py(fp) for fp in obj.fingerprints]
+        else:
+            song["num_fingerprints"] = len(obj.fingerprints)
+        return song
+    elif isinstance(obj, Fingerprint):
+        return {
+            "song_id": obj.song_id,
+            "hash": obj.hash,
+            "offset": obj.offset,
+        }
+    else:
+        raise ValueError("Unsupported object")
+
+
 # TODO: handle song already existing in database
 # TODO: handle delete after
 async def update_database(db, in_queue, out_queue=None):
     while True:
         song = await in_queue.get()
         if song is None:
-            if out_queue is not None:
-                await out_queue.put(None)
             break
 
         delete_file = False
@@ -39,36 +67,8 @@ async def update_database(db, in_queue, out_queue=None):
         if out_queue is not None:
             await out_queue.put(song)
 
-
-def obj_as_dict(obj, fingerprints_in_song=False):
-    if isinstance(obj, list):
-        return [
-            obj_as_dict(elem, fingerprints_in_song=fingerprints_in_song)
-            for elem in obj
-        ]
-    elif isinstance(obj, Song):
-        song = {
-            "id": obj.id,
-            "duration": obj.duration,
-            "filehash": obj.filehash,
-            "filepath": obj.filepath,
-            "title": obj.title,
-            "youtube_id": obj.youtube_id,
-        }
-
-        if fingerprints_in_song:
-            song["fingerprints"] = [obj_as_dict(fp) for fp in obj.fingerprints]
-        else:
-            song["num_fingerprints"] = len(obj.fingerprints)
-        return song
-    elif isinstance(obj, Fingerprint):
-        return {
-            "song_id": obj.song_id,
-            "hash": obj.hash,
-            "offset": obj.offset,
-        }
-    else:
-        raise ValueError("Unsupported object")
+    if out_queue is not None:
+        await out_queue.put(None)
 
 
 # TODO: try/except, db rollbacks
@@ -188,12 +188,12 @@ class Database:
 
         if combine_tables:
             return {
-                "songs": obj_as_dict(songs_table, fingerprints_in_song=True),
+                "songs": database_obj_to_py(songs_table, fingerprints_in_song=True),
             }
         else:
             return {
-                "songs": obj_as_dict(songs_table),
-                "fingerprints": obj_as_dict(fingerprints_table),
+                "songs": database_obj_to_py(songs_table),
+                "fingerprints": database_obj_to_py(fingerprints_table),
             }
 
     def delete_all(self):
@@ -214,85 +214,6 @@ class Database:
     def drop_fingerprint_table(self):
         self._drop_tables([Fingerprint.__table__])
 
-    def match_fingerprint(self, hashes, offsets):
-        """
-        Args:
-            hashes (str|List[str]): Hash or list of hashes from a
-                fingerprinted audio signal.
-            offsets (float|List[float]): Offset or list of offsets
-                corresponding to each hash in `hashes`.
-        """
-        if not isinstance(hashes, list):
-            hashes = [hashes]
-
-        if not isinstance(offsets, list):
-            offsets = [offsets]
-
-        # Map input hashes to their offsets.
-        inp_hash_to_offset = {
-            hash_: offset for hash_, offset in zip(hashes, offsets)
-        }
-
-        # Perform query; this is the equivalent of
-        # SELECT * FROM fingerprint WHERE fingerprint.hash IN (`hashes`)
-        query = self.session.query(Fingerprint).filter(
-            Fingerprint.hash.in_(hashes)
-        )
-
-        # Compute relative offsets, mapping each relative offset to song ids;
-        # map each song id to an int representing the number of matching
-        # hashes. Simultaneously keep track of the total number of matches
-        # across all song ids for each relative offset.
-        map_ = defaultdict(lambda: defaultdict(int))
-        matches_per_rel_offset = defaultdict(int)
-
-        for result in query:
-            hash_ = result.hash
-
-            inp_offset = inp_hash_to_offset[hash_]
-            abs_offset = result.offset
-            rel_offset = int(abs_offset - inp_offset)
-            song_id = result.song_id
-
-            map_[rel_offset][song_id] += 1
-            matches_per_rel_offset[rel_offset] += 1
-
-        if map_:
-            # Only consider the relative offset with the most matches.
-            max_matches = -1
-            max_matches_rel_offset = None
-            for rel_offset, num_matches in matches_per_rel_offset.items():
-                if num_matches > max_matches:
-                    max_matches = num_matches
-                    max_matches_rel_offset = rel_offset
-
-            # Find the song id with the most matches of that relative offset.
-            max_matches = -1
-            max_matches_song_id = None
-            for song_id, num_matches in map_[max_matches_rel_offset].items():
-                if num_matches > max_matches:
-                    max_matches = num_matches
-                    max_matches_song_id = song_id
-
-            # Use the song id to fetch the corresponding song information from
-            # the database.
-            query = self.session.query(Song).filter(
-                Song.id == max_matches_song_id
-            )
-            match = query.first()
-
-            return {
-                "id": match.id,
-                "duration": match.duration,
-                "filepath": match.filepath,
-                "filehash": match.filehash,
-                "title": match.title,
-                "youtube_id": match.youtube_id,
-                "num_matches": max_matches,
-            }
-
-        return None
-
     def query_fingerprints(self, hashes):
         """
         Args:
@@ -304,7 +225,7 @@ class Database:
         query = self.session.query(Fingerprint).filter(
             Fingerprint.hash.in_(hashes)
         )
-        return obj_as_dict(query.all())
+        return database_obj_to_py(query.all())
 
     def query_songs(
         self, id_=None, duration=None, duration_greater_than=None,
@@ -352,4 +273,4 @@ class Database:
                 if not isinstance(val, (list, tuple)):
                     val = [val]
                 query = query.filter(Song_[arg].in_(val))
-        return obj_as_dict(query.all())
+        return database_obj_to_py(query.all())

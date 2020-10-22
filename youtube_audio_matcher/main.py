@@ -9,6 +9,60 @@ import pathlib
 import youtube_audio_matcher as yam
 
 
+async def match_fingerprints(db, in_queue):
+    """
+    TODO
+    """
+    all_matches = []
+    while True:
+        song = await in_queue.get()
+        if song is None:
+            break
+
+        # List of hashes (for the database query) and a list of dicts
+        # containing the hash and offset (to align matches).
+        hashes = []
+        fingerprints = []
+        for hash_, offset in song["fingerprints"]:
+            hashes.append(hash_)
+            fingerprints.append({"hash": hash_, "offset": offset})
+
+        db_matches = db.query_fingerprints(hashes)
+        if db_matches:
+            # Filter out all input hashes that don't have a database match.
+            matching_hashes = set(fp["hash"] for fp in db_matches)
+            fingerprints = [
+                fp for fp in fingerprints if fp["hash"] in matching_hashes
+            ]
+
+            result = yam.audio.align_matches(fingerprints, db_matches)
+            if result is not None:
+                # Query the database for the matching song.
+                match = db.query_songs(id_=result["song_id"])[0]
+
+                # Compute confidence as the ratio of num_matching_hashes and
+                # the total number of fingerprints computed for the input song.
+                num_matching_hashes = result["num_matching_hashes"]
+                confidence = num_matching_hashes / len(hashes)
+
+                match["num_matching_hashes"] = num_matching_hashes
+                match["confidence"] = confidence
+
+                all_matches.append(
+                    {
+                        "channel_url": song["channel_url"],
+                        "duration": song["duration"],
+                        "filehash": song["filehash"],
+                        "path": song["path"],
+                        "title": song["title"],
+                        "youtube_id": song["id"],
+                        "match": match,
+                    }
+                )
+    return all_matches
+
+
+# TODO: write out results
 # TODO: delete after download
 def main(inputs, add_to_database=False, **kwargs):
     """
@@ -68,7 +122,8 @@ def main(inputs, add_to_database=False, **kwargs):
     db = yam.database.Database(**db_kwargs)
 
     # TODO: remove this for final version
-    db.delete_all()
+    #db.delete_all()
+    #db.drop_all_tables()
 
     # Add local files, if any, to fingerprint queue.
     for file_ in files:
@@ -125,7 +180,6 @@ def main(inputs, add_to_database=False, **kwargs):
     }
 
     # Add fingerprint task to the task list.
-    #proc_pool = thread_pool
     fingerprint_task = yam.audio.fingerprint_songs(
         loop=loop, executor=proc_pool, in_queue=fingerprint_queue,
         out_queue=db_queue, **fingerprint_kwargs
@@ -137,8 +191,8 @@ def main(inputs, add_to_database=False, **kwargs):
         update_db_task = yam.database.update_database(db, in_queue=db_queue)
         tasks.append(update_db_task)
     else:
-        # match task
-        pass
+        match_task = match_fingerprints(db, in_queue=db_queue)
+        tasks.append(match_task)
 
     task_group = asyncio.gather(*tasks)
     loop.run_until_complete(task_group)
