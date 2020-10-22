@@ -14,7 +14,7 @@ class Fingerprint(Base):
 
     id = Column("id", Integer, primary_key=True)
     song_id = Column("song_id", ForeignKey("song.id"), nullable=False)
-    hash = Column("hash", String, nullable=False)
+    hash = Column("hash", String, nullable=False, index=True)
     offset = Column("offset", Float, nullable=False)
     UniqueConstraint("song_id", "hash", "offset")
 
