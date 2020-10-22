@@ -458,7 +458,7 @@ async def fingerprint_songs(
     return [task.result() for task in tasks]
 
 
-def align_matches(song_fingerprints, db_fingerprints, rel_offset_bin_size=0.5):
+def align_matches(song_fingerprints, db_fingerprints, offset_bin_size=0.2):
     """
     Args:
         song_fingerprints (List[dict]): List of fingerprints for the song to
@@ -478,8 +478,8 @@ def align_matches(song_fingerprints, db_fingerprints, rel_offset_bin_size=0.5):
                     "hash": str,
                     "offset": float
                 }
-        rel_offset_bin_size (float): Size of relative offset bin in seconds;
-            each relative offset is divided by this value and converted to an
+        offset_bin_size (float): Size of offset bin in seconds;
+            each offset is divided by this value and converted to an
             integer to prevent floating point errors and inaccuracies from
             affecting the results.
 
@@ -492,39 +492,34 @@ def align_matches(song_fingerprints, db_fingerprints, rel_offset_bin_size=0.5):
         fingerprints with non-matching hashes should be filtered out before
         being passed to this function.
     """
-    # Map input song hashes to their offsets. Assumes hashes are unique.
-    inp_hash_to_offset = dict()
+    # Map input song hashes to a list of offsets for each hash.
+    inp_hash_to_offsets = collections.defaultdict(list)
     for fp in song_fingerprints:
-        inp_hash_to_offset[fp["hash"]] = fp["offset"]
+        inp_hash_to_offsets[fp["hash"]].append(
+            int(fp["offset"] / offset_bin_size)
+        )
 
-    # Map database hashes to a list of {song_id, offset}. Assumes there may be
-    # multiple fingerprints (from multiple songs) with the same hash.
+    # Map database hashes to a list of {song_id, offset}.
     db_hash_to_songs = collections.defaultdict(list)
     for fp in db_fingerprints:
         db_hash_to_songs[fp["hash"]].append(
             {
                 "song_id": fp["song_id"],
-                "offset": fp["offset"],
+                "offset": int(fp["offset"] / offset_bin_size),
             }
         )
 
-    # TODO: debug method and confidence
-
-    # Iterate over the hashes. For each hash, compute the relative offset
-    # between 1) the input song offset and 2) each database match offset.
-    # The (binned) relative offset is the key for rel_offset_to_song_ids,
-    # whose value is a list of song ids corresponding to that relative offset.
     rel_offset_to_song_ids = collections.defaultdict(list)
 
-    for hash_, inp_offset in inp_hash_to_offset.items():
+    for hash_, inp_offsets in inp_hash_to_offsets.items():
         db_matches = db_hash_to_songs[hash_]
+        for inp_offset in inp_offsets:
+            for db_match in db_matches:
+                song_id = db_match["song_id"]
+                db_match_offset = db_match["offset"]
 
-        for db_match in db_matches:
-            song_id = db_match["song_id"]
-            rel_offset = db_match["offset"]
-
-            rel_offset_bin = int(rel_offset / rel_offset_bin_size)
-            rel_offset_to_song_ids[rel_offset_bin].append(song_id)
+                rel_offset = db_match_offset - inp_offset
+                rel_offset_to_song_ids[rel_offset].append(song_id)
 
     # Determine which relative offset bin has the most matches. We consider
     # only this relative offset.
@@ -540,9 +535,11 @@ def align_matches(song_fingerprints, db_fingerprints, rel_offset_bin_size=0.5):
     if max_matches_bin is not None:
         match_ids = rel_offset_to_song_ids[max_matches_bin]
         song_id, count = collections.Counter(match_ids).most_common(1)[0]
+
+        # TODO: correct matches get double counted so divide count by 2. Why?
         return {
             "song_id": song_id,
-            "num_matching_hashes": count,
+            "num_matching_hashes": count // 2,
         }
     return None
 

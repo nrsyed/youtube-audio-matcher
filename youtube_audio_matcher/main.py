@@ -23,6 +23,7 @@ async def match_fingerprints(db, in_queue):
         # containing the hash and offset (to align matches).
         hashes = []
         fingerprints = []
+
         for hash_, offset in song["fingerprints"]:
             hashes.append(hash_)
             fingerprints.append({"hash": hash_, "offset": offset})
@@ -186,7 +187,6 @@ def main(inputs, add_to_database=False, **kwargs):
     )
     tasks.append(fingerprint_task)
 
-    # TODO
     if add_to_database:
         update_db_task = yam.database.update_database(db, in_queue=db_queue)
         tasks.append(update_db_task)
@@ -196,3 +196,8 @@ def main(inputs, add_to_database=False, **kwargs):
 
     task_group = asyncio.gather(*tasks)
     loop.run_until_complete(task_group)
+
+    # TODO
+    if not add_to_database:
+        matches = task_group.result()[1]
+        print(matches)
