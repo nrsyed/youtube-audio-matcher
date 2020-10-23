@@ -157,19 +157,23 @@ async def get_source(url, page_load_wait=1, scroll_by=5000):
         str: source
             Page source code.
     """
+    source = None
     try:
-        driver = selenium.webdriver.Chrome()
+        chrome_opts = selenium.webdriver.ChromeOptions()
+        #chrome_opts.add_argument("--headless")
+        chrome_opts.add_argument("--remote-debugging-port=9222")
+        chrome_opts.headless = True
+        driver = selenium.webdriver.Chrome(chrome_options=chrome_opts)
         driver.get(url)
         await asyncio.sleep(page_load_wait)
 
-        source = None
         while source != driver.page_source:
             source = driver.page_source
             driver.execute_script(f"window.scrollBy(0, {scroll_by});")
             await asyncio.sleep(page_load_wait)
         driver.quit()
     except Exception as e:
-        logging.error(f"Error getting page source for URL {url}")
+        logging.error(f"Error getting page source for URL {url} ({str(e)})")
     finally:
         return source
 
