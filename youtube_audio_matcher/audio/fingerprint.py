@@ -222,7 +222,7 @@ async def _fingerprint_song(song, loop, executor, out_queue=None, **kwargs):
 
         song["fingerprints"] = hashes
         song["filehash"] = filehash
-        logging.info(f"Fingerprinted {song['path']}")
+        logging.info(f"Fingerprinted {song['path']} ({len(hashes)} hashes)")
 
     if out_queue is not None:
         await out_queue.put(song)

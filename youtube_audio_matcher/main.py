@@ -9,68 +9,94 @@ import time
 
 import youtube_audio_matcher as yam
 
+# TODO: add max threads/max processes/max queue size arguments
 
-async def match_fingerprints(db, in_queue):
+def match_fingerprints(song, db_kwargs):
+    db = yam.database.Database(**db_kwargs)
+    match = None
+
+    # List of hashes (for the database query) and a list of dicts
+    # containing the hash and offset (to align matches).
+    hashes = []
+    fingerprints = []
+
+    for hash_, offset in song["fingerprints"]:
+        hashes.append(hash_)
+        fingerprints.append({"hash": hash_, "offset": offset})
+
+    # Free up some memory
+    del song["fingerprints"]
+
+    unique_hashes = list(set(hashes))
+    db_matches = db.query_fingerprints(unique_hashes)
+
+    if db_matches:
+        # Filter out all input hashes that don't have a database match.
+        matching_hashes = set(fp["hash"] for fp in db_matches)
+        fingerprints = [
+            fp for fp in fingerprints if fp["hash"] in matching_hashes
+        ]
+
+        logging.info(f"Aligning hash matches for {song['path']}")
+        result = yam.audio.align_matches(fingerprints, db_matches)
+        if result is not None:
+            # Query the database for the matching song.
+            match = db.query_songs(id_=result["song_id"])[0]
+
+            # Compute confidence as the ratio of num_matching_hashes and
+            # the total number of (unique) hashes for the input song.
+            # This is not based on anything in particular; I have simply
+            # found it to be a good metric.
+            num_matching_hashes = result["num_matching_hashes"]
+            confidence = num_matching_hashes / len(unique_hashes)
+
+            match["num_matching_hashes"] = num_matching_hashes
+            match["confidence"] = confidence
+
+            song["match"] = match
+        logging.info(f"Finished aligning hash matches for {song['path']}")
+    del db
+    return song
+
+
+async def _match_song(song, loop, executor, db_kwargs):
+    start_t = time.time()
+    logging.info(f"Matching fingerprints for {song['path']}")
+    matched_song = await loop.run_in_executor(
+        executor, match_fingerprints, song, db_kwargs
+    )
+    elapsed = time.time() - start_t
+    logging.info(
+        f"Finished matching fingerprints for {matched_song['path']} "
+        f"(time elapsed: {elapsed:.2f} s)"
+    )
+    return matched_song
+
+
+# TODO: Rename wrapper functions, helper functions, core algo functions?
+async def match_songs(loop, executor, db_kwargs, in_queue):
     """
     TODO
     """
-    all_matches = []
+    tasks = []
     while True:
         song = await in_queue.get()
         if song is None:
             break
 
-        start_t = time.time()
-        # List of hashes (for the database query) and a list of dicts
-        # containing the hash and offset (to align matches).
-        hashes = []
-        fingerprints = []
+        task = loop.create_task(_match_song(song, loop, executor, db_kwargs))
+        tasks.append(task)
 
-        for hash_, offset in song["fingerprints"]:
-            hashes.append(hash_)
-            fingerprints.append({"hash": hash_, "offset": offset})
+    # Wrap asyncio.wait() in if statement to avoid error if no tasks.
+    if tasks:
+        await asyncio.wait(tasks)
 
-        db_matches = db.query_fingerprints(hashes)
-        if db_matches:
-            # Filter out all input hashes that don't have a database match.
-            matching_hashes = set(fp["hash"] for fp in db_matches)
-            fingerprints = [
-                fp for fp in fingerprints if fp["hash"] in matching_hashes
-            ]
-
-            result = yam.audio.align_matches(fingerprints, db_matches)
-            if result is not None:
-                # Query the database for the matching song.
-                match = db.query_songs(id_=result["song_id"])[0]
-
-                # Compute confidence as the ratio of num_matching_hashes and
-                # the total number of fingerprints computed for the input song.
-                num_matching_hashes = result["num_matching_hashes"]
-                confidence = num_matching_hashes / len(hashes)
-
-                match["num_matching_hashes"] = num_matching_hashes
-                match["confidence"] = confidence
-
-                all_matches.append(
-                    {
-                        "channel_url": song["channel_url"],
-                        "duration": song["duration"],
-                        "filehash": song["filehash"],
-                        "path": song["path"],
-                        "title": song["title"],
-                        "youtube_id": song["id"],
-                        "match": match,
-                    }
-                )
-        # Free up some memory.
-        del song["fingerprints"]
-        # TODO
-    return all_matches
+    return [task.result() for task in tasks]
 
 
 # TODO: write out results
 # TODO: delete after download
-def main(inputs, add_to_database=False, **kwargs):
+def main(inputs, add_to_database=False, conf_thresh=0.01, **kwargs):
     """
     Args:
         inputs (List[str]): List of input YouTube channel/user URLs and/or
@@ -126,10 +152,6 @@ def main(inputs, add_to_database=False, **kwargs):
     ]
     db_kwargs = {k: v for k, v in kwargs.items() if k in db_keys}
     db = yam.database.Database(**db_kwargs)
-
-    # TODO: remove this for final version
-    db.delete_all()
-    #db.drop_all_tables()
 
     # Add local files, if any, to fingerprint queue.
     for file_ in files:
@@ -193,16 +215,23 @@ def main(inputs, add_to_database=False, **kwargs):
     tasks.append(fingerprint_task)
 
     if add_to_database:
-        update_db_task = yam.database.update_database(db, in_queue=db_queue)
+        update_db_task = yam.database.update_database(
+            loop, proc_pool, db_kwargs, in_queue=db_queue
+        )
         tasks.append(update_db_task)
     else:
-        match_task = match_fingerprints(db, in_queue=db_queue)
+        match_task = match_songs(
+            loop, proc_pool, db_kwargs, in_queue=db_queue
+        )
         tasks.append(match_task)
 
     task_group = asyncio.gather(*tasks)
     loop.run_until_complete(task_group)
 
-    # TODO
     if not add_to_database:
-        matches = task_group.result()[1]
-        print(matches)
+        matches = []
+        for matched_song in task_group.result()[-1]:
+            match = matched_song["match"]
+            if match and match["confidence"] > conf_thresh:
+                matches.append(matched_song)
+        # TODO: do stuff with matches
