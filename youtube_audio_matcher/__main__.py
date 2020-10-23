@@ -1,4 +1,5 @@
 import argparse
+from datetime import datetime
 import logging
 import os
 
@@ -42,6 +43,16 @@ def get_parser():
         help="Add fingerprinted files to the database instead of searching "
         "the database for matches"
     )
+    parser.add_argument(
+        "-c", "--conf-thresh", type=float, default=0.01, metavar="<float>",
+        help="Confidence threshold for matches"
+    )
+    parser.add_argument(
+        "-o", "--output", nargs="?", metavar="path", const=0,
+        help="Path to output file containing matches in JSON format; if this "
+        "option is provided without an argument, a timestamped filename is "
+        "generated and written to the current directory"
+    )
 
     verbose_args = parser.add_argument_group("Verbosity arguments")
     verbose_args.add_argument(
@@ -74,13 +85,21 @@ def cli():
 
     inputs = args["inputs"]
 
-    # Remove verbosity/debug args so they aren't passed to main(). Remove
-    # inputs so it's not passed as a keyword arg (we want to pass it as a
-    # positional for clarity).
-    del args["inputs"], args["debug"], args["silent"]
+    # If --output was called without an argument, it will hold the const
+    # value 0 (an integer), and we generate an output filename.
+    out_fpath = None
+    if isinstance(args["output"], int):
+        out_fpath = "{}_matches.json".format(
+            datetime.now().strftime("%Y%m%d%H%M%S")
+        )
+    elif isinstance(args["output"], str):
+        out_fpath = os.path.abspath(os.path.expanduser(args["output"]))
+
+    del args["inputs"], args["debug"], args["output"], args["silent"]
+    breakpoint()
 
     try:
-        youtube_audio_matcher.main(inputs, **args)
+        youtube_audio_matcher.main(inputs, out_fpath=out_fpath, **args)
     except Exception as e:
         raise e
     finally:

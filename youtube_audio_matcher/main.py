@@ -1,6 +1,7 @@
 import asyncio
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 import functools
+import json
 import logging
 import multiprocessing
 import os
@@ -96,7 +97,9 @@ async def match_songs(loop, executor, db_kwargs, in_queue):
 
 # TODO: write out results
 # TODO: delete after download
-def main(inputs, add_to_database=False, conf_thresh=0.01, **kwargs):
+def main(
+    inputs, add_to_database=False, conf_thresh=0.01, out_fpath=None, **kwargs
+):
     """
     Args:
         inputs (List[str]): List of input YouTube channel/user URLs and/or
@@ -234,4 +237,8 @@ def main(inputs, add_to_database=False, conf_thresh=0.01, **kwargs):
             match = matched_song["match"]
             if match and match["confidence"] > conf_thresh:
                 matches.append(matched_song)
-        # TODO: do stuff with matches
+        if out_fpath:
+            with open(out_fpath, "w") as f:
+                json.dump(matches, f, indent=2),
+        return matches
+
