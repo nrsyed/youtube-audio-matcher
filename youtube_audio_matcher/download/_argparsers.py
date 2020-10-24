@@ -2,24 +2,14 @@ import argparse
 import pathlib
 
 
-def get_core_parser(extra_args=False):
+def get_core_parser():
     """
     Sub-parser containing core download module arguments. Used by both yamdl
     in this module and by the top-level yam command.
-
-    Args:
-        extra_args (bool): Include --delete option for main (top-level)
-            youtube_audio_matcher CLI.
     """
     core_parser = argparse.ArgumentParser(add_help=False)
 
     download_args = core_parser.add_argument_group(title="download arguments")
-
-    if extra_args:
-        download_args.add_argument(
-            "-D", "--delete", action="store_true",
-            help="Delete downloaded files after processing"
-        )
 
     download_args.add_argument(
         "-d", "--dst-dir", type=pathlib.Path, metavar="<path>", default=".",
@@ -46,7 +36,7 @@ def get_core_parser(extra_args=False):
         "load and and after each page scroll"
     )
     download_args.add_argument(
-        "-r", "--retries", type=int, default=3, metavar="<num>",
+        "-r", "--retries", type=int, default=5, metavar="<num>",
         dest="num_retries",
         help="Number of times to re-attempt failed downloads. Pass -1 to "
         "retry indefinitely until successful"
