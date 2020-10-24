@@ -38,7 +38,7 @@ def get_core_parser(extra_args=False):
 
     if extra_args:
         fingerprint_args.add_argument(
-            "-l", "--hash-length", type=int, default=20, metavar="<int>",
+            "-l", "--hash-length", type=int, default=40, metavar="<int>",
             help="Truncate each fingerprint SHA1 hash to --hash-length (max 40)"
         )
         fingerprint_args.add_argument(

@@ -1,4 +1,5 @@
 import hashlib
+import logging
 
 import numpy as np
 import pydub
@@ -82,9 +83,9 @@ def hash_file(fpath, block_size=2**16):
     return hash_.hexdigest()
 
 
-def read_file(fpath):
+def read_file(fpath, num_retries=3):
     """
-    Read an audio file and extract audio information and file SHA-1 hash.
+    Read an audio file and extract audio information and file SHA1 hash.
 
     Args:
         fpath (str): Path to file.
@@ -93,7 +94,7 @@ def read_file(fpath):
         tuple: (channel_data, sample_rate, sha1_hash)
             - channel_data (List[np.ndarray]): Data for each audio channel.
             - sample_rate (int): Audio sample rate (samples per second).
-            - sha1_hash (str): SHA-1 hash of the file.
+            - sha1_hash (str): SHA1 hash of the file.
 
     .. note::
         Does not support 24-bit (use wavio for 24-bit files).

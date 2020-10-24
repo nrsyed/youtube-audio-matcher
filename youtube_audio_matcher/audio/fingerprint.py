@@ -156,13 +156,14 @@ def fingerprint_from_signal(samples, **kwargs):
     return hashes
 
 
-def fingerprint_from_file(fpath, **kwargs):
+def fingerprint_from_file(fpath, delete=False, **kwargs):
     """
     Fingerprint an audio file by reading the file and obtaining the fingerprint
     for each audio channel. Wraps :func:`fingerprint_from_signal`.
 
     Args:
         fpath (str): Path to audio file.
+        delete (bool): Delete file after fingerprinting.
         **kwargs: See :func:`fingerprint_from_signal`.
 
     Returns:
@@ -181,6 +182,9 @@ def fingerprint_from_file(fpath, **kwargs):
         hashes.extend(
             fingerprint_from_signal(samples, sample_rate=sample_rate, **kwargs)
         )
+    if delete:
+        os.remove(fpath)
+        logging.info(f"Deleted file {fpath}")
     return hashes, filehash
 
 
