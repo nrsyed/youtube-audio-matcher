@@ -15,10 +15,14 @@ def cli():
     )
 
     if args.output:
-        db_json = db.as_dict()
+        db_dict = db.as_dict()
         with open(args.output, "w") as f:
-            json.dump(db_json, f, indent=2)
+            json.dump(db_dict, f, indent=2)
     elif args.delete:
         db.delete_all()
     elif args.drop:
         db.drop_all_tables()
+    elif args.songs:
+        songs = db.query_songs()
+        songs_str = json.dumps(songs, indent=2)
+        print(songs_str)

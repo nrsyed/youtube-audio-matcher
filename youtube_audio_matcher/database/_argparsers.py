@@ -56,6 +56,11 @@ def get_parser():
         "-r", "--drop", action="store_true", help="Drop all tables"
     )
     action_args.add_argument(
-        "-o", "--output", type=pathlib.Path, help="Path to JSON output file"
+        "-o", "--output", type=pathlib.Path,
+        help="Write the contents of the database to an output file as JSON"
+    )
+    action_args.add_argument(
+        "-s", "--songs", action="store_true",
+        help="Print a list of songs in the database"
     )
     return parser
