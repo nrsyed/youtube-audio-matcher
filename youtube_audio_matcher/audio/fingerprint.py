@@ -1,5 +1,9 @@
+import asyncio
+import collections
 import copy
+import functools
 import hashlib
+import logging
 import os
 
 import matplotlib.mlab as mlab
@@ -10,148 +14,293 @@ import scipy.signal
 
 from . import util
 
+# TODO: get duration on file read
 
-def get_spectrogram(
-    samples, sample_rate=44100, win_size=4096, win_overlap_ratio=0.5,
-    backend="scipy"
-):
+
+def align_matches(song_fingerprints, db_fingerprints, offset_bin_size=0.2):
     """
-    Obtain the spectrogram for an audio signal.
+    Args:
+        song_fingerprints (List[dict]): List of fingerprints for the song to
+            be matched, where each fingerprint is a dict containing the hash
+            and the time offset in seconds::
+
+                {
+                    "hash": str,
+                    "offset": float
+                }
+        db_fingerprints (List[dict]): List of fingerprints from the database
+            with matching hashes, where each fingerprint is a dict containing
+            the database song id, hash, and offset::
+                
+                {
+                    "song_id": int,
+                    "hash": str,
+                    "offset": float
+                }
+        offset_bin_size (float): Size of offset bin in seconds;
+            each offset is divided by this value and converted to an
+            integer to prevent floating point errors and inaccuracies from
+            affecting the results.
+
+    Returns: Dict containing "song_id" and "num_matching_hashes" if any,
+        else ``None``.
+
+    .. note::
+        ``db_fingerprints`` and ``song_fingerprints`` are assumed to be
+        `matches`, i.e., both lists should contain the same set of hashes;
+        fingerprints with non-matching hashes should be filtered out before
+        being passed to this function.
+    """
+    # Map input song hashes to a list of offsets for each hash.
+    inp_hash_to_offsets = collections.defaultdict(list)
+    for fp in song_fingerprints:
+        offset =  int(fp["offset"] / offset_bin_size)
+        inp_hash_to_offsets[fp["hash"]].append(offset)
+
+    # Do the same as above but for each song in the database that's a potential
+    # match (ie, map each song id to its hashes; map each hash to a list of
+    # offsets of that hash). Result is a dict of dict of lists.
+    db_song_to_hashes_offsets = dict()
+    for fp in db_fingerprints:
+        song_id = fp["song_id"]
+        hash_ = fp["hash"]
+        offset = int(fp["offset"] / offset_bin_size)
+
+        if song_id not in db_song_to_hashes_offsets:
+            db_song_to_hashes_offsets[song_id] = collections.defaultdict(list)
+        db_song_to_hashes_offsets[song_id][hash_].append(offset)
+
+    # For each database song (song id), construct a list of relative offsets.
+    db_song_to_rel_offsets = collections.defaultdict(list)
+
+    # In the event of hash collisions (multiple offsets for an input song hash
+    # and/or multiple offsets for a database song hash), we compute a relative
+    # offset for all offset pair combinations. Example for a hash "abcdefg"
+    # and a database song id 1:
+    #
+    # hash = "abcdefg"
+    # inp_hash_to_offsets[hash] = [0, 3, 12]
+    # db_song_to_hashes_offsets[1][hash] = [1, 4]
+    # 
+    # We compute a relative offset for offset pairs (0, 1), (0, 4), (3, 1),
+    # (3, 4), (12, 1), (12, 4), i.e., we end up with
+    # len(inp_hash_to_offsets[hash]) * len(db_song_to_hashes_offsets[1]["hash"])
+    # relative offsets even though there are only two actual offsets in the
+    # database song. We use all relative offsets for computing the histogram,
+    # which may result in there being more matching hashes than the total
+    # number of hashes in the input song (especially if `offset bin size` is
+    # relatively large). To compensate for this, we limit `num_matching_offsets`
+    # returned at the end of the function to the total number of offsets in the
+    # input song, i.e., len(song_fingerprints).
+
+    for song_id in db_song_to_hashes_offsets:
+        for hash_ in db_song_to_hashes_offsets[song_id]:
+            if hash_ in inp_hash_to_offsets:
+                for song_offset in db_song_to_hashes_offsets[song_id][hash_]:
+                    for inp_offset in inp_hash_to_offsets[hash_]:
+                        rel_offset = song_offset - inp_offset
+                        db_song_to_rel_offsets[song_id].append(rel_offset)
+
+    # The previous step effectively constructed a histogram of relative offsets
+    # for each song id. Determine which song id contains the largest number of
+    # relative offsets in the same bin (ie, which song id histogram has the
+    # greatest peak).
+    num_matching_fingerprints = 0
+    match_song_id = None
+    match_rel_offset = None
+
+    for song_id, rel_offsets in db_song_to_rel_offsets.items():
+        # Get the relative offset with the greatest frequency for this song.
+        counter = collections.Counter(rel_offsets)
+        peak_rel_offset, peak_count = counter.most_common(1)[0]
+
+        if peak_count > num_matching_fingerprints:
+            num_matching_fingerprints = peak_count
+            match_rel_offset = peak_rel_offset
+            match_song_id = song_id
+
+    result = None
+    if num_matching_fingerprints:
+        result = {
+            "song_id": match_song_id,
+            "num_matching_fingerprints":
+                min(num_matching_fingerprints, len(song_fingerprints)),
+            "relative_offset": match_rel_offset * offset_bin_size,
+        }
+    return result
+
+def fingerprint_from_signal(samples, **kwargs):
+    """
+    TODO: add find_peaks_2d kwargs
+
+    Fingerprint an audio signal by obtaining its spectrogram and returning
+    its hashes.
 
     Args:
         samples (np.ndarray): Array representing the audio signal.
-        sample_rate (int): Audio sample rate (Hz).
-        win_size (int): Number of samples per FFT window.
-        win_overlap_ratio (float): Number of samples to overlap between windows
-            (as a fraction of window size).
-        backend (str): {"scipy", "matplotlib"}
-            Whether to use the scipy or matplotlib spectrogram functions to
-            compute the spectrogram. See `scipy.signal.spectrogram`_ and
-            `matplotlib.mlab.specgram`_.
+        sample_rate (int): Audio signal sample rate (in Hz).
+        kwargs: Optional keyword args for :func:`get_spectrogram`,
+            :func:`find_peaks_2d`, and :func:`hash_peaks`.
 
     Returns:
-        tuple: (spectrogram, t, freq)
-            - spectrogram (np.ndarray): 2D array representing the signal spectrogram
-              (amplitudes are in units of dB).
-            - t (np.ndarray): 1D array of time bins (in units of seconds)
-              corresponding to index 1 of ``spectrogram``.
-            - freq (np.ndarray): 1D array of frequency bins (in units of Hz)
-              corresponding to index 0 of ``spectrogram``.
-
-    Raises:
-        ValueError: If an invalid option for `backend` is specified.
-
-    .. _`scipy.signal.spectrogram`:
-        https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.spectrogram.html
-    .. _`matplotlib.mlab.specgram`:
-        https://matplotlib.org/api/mlab_api.html#matplotlib.mlab.specgram
+        List[Tuple[str, float]]: hashes
+            List of tuples where each tuple is a (hash, absolute_offset) pair.
+            See :func:`hash_peaks`.
     """
-    if backend == "matplotlib":
-        spectrogram, freq, t = mlab.specgram(
-            samples, NFFT=win_size, Fs=sample_rate, window=mlab.window_hanning,
-            noverlap=int(win_size * win_overlap_ratio)
+    get_spectrogram_keys = [
+        "sample_rate", "win_size", "win_overlap_ratio", "spectrogram_backend",
+    ]
+    get_spectrogram_kwargs = {
+        k: v for k, v in kwargs.items() if k in get_spectrogram_keys
+    }
+    spectrogram, t, freq = get_spectrogram(samples, **get_spectrogram_kwargs)
+
+    find_peaks_2d_keys = [
+        "filter_connectivity", "filter_dilation", "erosion_iterations",
+        "min_amplitude",
+    ]
+    find_peaks_2d_kwargs = {
+        k: v for k, v in kwargs.items() if k in find_peaks_2d_keys
+    }
+    peaks = find_peaks_2d(spectrogram, **find_peaks_2d_kwargs)
+
+    peak_freq_idxs, peak_time_idxs = np.where(peaks)
+
+    peak_times = t[peak_time_idxs]
+    peak_freqs = freq[peak_freq_idxs]
+    peak_amplitudes = spectrogram[peaks]
+
+    hash_peaks_keys = [
+        "fanout", "min_time_delta", "max_time_delta", "hash_length",
+        "time_bin_size", "freq_bin_size",
+    ]
+    hash_peaks_kwargs = {
+        k: v for k, v in kwargs.items() if k in hash_peaks_keys
+    }
+    hashes = hash_peaks(peak_times, peak_freqs, **hash_peaks_kwargs)
+
+    return hashes
+
+
+def fingerprint_from_file(fpath, delete=False, **kwargs):
+    """
+    Fingerprint an audio file by reading the file and obtaining the fingerprint
+    for each audio channel. Wraps :func:`fingerprint_from_signal`.
+
+    Args:
+        fpath (str): Path to audio file.
+        delete (bool): Delete file after fingerprinting.
+        **kwargs: See :func:`fingerprint_from_signal`.
+
+    Returns:
+        tuple: (hashes, filehash)
+        TODO
+
+    .. note::
+        Sample rate is obtained from the file. ``sample_rate`` should not be
+        passed as part of ``**kwargs``.
+    """
+    channels, sample_rate, filehash = util.read_file(fpath)
+
+    hashes = []
+    for channel in channels:
+        samples = channel
+        hashes.extend(
+            fingerprint_from_signal(samples, sample_rate=sample_rate, **kwargs)
         )
-    elif backend == "scipy":
-        freq, t, spectrogram = scipy.signal.spectrogram(
-            samples, fs=sample_rate, window="hann", nperseg=win_size,
-            noverlap=int(win_size * win_overlap_ratio)
+    if delete:
+        os.remove(fpath)
+        logging.info(f"Deleted file {fpath}")
+    return hashes, filehash
+
+
+async def _fingerprint_song(song, loop, executor, out_queue=None, **kwargs):
+    """
+    Helper function for :func:`fingerprint_songs`. Fingerprints an audio file,
+    adds the fingerprints (as a list) and file SHA1 hash to the audio file
+    metadata dict, and pushes it to an output queue (if provided).
+
+    Args:
+        song (dict): Dict corresponding to an audio file. Must contain a
+            ``path`` key containing the path to the downloaded audio file
+            (or ``None``) if the download wasn't successful and the file
+            doesn't exist.
+        loop (asyncio.BaseEventLoop): `asyncio` EventLoop.
+        executor (concurrent.futures.Executor): ``concurrent.futures``
+            ThreadPoolExecutor or ProcessPoolExecutor in which the audio file
+            will be processed.
+        out_queue (asyncio.queues.Queue): Output queue to which video metadata
+            will be pushed.
+        kwargs: Keyword arguments for :func:`fingerprint_from_file`.
+
+    Returns:
+        dict: song
+            Dict representing metadata for the fingerprinted audio file.
+    """
+    song["filehash"] = None
+    song["fingerprints"] = None
+
+    if song["path"]:
+        # Make partial with kwargs since run_in_executor only takes *args.
+        fingerprint_from_file_partial = functools.partial(
+            fingerprint_from_file, song["path"], **kwargs
         )
-    else:
-        raise ValueError("Invalid backend")
 
-    # Convert to dB by taking log and multiplying by 10.
-    # https://stackoverflow.com/a/5730830
-    # Handle log of zero values by setting them to -np.inf in output array.
-    spectrogram = 10 * np.log10(
-        spectrogram, out=(-np.inf * np.ones_like(spectrogram)),
-        where=(spectrogram != 0)
-    )
-    return spectrogram, t, freq
+        hashes, filehash = await loop.run_in_executor(
+            executor, fingerprint_from_file_partial
+        )
+
+        song["fingerprints"] = hashes
+        song["filehash"] = filehash
+        logging.info(f"Fingerprinted {song['path']} ({len(hashes)} hashes)")
+
+    if out_queue is not None:
+        await out_queue.put(song)
+    return song
 
 
-def plot_spectrogram(
-    spectrogram, times, frequencies, title=None, ax=None, fig=None
+async def fingerprint_songs(
+    loop, executor, in_queue, out_queue=None, **kwargs
 ):
     """
-    Plot the spectrogram of an audio signal.
+    TODO
 
     Args:
-        spectrogram (np.ndarray): 2D array representing the spectrogram
-            (amplitudes) of the audio signal.
-        times (np.ndarray): 1D array of the time bins (corresponding to index
-            1 of `spectrogram`) of the audio signal.
-        frequencies (np.ndarray): 1D array of the frequency bins (corresponding
-            to index 0 of `spectrogram`) of the audio signal.
-        title (str): Optional plot title.
-        ax (matplotlib.axes.Axes): Matplotlib axis handle in which to plot the
-            spectrogram. If None, a new figure/axis is created.
-        fig (matplotlib.figure.Figure): Matplotlib figure handle for the figure
-            containing `ax` (if any). Used for placing colormap scale beside
-            plot. If `ax` is not provided, a new figure and axis are created.
+        loop (asyncio.BaseEventLoop): `asyncio` EventLoop.
+        executor (concurrent.futures.Executor): ``concurrent.futures``
+            ThreadPoolExecutor or ProcessPoolExecutor in which the audio file
+            will be processed.
+        in_queue (asyncio.queues.Queue): Process queue from which audio
+            metadata is fetched for each song to be processed.
+        out_queue (asyncio.queues.Queue): Output queue to which audio metadata
+            will be pushed.
+        kwargs: Keyword arguments for :func:`fingerprint_from_file`.
 
     Returns:
-        tuple: (ax, fig)
-            - ax (matplotlib.axes.Axes): Plot axis handle.
-            - fig (matplotlib.figure.Figure): Plot figure handle.
+        dict: song
+            Dict representing metadata for the fingerprinted audio file.
     """
-    if ax is None:
-        fig, ax = plt.subplots()
+    tasks = []
+    while True:
+        song = await in_queue.get()
+        if song is None:
+            break
 
-    t_min, t_max = times[0], times[-1]
-    f_min, f_max = frequencies[0], frequencies[-1]
-    extent = [t_min, t_max, f_min, f_max]
+        task = loop.create_task(
+            _fingerprint_song(
+                song, loop, executor, out_queue=out_queue, **kwargs
+            )
+        )
+        tasks.append(task)
 
-    im = ax.imshow(spectrogram, extent=extent, aspect="auto", origin="lower")
+    # Wrap asyncio.wait() in if statement to avoid ValueError if no tasks.
+    if tasks:
+        await asyncio.wait(tasks)
 
-    # Set "bad" values (e.g., -np.inf) to the minimum colormap value.
-    # copy.copy() due to matplotlib deprecation warning that future versions
-    # will prevent bound cmaps from being modified directly.
-    cmap = copy.copy(im.cmap)
-    min_color = cmap.colors[0]
-    cmap.set_bad(color=min_color)
-    im.set_cmap(cmap)
+    if out_queue is not None:
+        await out_queue.put(None)
 
-    if title:
-        ax.set_title(title)
-
-    if fig is not None:
-        fig.colorbar(im, ax=ax)
-
-    ax.set_xlabel("Time (s)")
-    ax.set_ylabel("Frequency (Hz)")
-
-    return ax, fig
-
-
-def plot_peaks(times, frequencies, color="r", marker=".", ax=None):
-    """
-    Plot spectrogram peaks.
-
-    Args:
-        times (np.ndarray|List[float]): Array containing time values of peaks.
-        frequencies (np.ndarray|List[float]): Array containing frequency values
-            of peaks.
-        color (str): String or matplotlib color spec representing color of each
-            peak marker.
-        marker (str): Matplotlib marker type (see `matplotlib.markers`_).
-        ax (matplotlib.axes.Axes): Axis handle on which to plot peaks. If None,
-            a new figure/axis will be created.
-
-    Returns:
-        tuple: (ax, pts)
-            - ax (matplotlib.axes.Axes): Axis handle on which peaks were plotted.
-            - pts (matplotlib.collections.PathCollection): Object containing the
-              points plotted as a scatter plot. See `Axes.scatter`_.
-
-    .. _`matplotlib.markers`:
-        https://matplotlib.org/api/markers_api.html
-    .. _`Axes.scatter`:
-        https://matplotlib.org/api/_as_gen/matplotlib.axes.Axes.scatter.html
-    """
-    if ax is None:
-        fig, ax = plt.subplots()
-    pts = ax.scatter(times, frequencies, marker=marker, color=color)
-    return ax, pts
+    return [task.result() for task in tasks]
 
 
 def find_peaks_2d(
@@ -162,6 +311,7 @@ def find_peaks_2d(
     Find peaks in a 2D array. See `Peak detection in a 2D array`_.
 
     Args:
+        x (np.ndarray): 2D array, e.g., spectrogram.
         filter_connectivity (int): neighborhood connectivity of the maximum
             filter (``1`` produces a diamond, ``2`` produces a square). See
             `scipy.ndimage.generate_binary_structure`_.
@@ -207,11 +357,71 @@ def find_peaks_2d(
     return peaks
 
 
-def hash_peaks(
-    times, frequencies, fanout=1, min_time_delta=0, max_time_delta=100,
-    hashlen=20, time_bin_size=0.5, freq_bin_size=5
+def get_spectrogram(
+    samples, sample_rate=44100, win_size=4096, win_overlap_ratio=0.5,
+    spectrogram_backend="scipy"
 ):
     """
+    Obtain the spectrogram for an audio signal.
+
+    Args:
+        samples (np.ndarray): Array representing the audio signal.
+        sample_rate (int): Audio sample rate (Hz).
+        win_size (int): Number of samples per FFT window.
+        win_overlap_ratio (float): Number of samples to overlap between windows
+            (as a fraction of window size).
+        spectrogram_backend (str): {"scipy", "matplotlib"}
+            Whether to use the scipy or matplotlib spectrogram functions to
+            compute the spectrogram. See `scipy.signal.spectrogram`_ and
+            `matplotlib.mlab.specgram`_.
+
+    Returns:
+        tuple: (spectrogram, t, freq)
+            - spectrogram (np.ndarray): 2D array representing the signal spectrogram
+              (amplitudes are in units of dB).
+            - t (np.ndarray): 1D array of time bins (in units of seconds)
+              corresponding to index 1 of ``spectrogram``.
+            - freq (np.ndarray): 1D array of frequency bins (in units of Hz)
+              corresponding to index 0 of ``spectrogram``.
+
+    Raises:
+        ValueError: If an invalid option for `spectrogram_backend` is specified.
+
+    .. _`scipy.signal.spectrogram`:
+        https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.spectrogram.html
+    .. _`matplotlib.mlab.specgram`:
+        https://matplotlib.org/api/mlab_api.html#matplotlib.mlab.specgram
+    """
+    if spectrogram_backend == "matplotlib":
+        spectrogram, freq, t = mlab.specgram(
+            samples, NFFT=win_size, Fs=sample_rate, window=mlab.window_hanning,
+            noverlap=int(win_size * win_overlap_ratio)
+        )
+    elif spectrogram_backend == "scipy":
+        freq, t, spectrogram = scipy.signal.spectrogram(
+            samples, fs=sample_rate, window="hann", nperseg=win_size,
+            noverlap=int(win_size * win_overlap_ratio)
+        )
+    else:
+        raise ValueError("Invalid spectrogram backend")
+
+    # Convert to dB by taking log and multiplying by 10.
+    # https://stackoverflow.com/a/5730830
+    # Handle log of zero values by setting them to -np.inf in output array.
+    spectrogram = 10 * np.log10(
+        spectrogram, out=(-np.inf * np.ones_like(spectrogram)),
+        where=(spectrogram != 0)
+    )
+    return spectrogram, t, freq
+
+
+def hash_peaks(
+    times, frequencies, fanout=10, min_time_delta=0, max_time_delta=100,
+    hash_length=20, time_bin_size=0.5, freq_bin_size=2
+):
+    """
+    TODO: update terminology (time/frequency bins)
+
     Hash the peaks of a spectrogram. For reference, see:
 
     * `Audio Fingerprinting with Python and Numpy`_
@@ -232,7 +442,7 @@ def hash_peaks(
         max_time_delta (float): Target zone maximum time offset (only generate
             hashes for adjacent peaks that occur up to `max_time_delta` after
             a given peak).
-        hashlen (int): Length to which the final hex hash string should be
+        hash_length (int): Length to which the final hex hash string should be
             truncated. A smaller hash length reduces memory usage but increases
             likelihood of collisions.
         time_bin_size (float): Number of seconds per time bin (used to
@@ -272,86 +482,96 @@ def hash_peaks(
                 hash_ = hashlib.sha1(
                     f"{f_bin}{f2_bin}{t_delta_bin}".encode("utf-8")
                 )
-                hashes.append((hash_.hexdigest()[:hashlen], t))
+                hashes.append((hash_.hexdigest()[:hash_length], t))
     return hashes
 
 
-def fingerprint_from_signal(
-    samples, sample_rate=44100, win_size=4096, win_overlap_ratio=0.5,
-    min_amplitude=10, fanout=10, min_time_delta=0, max_time_delta=100,
-    hashlen=20
+def plot_peaks(times, frequencies, color="r", marker=".", ax=None):
+    """
+    Plot spectrogram peaks.
+
+    Args:
+        times (np.ndarray|List[float]): Array containing time values of peaks.
+        frequencies (np.ndarray|List[float]): Array containing frequency values
+            of peaks.
+        color (str): String or matplotlib color spec representing color of each
+            peak marker.
+        marker (str): Matplotlib marker type (see `matplotlib.markers`_).
+        ax (matplotlib.axes.Axes): Axis handle on which to plot peaks. If None,
+            a new figure/axis will be created.
+
+    Returns:
+        tuple: (ax, pts)
+            - ax (matplotlib.axes.Axes): Axis handle on which peaks were plotted.
+            - pts (matplotlib.collections.PathCollection): Object containing the
+              points plotted as a scatter plot. See `Axes.scatter`_.
+
+    .. _`matplotlib.markers`:
+        https://matplotlib.org/api/markers_api.html
+    .. _`Axes.scatter`:
+        https://matplotlib.org/api/_as_gen/matplotlib.axes.Axes.scatter.html
+    """
+    if ax is None:
+        fig, ax = plt.subplots()
+    pts = ax.scatter(times, frequencies, marker=marker, color=color)
+    return ax, pts
+
+
+def plot_spectrogram(
+    spectrogram, times, frequencies, title=None, ax=None, fig=None,
+    show_xlabel=True
 ):
     """
-    Fingerprint an audio signal by obtaining its spectrogram and returning
-    its hashes.
+    Plot the spectrogram of an audio signal.
 
     Args:
-        samples (np.ndarray): Array representing the audio signal.
-        sample_rate (int): Audio signal sample rate (in Hz).
-        win_size (int): Number of samples per FFT window (see
-            :func:`get_spectrogram`).
-        win_overlap_ratio (float): Number of samples to overlap between windows
-            (see :func:`get_spectrogram`).
-        min_amplitude (float): Amplitude threshold (in dB) for spectrogram
-            peaks (see :func:`find_peaks_2d`).
-        fanout (int): Number of adjacent peaks to consider for generating
-            hashes (see :func:`hash_peaks`).
-        min_time_delta (float): Target zone minimum time offset for hashes
-            (see :func:`hash_peaks`).
-        max_time_delta (float): Target zone maximum time offset for hashes
-            (see :func:`hash_peaks`).
-        hashlen (int): Length to which the hash string should be truncated
-            (see :func:`hash_peaks`).
+        spectrogram (np.ndarray): 2D array representing the spectrogram
+            (amplitudes) of the audio signal.
+        times (np.ndarray): 1D array of the time bins (corresponding to index
+            1 of `spectrogram`) of the audio signal.
+        frequencies (np.ndarray): 1D array of the frequency bins (corresponding
+            to index 0 of `spectrogram`) of the audio signal.
+        title (str): Optional plot title.
+        ax (matplotlib.axes.Axes): Matplotlib axis handle in which to plot the
+            spectrogram. If None, a new figure/axis is created.
+        fig (matplotlib.figure.Figure): Matplotlib figure handle for the figure
+            containing `ax` (if any). Used for placing colormap scale beside
+            plot. If `ax` is not provided, a new figure and axis are created.
+        show_xlabel (bool): Display x-axis label.
 
     Returns:
-        List[Tuple[str, float]]: hashes
-            List of tuples where each tuple is a (hash, absolute_offset) pair.
-            See :func:`hash_peaks`.
+        tuple: (ax, fig)
+            - ax (matplotlib.axes.Axes): Plot axis handle.
+            - fig (matplotlib.figure.Figure): Plot figure handle.
     """
-    spectrogram, t, freq = get_spectrogram(
-        samples, sample_rate, win_size, win_overlap_ratio
-    )
-    peaks = find_peaks_2d(spectrogram, min_amplitude=10)
+    if ax is None:
+        fig, ax = plt.subplots()
 
-    peak_freq_idxs, peak_time_idxs = np.where(peaks)
+    t_min, t_max = times[0], times[-1]
+    f_min, f_max = frequencies[0], frequencies[-1]
+    extent = [t_min, t_max, f_min, f_max]
 
-    peak_times = t[peak_time_idxs]
-    peak_freqs = freq[peak_freq_idxs]
-    peak_amplitudes = spectrogram[peaks]
+    im = ax.imshow(spectrogram, extent=extent, aspect="auto", origin="lower")
 
-    hashes = hash_peaks(
-        peak_times, peak_freqs, fanout=fanout, min_time_delta=min_time_delta,
-        max_time_delta=max_time_delta, hashlen=hashlen
-    )
-    return hashes
+    # Set "bad" values (e.g., -np.inf) to the minimum colormap value.
+    # copy.copy() due to matplotlib deprecation warning that future versions
+    # will prevent bound cmaps from being modified directly.
+    cmap = copy.copy(im.cmap)
+    min_color = cmap.colors[0]
+    cmap.set_bad(color=min_color)
+    im.set_cmap(cmap)
 
+    if title:
+        ax.set_title(title)
 
-def fingerprint_from_file(fpath, **kwargs):
-    """
-    Fingerprint an audio file by reading the file and obtaining the fingerprint
-    for each audio channel. Wraps :func:`fingerprint_from_signal`.
+    if fig is not None:
+        fig.colorbar(im, ax=ax)
 
-    Args:
-        fpath (str): Path to audio file.
-        **kwargs: See :func:`fingerprint_from_signal`.
+    if show_xlabel:
+        ax.set_xlabel("Time (s)")
+    ax.set_ylabel("Frequency (Hz)")
 
-    Returns:
-        tuple: (hashes, filehash)
-        TODO
-
-    .. note::
-        Sample rate is obtained from the file. ``sample_rate`` should not be
-        passed as part of ``**kwargs``.
-    """
-    channels, sample_rate, filehash = util.read_file(fpath)
-
-    hashes = []
-    for channel in channels:
-        samples = channel
-        hashes.extend(
-            fingerprint_from_signal(samples, sample_rate=sample_rate, **kwargs)
-        )
-    return hashes, filehash
+    return ax, fig, im
 
 
 def _dev_test(fpath=None, samples=None, sample_rate=None):
@@ -384,7 +604,7 @@ def _dev_test(fpath=None, samples=None, sample_rate=None):
 
     # Get and plot the spectrogram for the audio.
     spectrogram, t, freq = get_spectrogram(samples, sample_rate, 4096, 0.5)
-    ax, _ = plot_spectrogram(spectrogram, t, freq)
+    ax, _, _ = plot_spectrogram(spectrogram, t, freq)
 
     # Find peaks in the spectrogram ignoring any with an amplitude < 10 dB.
     # Peaks is a boolean array of the same shape as ``spectrogram`` where

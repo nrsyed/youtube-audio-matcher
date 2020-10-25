@@ -14,7 +14,7 @@ class Fingerprint(Base):
 
     id = Column("id", Integer, primary_key=True)
     song_id = Column("song_id", ForeignKey("song.id"), nullable=False)
-    hash = Column("hash", String, nullable=False)
+    hash = Column("hash", String, nullable=False, index=True)
     offset = Column("offset", Float, nullable=False)
     UniqueConstraint("song_id", "hash", "offset")
 
@@ -27,7 +27,7 @@ class Song(Base):
     filepath = Column("filepath", String)
     filehash = Column("filehash", String)
     title = Column("title", String)
-    youtube_id = Column("youtube_id", String(10))
+    youtube_id = Column("youtube_id", String)
 
     # One-to-many mapping of audio file to all its associated fingerprints.
     fingerprints = relationship("Fingerprint")
