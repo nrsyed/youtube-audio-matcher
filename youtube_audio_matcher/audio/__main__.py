@@ -19,9 +19,11 @@ def cli():
     fig, axes = plt.subplots(nrows=num_channels, ncols=1, sharex=True)
     fig.subplots_adjust(right=0.97, hspace=0.05)
 
-    # If plt.subplots() only returns 1 axis, `axes` will be an AxesSubplot
-    # object instead of a list of AxesSubplot objects. Ensure we have a list.
-    if not isinstance(axes, list):
+    # plt.subplots() returns an AxesSubplot object if 1 axis, else an array of
+    # AxesSubplot objects. Either way, we want to convert it to a list.
+    if isinstance(axes, np.ndarray):
+        axes = axes.tolist()
+    else:
         axes = [axes]
 
     for i, channel in enumerate(channels):

@@ -319,7 +319,7 @@ def download_video_mp3(
     dst_path = os.path.join(dst_dir, f"{video_id}.mp3")
     if ignore_existing and os.path.exists(dst_path):
         logging.info(
-            f"[{video_id}] Skipping video. File {dst_path} already exists."
+            f"[{video_id}] Skipping download. File {dst_path} already exists."
         )
     else:
         video_url = f"https://www.youtube.com/watch?v={video_id}"
