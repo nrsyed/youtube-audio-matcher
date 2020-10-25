@@ -3,6 +3,7 @@ from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 import functools
 import json
 import logging
+import math
 import multiprocessing
 import os
 import pathlib
@@ -11,10 +12,13 @@ import time
 import youtube_audio_matcher as yam
 
 # TODO: add max threads/max processes/max queue size arguments
+# TODO: summary of results (successful downloads, fingerprinting, etc.)
+# TODO: chunk long songs into segments and match segments in parallel
 
 def match_fingerprints(song, db_kwargs):
     db = yam.database.Database(**db_kwargs)
     match = None
+    song["num_fingerprints"] = len(song["fingerprints"])
 
     # List of hashes (for the database query) and a list of dicts
     # containing the hash and offset (to align matches).
@@ -42,19 +46,29 @@ def match_fingerprints(song, db_kwargs):
         result = yam.audio.align_matches(fingerprints, db_matches)
         if result is not None:
             # Query the database for the matching song.
-            match = db.query_songs(id_=result["song_id"])[0]
+            match_song = db.query_songs(id_=result["song_id"])[0]
+            song["matching_song"] = match_song
 
-            # Compute confidence as the ratio of num_matching_hashes and
-            # the total number of (unique) hashes for the input song.
-            # This is not based on anything in particular; I have simply
-            # found it to be a good metric.
-            num_matching_hashes = result["num_matching_hashes"]
-            confidence = num_matching_hashes / len(unique_hashes)
+            num_matching_fingerprints = result["num_matching_fingerprints"]
 
-            match["num_matching_hashes"] = num_matching_hashes
-            match["confidence"] = confidence
+            # Compute confidence as number of matching hashes divided by
+            # number of song hashes.
+            confidence = num_matching_fingerprints / song["num_fingerprints"]
 
-            song["match"] = match
+            # Compute IOU as another metric.
+            inter = num_matching_fingerprints
+            union = (
+                (song["num_fingerprints"] + match_song["num_fingerprints"])
+                - num_matching_fingerprints
+            )
+            iou = inter / union
+
+            song["match"] = {
+                "num_matching_fingerprints": num_matching_fingerprints,
+                "confidence": confidence,
+                "iou": iou,
+                "relative_offset": result["relative_offset"] ,
+            }
         logging.info(f"Finished aligning hash matches for {song['path']}")
     del db
     return song
@@ -69,7 +83,7 @@ async def _match_song(song, loop, executor, db_kwargs):
     elapsed = time.time() - start_t
     logging.info(
         f"Finished matching fingerprints for {matched_song['path']} "
-        f"(time elapsed: {elapsed:.2f} s)"
+        f"in {elapsed:.2f} s"
     )
     return matched_song
 
@@ -95,10 +109,10 @@ async def match_songs(loop, executor, db_kwargs, in_queue):
     return [task.result() for task in tasks]
 
 
-# TODO: write out results
 # TODO: delete after download
 def main(
-    inputs, add_to_database=False, conf_thresh=0.01, out_fpath=None, **kwargs
+    inputs, add_to_database=False, conf_thresh=0.1, out_fpath=None,
+    max_processes=multiprocessing.cpu_count(), **kwargs
 ):
     """
     Args:
@@ -131,7 +145,7 @@ def main(
             )
             urls.append(inp)
 
-    proc_pool = ProcessPoolExecutor(max_workers=multiprocessing.cpu_count())
+    proc_pool = ProcessPoolExecutor(max_workers=max_processes)
     thread_pool = ThreadPoolExecutor()
 
     loop = asyncio.get_event_loop()
@@ -203,8 +217,8 @@ def main(
     fingerprint_keys = [
         "win_size", "win_overlap_ratio", "spectrogram_backend",
         "filter_connectivity", "filter_dilation", "erosion_iterations",
-        "min_amplitude",  "fanout", "min_time_delta", "max_time_delta",
-        "hash_length", "time_bin_size", "freq_bin_size",
+        "min_amplitude", "fanout", "min_time_delta", "max_time_delta",
+        "hash_length", "time_bin_size", "freq_bin_size", "delete",
     ]
     fingerprint_kwargs = {
         k: v for k, v in kwargs.items() if k in fingerprint_keys
@@ -235,10 +249,18 @@ def main(
         matches = []
         for matched_song in task_group.result()[-1]:
             match = matched_song["match"]
-            if match and match["confidence"] > conf_thresh:
+            if match and (match["confidence"] > conf_thresh):
                 matches.append(matched_song)
+
         if out_fpath:
             with open(out_fpath, "w") as f:
                 json.dump(matches, f, indent=2),
+            logging.info(f"Matches written to {out_fpath}")
+        elif matches:
+            # If no output file specified, print matches.
+            for i, matched_song in enumerate(matches, start=1):
+                json_match = json.dumps(matched_song, indent=4)
+                logging.info(f"Match {i}:\n" + json_match + "\n")
+        else:
+            logging.info("No matches found")
         return matches
-

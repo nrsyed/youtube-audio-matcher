@@ -54,54 +54,80 @@ def align_matches(song_fingerprints, db_fingerprints, offset_bin_size=0.2):
     # Map input song hashes to a list of offsets for each hash.
     inp_hash_to_offsets = collections.defaultdict(list)
     for fp in song_fingerprints:
-        inp_hash_to_offsets[fp["hash"]].append(
-            int(fp["offset"] / offset_bin_size)
-        )
+        offset =  int(fp["offset"] / offset_bin_size)
+        inp_hash_to_offsets[fp["hash"]].append(offset)
 
-    # Map database hashes to a list of {song_id, offset}.
-    db_hash_to_songs = collections.defaultdict(list)
+    # Do the same as above but for each song in the database that's a potential
+    # match (ie, map each song id to its hashes; map each hash to a list of
+    # offsets of that hash). Result is a dict of dict of lists.
+    db_song_to_hashes_offsets = dict()
     for fp in db_fingerprints:
-        db_hash_to_songs[fp["hash"]].append(
-            {
-                "song_id": fp["song_id"],
-                "offset": int(fp["offset"] / offset_bin_size),
-            }
-        )
+        song_id = fp["song_id"]
+        hash_ = fp["hash"]
+        offset = int(fp["offset"] / offset_bin_size)
 
-    rel_offset_to_song_ids = collections.defaultdict(list)
+        if song_id not in db_song_to_hashes_offsets:
+            db_song_to_hashes_offsets[song_id] = collections.defaultdict(list)
+        db_song_to_hashes_offsets[song_id][hash_].append(offset)
 
-    for hash_, inp_offsets in inp_hash_to_offsets.items():
-        db_matches = db_hash_to_songs[hash_]
-        for inp_offset in inp_offsets:
-            for db_match in db_matches:
-                song_id = db_match["song_id"]
-                db_match_offset = db_match["offset"]
+    # For each database song (song id), construct a list of relative offsets.
+    db_song_to_rel_offsets = collections.defaultdict(list)
 
-                rel_offset = db_match_offset - inp_offset
-                rel_offset_to_song_ids[rel_offset].append(song_id)
+    # In the event of hash collisions (multiple offsets for an input song hash
+    # and/or multiple offsets for a database song hash), we compute a relative
+    # offset for all offset pair combinations. Example for a hash "abcdefg"
+    # and a database song id 1:
+    #
+    # hash = "abcdefg"
+    # inp_hash_to_offsets[hash] = [0, 3, 12]
+    # db_song_to_hashes_offsets[1][hash] = [1, 4]
+    # 
+    # We compute a relative offset for offset pairs (0, 1), (0, 4), (3, 1),
+    # (3, 4), (12, 1), (12, 4), i.e., we end up with
+    # len(inp_hash_to_offsets[hash]) * len(db_song_to_hashes_offsets[1]["hash"])
+    # relative offsets even though there are only two actual offsets in the
+    # database song. We use all relative offsets for computing the histogram,
+    # which may result in there being more matching hashes than the total
+    # number of hashes in the input song (especially if `offset bin size` is
+    # relatively large). To compensate for this, we limit `num_matching_offsets`
+    # returned at the end of the function to the total number of offsets in the
+    # input song, i.e., len(song_fingerprints).
 
-    # Determine which relative offset bin has the most matches. We consider
-    # only this relative offset.
-    max_matches_bin = None
-    max_matches_count = 0
-    for rel_offset_bin, match_ids in rel_offset_to_song_ids.items():
-        if len(match_ids) > max_matches_count:
-            max_matches_bin = rel_offset_bin
-            max_matches_count = len(match_ids)
+    for song_id in db_song_to_hashes_offsets:
+        for hash_ in db_song_to_hashes_offsets[song_id]:
+            if hash_ in inp_hash_to_offsets:
+                for song_offset in db_song_to_hashes_offsets[song_id][hash_]:
+                    for inp_offset in inp_hash_to_offsets[hash_]:
+                        rel_offset = song_offset - inp_offset
+                        db_song_to_rel_offsets[song_id].append(rel_offset)
 
-    # Of the matches corresponding to this offset, determine which song id has
-    # the largest count.
-    if max_matches_bin is not None:
-        match_ids = rel_offset_to_song_ids[max_matches_bin]
-        song_id, count = collections.Counter(match_ids).most_common(1)[0]
+    # The previous step effectively constructed a histogram of relative offsets
+    # for each song id. Determine which song id contains the largest number of
+    # relative offsets in the same bin (ie, which song id histogram has the
+    # greatest peak).
+    num_matching_fingerprints = 0
+    match_song_id = None
+    match_rel_offset = None
 
-        # TODO: correct matches get double counted so divide count by 2. Why?
-        return {
-            "song_id": song_id,
-            "num_matching_hashes": count // 2,
+    for song_id, rel_offsets in db_song_to_rel_offsets.items():
+        # Get the relative offset with the greatest frequency for this song.
+        counter = collections.Counter(rel_offsets)
+        peak_rel_offset, peak_count = counter.most_common(1)[0]
+
+        if peak_count > num_matching_fingerprints:
+            num_matching_fingerprints = peak_count
+            match_rel_offset = peak_rel_offset
+            match_song_id = song_id
+
+    result = None
+    if num_matching_fingerprints:
+        result = {
+            "song_id": match_song_id,
+            "num_matching_fingerprints":
+                min(num_matching_fingerprints, len(song_fingerprints)),
+            "relative_offset": match_rel_offset * offset_bin_size,
         }
-    return None
-
+    return result
 
 def fingerprint_from_signal(samples, **kwargs):
     """

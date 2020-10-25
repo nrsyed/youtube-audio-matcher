@@ -19,7 +19,7 @@ def get_parser():
     db_parser = db_argparsers.get_core_parser()
 
     # Get core arguments from download module parser.
-    dl_parser = dl_argparsers.get_core_parser(extra_args=True)
+    dl_parser = dl_argparsers.get_core_parser()
 
     # Get core fingerprint arguments from audio module parser and add args.
     fp_parser = fp_argparsers.get_core_parser(extra_args=True)
@@ -40,12 +40,16 @@ def get_parser():
 
     parser.add_argument(
         "-A", "--add-to-database", action="store_true",
-        help="Add fingerprinted files to the database instead of searching "
-        "the database for matches"
+        help="Add files to the database after fingerprinting instead of "
+        "searching the database for matches"
     )
     parser.add_argument(
-        "-c", "--conf-thresh", type=float, default=0.01, metavar="<float>",
+        "-c", "--conf-thresh", type=float, default=0.1, metavar="<float>",
         help="Confidence threshold for matches"
+    )
+    parser.add_argument(
+        "-D", "--delete", action="store_true",
+        help="Delete downloaded files after fingerprinting"
     )
     parser.add_argument(
         "-o", "--output", nargs="?", metavar="path", const=0,
@@ -86,7 +90,7 @@ def cli():
     inputs = args["inputs"]
 
     # If --output was called without an argument, it will hold the const
-    # value 0 (an integer), and we generate an output filename.
+    # value 0 (an integer), in which case we generate an output filename.
     out_fpath = None
     if isinstance(args["output"], int):
         out_fpath = "{}_matches.json".format(
@@ -96,7 +100,6 @@ def cli():
         out_fpath = os.path.abspath(os.path.expanduser(args["output"]))
 
     del args["inputs"], args["debug"], args["output"], args["silent"]
-    breakpoint()
 
     try:
         youtube_audio_matcher.main(inputs, out_fpath=out_fpath, **args)
