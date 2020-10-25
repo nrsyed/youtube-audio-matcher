@@ -46,7 +46,10 @@ def match_fingerprints(song, db_kwargs):
         result = yam.audio.align_matches(fingerprints, db_matches)
         if result is not None:
             # Query the database for the matching song.
-            match_song = db.query_songs(id_=result["song_id"])[0]
+            match_song = db.query_songs(
+                id_=result["song_id"], include_fingerprints=True
+            )[0]
+            del match_song["fingerprints"]
             song["matching_song"] = match_song
 
             num_matching_fingerprints = result["num_matching_fingerprints"]

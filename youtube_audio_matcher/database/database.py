@@ -26,7 +26,6 @@ def database_obj_to_py(obj, fingerprints_in_song=False):
 
         if fingerprints_in_song:
             song["fingerprints"] = [database_obj_to_py(fp) for fp in obj.fingerprints]
-        else:
             song["num_fingerprints"] = len(obj.fingerprints)
         return song
     elif isinstance(obj, Fingerprint):
@@ -250,7 +249,7 @@ class Database:
     def query_songs(
         self, id_=None, duration=None, duration_greater_than=None,
         duration_less_than=None, filehash=None, filepath=None, title=None,
-        youtube_id=None
+        youtube_id=None, include_fingerprints=False
     ):
         """
         TODO
@@ -293,4 +292,6 @@ class Database:
                 if not isinstance(val, (list, tuple)):
                     val = [val]
                 query = query.filter(Song_[arg].in_(val))
-        return database_obj_to_py(query.all())
+        return database_obj_to_py(
+            query.all(), fingerprints_in_song=include_fingerprints
+        )
