@@ -7,7 +7,12 @@ setup(
     author="Najam R Syed",
     author_email="najam.r.syed@gmail.com",
     license="MIT",
-    packages=["youtube_audio_matcher"],
+    packages=[
+        "youtube_audio_matcher",
+        "youtube_audio_matcher.audio",
+        "youtube_audio_matcher.database",
+        "youtube_audio_matcher.download",
+    ],
     install_requires=[
         "bs4", "matplotlib", "numpy", "psycopg2", "pydub", "scipy", "selenium",
         "sqlalchemy", "youtube-dl",
