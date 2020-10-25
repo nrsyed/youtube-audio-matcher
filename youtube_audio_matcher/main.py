@@ -109,7 +109,6 @@ async def match_songs(loop, executor, db_kwargs, in_queue):
     return [task.result() for task in tasks]
 
 
-# TODO: delete after download
 def main(
     inputs, add_to_database=False, conf_thresh=0.1, out_fpath=None,
     max_processes=multiprocessing.cpu_count(), **kwargs

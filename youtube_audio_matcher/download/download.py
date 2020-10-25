@@ -239,8 +239,6 @@ async def video_metadata_from_urls(urls, loop, download_queue, **kwargs):
     # List of all videos from all URLs.
     all_videos = []
 
-    # TODO: there's a bug in this logic somewhere that causes wrong URL to
-    # be mixed up/sent twice if multiple URLs provided?
     tasks = []
     for url in urls:
         task = loop.create_task(

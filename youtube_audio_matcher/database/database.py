@@ -176,7 +176,6 @@ class Database:
         self.session.commit()
         return new_fingerprint.id
 
-    # TODO: handle new session more gracefully
     def add_fingerprints(self, song_id, fingerprints):
         """
         Args:
@@ -234,11 +233,6 @@ class Database:
 
     def drop_fingerprint_table(self):
         self._drop_tables([Fingerprint.__table__])
-
-    # TODO: unnecessary function?
-    def new_session(self):
-        Session = sqlalchemy.orm.sessionmaker(self.engine)
-        self.session = Session()
 
     def query_fingerprints(self, hashes):
         """
