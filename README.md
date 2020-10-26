@@ -19,7 +19,7 @@
   Unix-based system (e.g., `apt install ffmpeg`), or from
   [https://ffmpeg.org](https://ffmpeg.org/download.html))
 * PostgreSQL or MySQL client/driver (see list of
-  [https://docs.sqlalchemy.org/en/13/core/engines.html](SQLAlchemy–supported drivers/backends)
+  [SQLAlchemy–supported drivers/backends](https://docs.sqlalchemy.org/en/13/core/engines.html)
   )
 
 # <span id="installation">Installation</span>
