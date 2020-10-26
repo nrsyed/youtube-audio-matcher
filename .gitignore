@@ -133,4 +133,5 @@ dmypy.json
 *.swo
 
 # Other
+db_data
 tmp
