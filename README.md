@@ -1,11 +1,5 @@
 # YouTube Audio Matcher
 
-This package, which is still in-progress, contains efficient and lightweight
-tools for concurrently downloading the audio from all of the videos on one
-or more YouTube channels. Ultimately, audio fingerprinting functionality will
-be incorporated to compare the downloaded audio files to a database and
-determine if there are any matches.
-
 * [Requirements](#requirements)
 * [Installation](#installation)
 * [Examples](#examples)
@@ -22,14 +16,38 @@ determine if there are any matches.
   [Google Chrome](https://www.google.com/chrome/) browser, and
   [ChromeDriver](http://chromedriver.chromium.org/home)
 * FFmpeg (install from your distribution's package repository, if on a
-  Unix-based system, or from
+  Unix-based system (e.g., `apt install ffmpeg`), or from
   [https://ffmpeg.org](https://ffmpeg.org/download.html))
+* PostgreSQL or MySQL client/driver (see list of
+  [https://docs.sqlalchemy.org/en/13/core/engines.html](SQLAlchemy–supported drivers/backends)
+  )
 
 # <span id="installation">Installation</span>
+
+First, install the Python package.
+
 ```
 git clone https://github.com/nrsyed/youtube-audio-matcher.git
 cd youtube-audio-matcher
 pip install .
+```
+
+Next, install a PostgreSQL or MySQL client and development files. These must
+be installed before a Python SQLAlchemy is installed with `pip`, as the
+`pip install` requires these to build/install the relevant Python packages.
+Example instructions for installing PostgreSQL/psycopg2 and MySQL/mysqlclient
+on Ubuntu are shown below.
+
+## PostgreSQL and psycopg2
+```
+sudo apt install libpq-dev
+pip install psycopg2
+```
+
+## MySQL and mysqlclient
+```
+sudo apt install libmysqlclient-dev mysql-client-core-8.0
+pip install mysqlclient
 ```
 
 # <span id="examples">Examples</examples>
@@ -45,24 +63,7 @@ or shorter than 5 seconds (`-S 5`). youtube-dl and ffmpeg produce verbose
 output that can be suppressed with the `-q` switch.
 
 ```
-yamdl youtube.com/user/rBfKc48QOY7hw_lwEiVUQGe youtube.com/c/ExampleYTChannel123/featured \
-  -d ~/yt_mp3s -L 300 -S 5 --duration 60 -q
-
-[INFO] Grabbing page source for URL https://www.youtube.com/user/rBfKc48QOY7hw_lwEiVUQGe/videos
-[INFO] Grabbing page source for URL https://www.youtube.com/c/ExampleYTChannel123/videos
-[INFO] Downloading files from https://www.youtube.com/user/rBfKc48QOY7hw_lwEiVUQGe/videos (attempt #1)
-[INFO] Downloading files from https://www.youtube.com/c/ExampleYTChannel123/videos (attempt #1)
-[INFO] Successfully downloaded file /home/najam/yt_mp3s/yLm01NY6uo.mp3 (video id yLm01NY6uo)
-[INFO] Successfully downloaded file /home/najam/yt_mp3s/-BNfV34P7t.mp3 (video id -BNfV34P7t)
-[INFO] Successfully downloaded file /home/najam/yt_mp3s/SVNXhv040J.mp3 (video id SVNXhv040J)
-[ERROR] Error downloading video id vMfko2L_N_
-[WARNING] Failed to download video id vMfko2L_N_ Download will be retried.
-[INFO] Downloading files from https://www.youtube.com/c/ExampleYTChannel123/videos (attempt #2)
-[INFO] Successfully downloaded file /home/najam/yt_mp3s/vMfko2L_N_.mp3 (video id vMfko2L_N_)
-[INFO] Successfully downloaded audio from 2 of 2 videos for URL https://www.youtube.com/user/rBfKc48QOY7hw_lwEiVUQGe/videos
-[INFO] Successfully downloaded file /home/najam/yt_mp3s/HtAk9CHy6n.mp3 (video id HtAk9CHy6n)
-[INFO] Successfully downloaded audio from 3 of 3 videos for URL https://www.youtube.com/c/ExampleYTChannel123/videos
-[INFO] Successfully downloaded audio from 5 of 5 total videos
+TODO
 ```
 
 ## <span id="python-examples">Python</span>
@@ -71,99 +72,136 @@ The following Python code performs the same actions as the command line example
 above:
 
 ```
-import youtube_audio_matcher as yam
-
-urls = [
-    "youtube.com/user/rBfKc48QOY7hw_lwEiVUQGe",
-    "youtube.com/c/ExampleYTChannel123/featured"
-]
-dst_dir = "/home/najam/yt_mp3s"
-
-# Function returns metadata for videos that were attempted to be downloaded.
-metadata = yam.download.download_channels(
-    urls, dst_dir, exclude_longer_than=300, exclude_shorter_than=5,
-    duration=60, quiet=True
-)
-
-print(metadata[0])
+TODO
 ```
-
-This would produce the following output:
-```
-{
-    'id': 'HtAk9CHy6n',
-    'title': 'Example video title',
-    'duration': 57,
-    'channel_url': 'https://www.youtube.com/c/ExampleYTChannel123/videos',
-    'path': '/home/najam/yt_mp3s/HtAk9CHy6n.mp3'
-}
-```
-
-The `yam.download.download_channels()` function returns metadata for each
-downloaded video in the form of a list of dicts like the one above. If a video
-was not downloaded successfully, its path will be `None`.
 
 # <span id="usage">Usage</span>
 
-This package contains tools for batch downloading audio from multiple YouTube
-channels, which can be called via the command line using the `yamdl`
-(**Y**ouTube **A**udio **M**atcher **d**own**l**oad tool) command or directly
-in Python by importing `youtube_audio_matcher`. Tools for audio fingerprinting
-will be added in future versions.
+This package contains four command line tools/commands. The main tool is
+`yam` (**Y**ouTube **A**udio **M**atcher).
 
 ## <span id="cli">Command line interface</span>
-```
-usage: yamdl [-h] [-d <path>] [-i] [-r <num>] [-L <seconds>] [-S <seconds>]
-             [--start <seconds>] [--end <seconds>] [--duration <seconds>] [-q]
-             [--debug | -s]
-             url [url ...]
 
-Efficiently and quickly download the audio from all videos on one or more
-YouTube channels, filter based on video length, and extract audio only from
-the segments of interest.
+```
+usage: yam [-h] [-N <database_name>] [-C <dialect>] [-R <driver>] [-H <host>]
+           [-P <password>] [-O <port>] [-U <username>] [-d <path>]
+           [-L <seconds>] [-S <seconds>] [-i] [-p <seconds>] [-r <num>] [-y]
+           [--start <seconds>] [--end <seconds>] [--duration <seconds>]
+           [--erosion-iterations <int>] [-f <int>]
+           [--filter-connectivity {1,2}] [--filter-dilation <int>] [-l <int>]
+           [--max-time-delta <float>] [--min-time-delta <float>] [-a <dB>]
+           [--spectrogram-backend {scipy,matplotlib}]
+           [--win-overlap-ratio <float>] [--win-size <int>] [-A] [-c <float>]
+           [-D] [-o [path]] [--debug] [-s]
+           inputs [inputs ...]
 
 positional arguments:
-  url                   One or more channel/user URLs (e.g.,
-                        www.youtube.com/c/YouTubeCreators). All options apply
-                        to all URLs.
+  inputs                One or more space-separated input sources (YouTube
+                        channel/user URL, local path to audio file, or local
+                        path to a directory of audio files)
 
 optional arguments:
   -h, --help            show this help message and exit
+  -A, --add-to-database
+                        Add files to the database after fingerprinting instead
+                        of searching the database for matches (default: False)
+  -c <float>, --conf-thresh <float>
+                        Confidence threshold for matches (default: 0.1)
+  -D, --delete          Delete downloaded files after fingerprinting (default:
+                        False)
+  -o [path], --output [path]
+                        Path to output file containing matches in JSON format;
+                        if this option is provided without an argument, a
+                        timestamped filename is generated and written to the
+                        current directory (default: None)
+
+database arguments:
+  -N <database_name>, --db-name <database_name>
+                        Database name (default: yam)
+  -C <dialect>, --dialect <dialect>
+                        SQL dialect (default: postgresql)
+  -R <driver>, --driver <driver>
+                        SQL dialect driver (default: None)
+  -H <host>, --host <host>
+                        Database hostname (default: localhost)
+  -P <password>, --password <password>
+                        Database password (default: None)
+  -O <port>, --port <port>
+                        Database port number (default: None)
+  -U <username>, --user <username>
+                        Database user name (default: None)
+
+download arguments:
   -d <path>, --dst-dir <path>
                         Path to destination directory for downloaded files
-                        (default: current directory)
-  -i, --ignore-existing
-                        Do not download files that already exist
-  -r <num>, --retries <num>
-                        Number of times to re-attempt failed downloads
-                        (default: 3). Pass -1 to retry indefinitely until
-                        successful (not recommended)
+                        (default: .)
   -L <seconds>, --exclude-longer-than <seconds>
                         Do not download/convert videos longer than specified
                         duration. This does NOT truncate videos to a maximum
                         desired length; to extract or truncate specific
                         segments of audio from downloaded videos, use --start,
-                        --end, and/or --duration
+                        --end, and/or --duration (default: None)
   -S <seconds>, --exclude-shorter-than <seconds>
                         Do not download/convert videos shorter than specified
-                        duration
+                        duration (default: None)
+  -i, --ignore-existing
+                        Do not download files that already exist (default:
+                        False)
+  -p <seconds>, --page-load-wait <seconds>
+                        Time to wait (in seconds) to allow page to load on
+                        initial page load and and after each page scroll
+                        (default: 1)
+  -r <num>, --retries <num>
+                        Number of times to re-attempt failed downloads. Pass
+                        -1 to retry indefinitely until successful (default: 5)
+  -y, --youtubedl-verbose
+                        Enable youtube-dl and ffmpeg terminal output (default:
+                        False)
   --start <seconds>     Extract audio beginning at the specified video time
-                        (in seconds)
+                        (in seconds) (default: None)
   --end <seconds>       Extract audio up to the specified video time (in
-                        seconds)
+                        seconds) (default: None)
   --duration <seconds>  Duration (in seconds) of audio to extract beginning at
                         0 if --start not specified, otherwise at --start. If
                         --duration is used with --end, --duration takes
-                        precedence.
-  -q, --youtubedl-quiet
-                        Disable all youtube-dl and ffmpeg terminal output.
-                        This option does NOT control the terminal output of
-                        this program (youtube-audio-matcher); to set this
-                        program's output, use --silent or --debug
+                        precedence. (default: None)
 
-verbosity options:
-  --debug               Print verbose debugging info
-  -s, --silent          Suppress terminal output for this program
+fingerprint arguments:
+  --erosion-iterations <int>
+                        Number of times to apply binary erosion for peak
+                        finding (default: 1)
+  -f <int>, --fanout <int>
+                        Number of adjacent peaks to consider for generating
+                        hashes (default: 10)
+  --filter-connectivity {1,2}
+                        Max filter neighborhood connectivity for peak finding
+                        (default: 1)
+  --filter-dilation <int>
+                        Max filter dilation (neighborhood size) for peak
+                        finding (default: 10)
+  -l <int>, --hash-length <int>
+                        Truncate each fingerprint SHA1 hash to --hash-length
+                        (max 40) (default: 40)
+  --max-time-delta <float>
+                        Target zone max time offset difference for hashes
+                        (default: 100)
+  --min-time-delta <float>
+                        Target zone min time offset difference for hashes
+                        (default: 0)
+  -a <dB>, --min-amplitude <dB>
+                        Spectogram peak minimum amplitude in dB (default: 10)
+  --spectrogram-backend {scipy,matplotlib}
+                        Library to use for computing spectrogram (default:
+                        scipy)
+  --win-overlap-ratio <float>
+                        Window overlap as a fraction of window size, in the
+                        range [0, 1) (default: 0.5)
+  --win-size <int>      Number of samples per FFT window (default: 4096)
+
+Verbosity arguments:
+  --debug               Print verbose debugging info (default: False)
+  -s, --silent          Suppress youtube-audio-matcher terminal output
+                        (default: False)
 ```
 
 ## <span id="import">Import as Python package</span>
