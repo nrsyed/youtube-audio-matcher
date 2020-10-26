@@ -14,8 +14,8 @@ setup(
         "youtube_audio_matcher.download",
     ],
     install_requires=[
-        "bs4", "matplotlib", "numpy", "psycopg2", "pydub", "scipy", "selenium",
-        "sqlalchemy", "youtube-dl",
+        "bs4", "matplotlib", "mysqlclient", "numpy", "psycopg2", "pydub",
+        "scipy", "selenium", "sqlalchemy", "youtube-dl",
     ],
     entry_points={
         "console_scripts": [
