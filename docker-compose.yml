@@ -1,0 +1,18 @@
+version: "3"
+services:
+  database:
+    image: "postgres:alpine"
+    environment:
+      - POSTGRES_DB=yam
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=yam
+    ports:
+      - 54320:5432
+    volumes:
+      - ./db_data:/var/lib/postgresql/data/
+  youtube_audio_matcher:
+    build:
+      context: .
+      dockerfile: ./docker/youtube_audio_matcher/Dockerfile
+    volumes:
+      - ./work:/work
