@@ -117,12 +117,19 @@ class Database:
         .. _`SQLAlchemy Database URLs`:
             https://docs.sqlalchemy.org/en/13/core/engines.html#database-urls
         """
-        # Construct database URL.
         # TODO: check/add sqlite support.
 
+        # Construct database URL.
         driver = f"+{driver}" if driver else ""
         port = f":{port}" if port is not None else ""
+
+        # MySQL requires localhost to be specified as 127.0.0.1 to correctly
+        # use TCP.
+        if dialect == "mysql" and host == "localhost":
+            host = "127.0.0.1"
+
         url = f"{dialect}{driver}://{user}:{password}@{host}{port}/{db_name}"
+        logging.debug(f"Connecting to database URL {url}")
 
         engine = sqlalchemy.create_engine(url)
         Session = sqlalchemy.orm.sessionmaker(engine)

@@ -14,7 +14,10 @@ class Fingerprint(Base):
 
     id = Column("id", Integer, primary_key=True)
     song_id = Column("song_id", ForeignKey("song.id"), nullable=False)
-    hash = Column("hash", String, nullable=False, index=True)
+
+    # Indexable String requires a max length to be set. We set it to 40 since
+    # this is the max length of a SHA1 hash.
+    hash = Column("hash", String(40), nullable=False, index=True)
     offset = Column("offset", Float, nullable=False)
     UniqueConstraint("song_id", "hash", "offset")
 
