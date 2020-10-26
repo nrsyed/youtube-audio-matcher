@@ -2,10 +2,12 @@ version: "3"
 services:
   mysql:
     image: "mysql:8"
+    depends_on:
+      - youtube_audio_matcher
     environment:
       - MYSQL_ROOT_PASSWORD=password
       - MYSQL_DATABASE=yam
-      - MYSQL_USER=mysql
+      - MYSQL_USER=yam
       - MYSQL_PASSWORD=yam
     ports:
       - 33060:3306
@@ -13,9 +15,11 @@ services:
       - ./db_data/mysql:/var/lib/mysql
   postgres:
     image: "postgres:alpine"
+    depends_on:
+      - youtube_audio_matcher
     environment:
       - POSTGRES_DB=yam
-      - POSTGRES_USER=postgres
+      - POSTGRES_USER=yam
       - POSTGRES_PASSWORD=yam
     ports:
       - 54320:5432
@@ -24,6 +28,6 @@ services:
   youtube_audio_matcher:
     build:
       context: .
-      dockerfile: ./docker/youtube_audio_matcher/Dockerfile
+      dockerfile: ./Dockerfile
     volumes:
       - ./work:/work
