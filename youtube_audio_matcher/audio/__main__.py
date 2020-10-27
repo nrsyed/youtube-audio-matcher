@@ -46,15 +46,18 @@ def cli():
             show_xlabel=show_xlabel
         )
 
-        peaks = youtube_audio_matcher.audio.find_peaks_2d(
-            spectrogram, filter_connectivity=args.filter_connectivity,
-            filter_dilation=args.filter_dilation,
-            erosion_iterations=args.erosion_iterations,
-            min_amplitude=args.min_amplitude
-        )
+        if not args.no_peaks:
+            peaks = youtube_audio_matcher.audio.find_peaks_2d(
+                spectrogram, filter_connectivity=args.filter_connectivity,
+                filter_dilation=args.filter_dilation,
+                erosion_iterations=args.erosion_iterations,
+                min_amplitude=args.min_amplitude
+            )
 
-        peak_freq_idxs, peak_time_idxs = np.where(peaks)
-        peak_t = t[peak_time_idxs]
-        peak_freq = freq[peak_freq_idxs]
-        youtube_audio_matcher.audio.plot_peaks(peak_t, peak_freq, ax=axes[i])
+            peak_freq_idxs, peak_time_idxs = np.where(peaks)
+            peak_t = t[peak_time_idxs]
+            peak_freq = freq[peak_freq_idxs]
+            youtube_audio_matcher.audio.plot_peaks(
+                peak_t, peak_freq, ax=axes[i]
+            )
     plt.show()

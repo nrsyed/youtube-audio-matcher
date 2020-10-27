@@ -82,4 +82,8 @@ def get_parser():
         "filepath", type=pathlib.Path, metavar="<path>",
         help="Path to audio file"
     )
+    parser.add_argument(
+        "-P", "--no-peaks", action="store_true",
+        help="Plot only the spectrogram without the spectrogram peaks"
+    )
     return parser
