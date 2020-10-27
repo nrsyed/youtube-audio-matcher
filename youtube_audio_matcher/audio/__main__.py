@@ -6,6 +6,10 @@ import numpy as np
 import youtube_audio_matcher.audio
 from ._argparsers import get_parser
 
+#import matplotlib
+#matplotlib.rcParams.update({"font.size": 26})
+#matplotlib.rc("text", usetex=True)
+
 
 def cli():
     parser = get_parser()
