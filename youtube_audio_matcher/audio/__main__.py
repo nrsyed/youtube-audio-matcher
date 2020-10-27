@@ -15,6 +15,15 @@ def cli():
 
     channels, sample_rate, _ = youtube_audio_matcher.audio.read_file(fpath)
 
+    if args.channels:
+        channels = [channels[channel_idx] for channel_idx in args.channels]
+
+    # Extract only the desired audio segment from the file (if specified).
+    if args.start or args.end:
+        start_idx = int(sample_rate * args.start) if args.start else 0
+        end_idx = int(sample_rate * args.end) if args.end else len(channels[0])
+        channels = [channel[start_idx:end_idx] for channel in channels]
+
     num_channels = len(channels)
     fig, axes = plt.subplots(nrows=num_channels, ncols=1, sharex=True)
     fig.subplots_adjust(right=0.97, hspace=0.05)
@@ -36,8 +45,11 @@ def cli():
 
         title = ""
         if i == 0:
-            fname = os.path.split(fpath)[1]
-            title = f"{fname} spectrogram ({num_channels} channels)"
+            if args.title:
+                title = args.title
+            else:
+                fname = os.path.split(fpath)[1]
+                title = f"{fname} spectrogram ({num_channels} channels)"
 
         show_xlabel = i == (num_channels - 1)
 
