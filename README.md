@@ -1,5 +1,6 @@
 # YouTube Audio Matcher
 
+* [Description](#description)
 * [Requirements](#requirements)
 * [Installation](#installation)
 * [Examples](#examples)
@@ -10,6 +11,9 @@
   * [Import as Python package](#import)
 * [Acknowledgments](#acknowledgments)
 
+# Description
+<img src="doc/img/yam_diagram.png" />
+
 # <span id="requirements">Requirements</span>
 * Python &ge; 3.6
 * [Chromium](https://www.chromium.org) or
@@ -19,8 +23,7 @@
   Unix-based system (e.g., `apt install ffmpeg`), or from
   [https://ffmpeg.org](https://ffmpeg.org/download.html))
 * PostgreSQL or MySQL client/driver (see list of
-  [SQLAlchemy–supported drivers/backends](https://docs.sqlalchemy.org/en/13/core/engines.html)
-  )
+  [SQLAlchemy–supported drivers/backends](https://docs.sqlalchemy.org/en/13/core/engines.html))
 
 # <span id="installation">Installation</span>
 
@@ -38,13 +41,13 @@ be installed before a Python SQLAlchemy is installed with `pip`, as the
 Example instructions for installing PostgreSQL/psycopg2 and MySQL/mysqlclient
 on Ubuntu are shown below.
 
-## PostgreSQL and psycopg2
+**PostgreSQL and psycopg2**
 ```
 sudo apt install libpq-dev
 pip install psycopg2
 ```
 
-## MySQL and mysqlclient
+**MySQL and mysqlclient**
 ```
 sudo apt install libmysqlclient-dev mysql-client-core-8.0
 pip install mysqlclient
