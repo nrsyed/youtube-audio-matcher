@@ -113,7 +113,7 @@ async def match_songs(loop, executor, db_kwargs, in_queue):
 
 
 def main(
-    inputs, add_to_database=False, conf_thresh=0.1, out_fpath=None,
+    inputs, add_to_database=False, conf_thresh=0.01, out_fpath=None,
     max_processes=multiprocessing.cpu_count(), **kwargs
 ):
     """
