@@ -1,18 +1,18 @@
 # YouTube Audio Matcher
 
 * [Description](#description)
-* [How it works](#how-it-works)
 * [Requirements](#requirements)
 * [Installation](#installation)
-* [Examples](#examples)
-  * [Command line interface](#cli-examples)
-  * [Python](#python-examples)
-* [Usage](#usage)
-  * [Command line interface](#cli)
+* [Background](#background)
+* [Usage and examples](#usage)
+  * [`yam`](#yam-usage)
+  * [`yamdb`](#yamdb-usage)
+  * [`yamdl`](#yamdl-usage)
+  * [`yamfp`](#yamfp-usage)
   * [Import as Python package](#import)
 * [Acknowledgments](#acknowledgments)
 
-# Description
+# <span id="description">Description</span>
 
 YouTube Audio Matcher enables you to download the audio from all content from
 any number of YouTube channels or users, perform audio fingerprinting on them,
@@ -21,7 +21,49 @@ to help identify the audio (like Shazam or any of a number of song
 identification apps) or, optionally, add them to the database. It also accepts
 files and directories on the local disk.
 
-# How it works
+
+# <span id="requirements">Requirements</span>
+* Python &ge; 3.6
+* [Chromium](https://www.chromium.org) or
+  [Google Chrome](https://www.google.com/chrome/) browser, and
+  [ChromeDriver](http://chromedriver.chromium.org/home)
+* FFmpeg (install from your distribution's package repository, if on a
+  Unix-based system (e.g., `apt install ffmpeg`), or from
+  [https://ffmpeg.org](https://ffmpeg.org/download.html))
+* PostgreSQL or MySQL client/driver (see list of
+  [SQLAlchemy–supported drivers/backends](https://docs.sqlalchemy.org/en/13/core/engines.html))
+
+
+# <span id="installation">Installation</span>
+
+First, install the Python package.
+
+```
+git clone https://github.com/nrsyed/youtube-audio-matcher.git
+cd youtube-audio-matcher
+pip install .
+```
+
+Next, install a PostgreSQL or MySQL client and development files. These must
+be installed before SQLAlchemy is installed with `pip`, as the
+`pip install` requires these to build/install the relevant Python packages.
+Example instructions for installing PostgreSQL/psycopg2 and MySQL/mysqlclient
+on Ubuntu are shown below.
+
+**PostgreSQL and psycopg2**
+```
+sudo apt install libpq-dev
+pip install psycopg2
+```
+
+**MySQL and mysqlclient**
+```
+sudo apt install libmysqlclient-dev mysql-client-core-8.0
+pip install mysqlclient
+```
+
+
+# <span id="background">Background</span>
 
 The program leverages asynchronous programming combined with
 multithreading and multiprocessing to efficiently download and/or process
@@ -44,18 +86,18 @@ fingerprinted (see the [Audio fingerprinting](#audio-fingerprinting)
 sub-section below) and added to an async database queue.
 
 If the user opted to add songs to the database, the fingerprinted files are
-passed to a function that uses the process pool to add each song and its
+passed to a function that uses the process pool to add songs and their
 fingerprints to the database in parallel.
 
 Otherwise, if the user opted to match the input songs against the fingerprints
 already in the database, the songs are passed to a function that uses the
 process pool to query the database and determine if there's a match. This
-information is returned to the async match function, which returns all matches
-(if any) found with songs in the database.
+information is returned to the async match function, which ultimately returns
+all matches (if any).
 
 By offloading I/O-heavy downloads to a thread pool and CPU-heavy fingerprinting
 and matching to other cores, we achieve a high-throughput system that can
-(depending on the system) process a large number of files quickly.
+process a large number of files quickly.
 
 ## Audio fingerprinting
 
@@ -76,76 +118,13 @@ the peaks, is shown below.
 <img src="doc/img/spec_10_peaks.png" />
 
 
-# <span id="requirements">Requirements</span>
-* Python &ge; 3.6
-* [Chromium](https://www.chromium.org) or
-  [Google Chrome](https://www.google.com/chrome/) browser, and
-  [ChromeDriver](http://chromedriver.chromium.org/home)
-* FFmpeg (install from your distribution's package repository, if on a
-  Unix-based system (e.g., `apt install ffmpeg`), or from
-  [https://ffmpeg.org](https://ffmpeg.org/download.html))
-* PostgreSQL or MySQL client/driver (see list of
-  [SQLAlchemy–supported drivers/backends](https://docs.sqlalchemy.org/en/13/core/engines.html))
-
-# <span id="installation">Installation</span>
-
-First, install the Python package.
-
-```
-git clone https://github.com/nrsyed/youtube-audio-matcher.git
-cd youtube-audio-matcher
-pip install .
-```
-
-Next, install a PostgreSQL or MySQL client and development files. These must
-be installed before a Python SQLAlchemy is installed with `pip`, as the
-`pip install` requires these to build/install the relevant Python packages.
-Example instructions for installing PostgreSQL/psycopg2 and MySQL/mysqlclient
-on Ubuntu are shown below.
-
-**PostgreSQL and psycopg2**
-```
-sudo apt install libpq-dev
-pip install psycopg2
-```
-
-**MySQL and mysqlclient**
-```
-sudo apt install libmysqlclient-dev mysql-client-core-8.0
-pip install mysqlclient
-```
-
-# <span id="examples">Examples</examples>
-
-For complete usage, see the [Usage](#usage) section.
-
-## <span id="cli-examples">Command line interface</span>
-The following example demonstrates the command and sample output for
-downloading up to the first 60 seconds (`--duration 60`) of audio from all
-videos from two YouTube users/channels to the `~/yt_mp3s` directory
-(`-d ~/yt_mp3s`), excluding videos that are longer than 300 seconds (`-L 300`)
-or shorter than 5 seconds (`-S 5`). youtube-dl and ffmpeg produce verbose
-output that can be suppressed with the `-q` switch.
-
-```
-TODO
-```
-
-## <span id="python-examples">Python</span>
-
-The following Python code performs the same actions as the command line example
-above:
-
-```
-TODO
-```
-
 # <span id="usage">Usage</span>
 
 This package contains four command line tools/commands. The main tool is
 `yam` (**Y**ouTube **A**udio **M**atcher).
 
-## <span id="cli">Command line interface</span>
+
+## <span id="yam-usage">`yam`</span>
 
 ```
 usage: yam [-h] [-N <database_name>] [-C <dialect>] [-R <driver>] [-H <host>]
@@ -171,7 +150,7 @@ optional arguments:
                         Add files to the database after fingerprinting instead
                         of searching the database for matches (default: False)
   -c <float>, --conf-thresh <float>
-                        Confidence threshold for matches (default: 0.1)
+                        Confidence threshold for matches (default: 0.05)
   -D, --delete          Delete downloaded files after fingerprinting (default:
                         False)
   -o [path], --output [path]
@@ -269,11 +248,164 @@ Verbosity arguments:
                         (default: False)
 ```
 
-## <span id="import">Import as Python package</span>
 
+## <span id="yamdb-usage">`yamdb`</span>
+
+```
+usage: yamdb [-h] [-N <database_name>] [-C <dialect>] [-R <driver>]
+             [-H <host>] [-P <password>] [-O <port>] [-U <username>]
+             [-d | -r | -o OUTPUT | -s]
+
+optional arguments:
+  -h, --help            show this help message and exit
+
+database arguments:
+  -N <database_name>, --db-name <database_name>
+                        Database name (default: yam)
+  -C <dialect>, --dialect <dialect>
+                        SQL dialect (default: postgresql)
+  -R <driver>, --driver <driver>
+                        SQL dialect driver (default: None)
+  -H <host>, --host <host>
+                        Database hostname (default: localhost)
+  -P <password>, --password <password>
+                        Database password (default: None)
+  -O <port>, --port <port>
+                        Database port number (default: None)
+  -U <username>, --user <username>
+                        Database user name (default: None)
+
+actions:
+  -d, --delete          Delete all rows (default: False)
+  -r, --drop            Drop all tables (default: False)
+  -o OUTPUT, --output OUTPUT
+                        Write the contents of the database to an output file
+                        as JSON (default: None)
+  -s, --songs           Print a list of songs in the database (default: False)
+```
+
+
+## <span id="yamdl-usage">`yamdl`</span>
+
+```
+usage: yamdl [-h] [-d <path>] [-L <seconds>] [-S <seconds>] [-i]
+             [-p <seconds>] [-r <num>] [-y] [--start <seconds>]
+             [--end <seconds>] [--duration <seconds>] [--debug] [-s]
+             urls [urls ...]
+
+Efficiently and quickly download the audio from all videos on one or more
+YouTube channels, filter based on video length, and extract audio only from
+the segments of interest.
+
+positional arguments:
+  urls                  One or more space-separated channel/user URLs (e.g.,
+                        www.youtube.com/c/YouTubeCreators). Options apply to
+                        all URLs.
+
+optional arguments:
+  -h, --help            show this help message and exit
+
+download arguments:
+  -d <path>, --dst-dir <path>
+                        Path to destination directory for downloaded files
+                        (default: .)
+  -L <seconds>, --exclude-longer-than <seconds>
+                        Do not download/convert videos longer than specified
+                        duration. This does NOT truncate videos to a maximum
+                        desired length; to extract or truncate specific
+                        segments of audio from downloaded videos, use --start,
+                        --end, and/or --duration (default: None)
+  -S <seconds>, --exclude-shorter-than <seconds>
+                        Do not download/convert videos shorter than specified
+                        duration (default: None)
+  -i, --ignore-existing
+                        Do not download files that already exist (default:
+                        False)
+  -p <seconds>, --page-load-wait <seconds>
+                        Time to wait (in seconds) to allow page to load on
+                        initial page load and and after each page scroll
+                        (default: 1)
+  -r <num>, --retries <num>
+                        Number of times to re-attempt failed downloads. Pass
+                        -1 to retry indefinitely until successful (default: 5)
+  -y, --youtubedl-verbose
+                        Enable youtube-dl and ffmpeg terminal output (default:
+                        False)
+  --start <seconds>     Extract audio beginning at the specified video time
+                        (in seconds) (default: None)
+  --end <seconds>       Extract audio up to the specified video time (in
+                        seconds) (default: None)
+  --duration <seconds>  Duration (in seconds) of audio to extract beginning at
+                        0 if --start not specified, otherwise at --start. If
+                        --duration is used with --end, --duration takes
+                        precedence. (default: None)
+
+Verbosity arguments:
+  --debug               Print verbose debugging info (default: False)
+  -s, --silent          Suppress youtube-audio-matcher terminal output
+                        (default: False)
+```
+
+
+## <span id="yamfp-usage">`yamfp`</span>
+
+```
+usage: yamfp [-h] [--erosion-iterations <int>] [--filter-connectivity {1,2}]
+             [--filter-dilation <int>] [-a <dB>]
+             [--spectrogram-backend {scipy,matplotlib}]
+             [--win-overlap-ratio <float>] [--win-size <int>]
+             [-c <channel> [<channel> ...]] [-P] [-t <title>]
+             [--start <seconds>] [--end <seconds>]
+             <path>
+
+Visualize an audio file fingerprint by plotting its spectrogram and the
+spectrogram peaks.
+
+positional arguments:
+  <path>                Path to audio file
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -c <channel> [<channel> ...], --channels <channel> [<channel> ...]
+                        Plot only the specified audio channels (beginning at
+                        0) (default: None)
+  -P, --no-peaks        Plot only the spectrogram without the spectrogram
+                        peaks (default: False)
+  -t <title>, --title <title>
+                        Set plot title; defaults to filename if omitted
+                        (default: None)
+  --start <seconds>     Audio segment end time in seconds (beginning of file
+                        if omitted) (default: None)
+  --end <seconds>       Audio segment end time in seconds (end of file if
+                        omitted) (default: None)
+
+fingerprint arguments:
+  --erosion-iterations <int>
+                        Number of times to apply binary erosion for peak
+                        finding (default: 1)
+  --filter-connectivity {1,2}
+                        Max filter neighborhood connectivity for peak finding
+                        (default: 1)
+  --filter-dilation <int>
+                        Max filter dilation (neighborhood size) for peak
+                        finding (default: 10)
+  -a <dB>, --min-amplitude <dB>
+                        Spectogram peak minimum amplitude in dB (default: 10)
+  --spectrogram-backend {scipy,matplotlib}
+                        Library to use for computing spectrogram (default:
+                        scipy)
+  --win-overlap-ratio <float>
+                        Window overlap as a fraction of window size, in the
+                        range [0, 1) (default: 0.5)
+  --win-size <int>      Number of samples per FFT window (default: 4096)
+```
+
+
+# <span id="import">Import as Python package</span>
 The package can be imported and used directly in a Python program. This exposes
 lower-level functionality than the command-line interface. Refer to the
 docstrings in the source code for complete documentation.
+
 
 # <span id="acknowledgments">Acknowledgments</span>
 This project and a couple bits of code were inspired by
