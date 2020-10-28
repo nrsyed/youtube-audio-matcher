@@ -66,7 +66,7 @@ def match_fingerprints(song, db_kwargs):
             )
             iou = inter / union
 
-            song["match"] = {
+            song["match_stats"] = {
                 "num_matching_fingerprints": num_matching_fingerprints,
                 "confidence": confidence,
                 "iou": iou,
@@ -250,8 +250,8 @@ def main(
     if not add_to_database:
         matches = []
         for matched_song in task_group.result()[-1]:
-            match = matched_song["match"]
-            if match and (match["confidence"] > conf_thresh):
+            match_stats = matched_song["match_stats"]
+            if match_stats and (match_stats["confidence"] > conf_thresh):
                 matches.append(matched_song)
 
         if out_fpath:
