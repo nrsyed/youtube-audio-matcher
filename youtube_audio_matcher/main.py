@@ -176,7 +176,7 @@ def main(
     for file_ in files:
         fingerprint_queue.put_nowait(
             {
-                "id": None,
+                "youtube_id": None,
                 "title": None,
                 "duration": None,
                 "channel_url": None,

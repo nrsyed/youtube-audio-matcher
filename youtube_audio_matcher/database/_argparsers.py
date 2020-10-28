@@ -56,7 +56,7 @@ def get_parser():
         "-r", "--drop", action="store_true", help="Drop all tables"
     )
     action_args.add_argument(
-        "-o", "--output", type=pathlib.Path,
+        "-o", "--output", type=pathlib.Path, metavar="<path>",
         help="Write the contents of the database to an output file as JSON"
     )
     action_args.add_argument(

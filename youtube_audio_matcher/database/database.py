@@ -44,7 +44,7 @@ def _threadsafe_add_fingerprints(db_kwargs, song):
     song_id = db.add_song(
         duration=song.get("duration"), filepath=song.get("path"),
         filehash=song.get("filehash"), title=song.get("title"),
-        youtube_id=song.get("id")
+        youtube_id=song.get("youtube_id")
     )
     db.add_fingerprints(song_id, song["fingerprints"])
     del db
