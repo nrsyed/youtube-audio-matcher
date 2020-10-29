@@ -188,7 +188,20 @@ async def get_source(url, page_load_wait=1, scroll_by=5000):
 
 async def video_metadata_from_url(url, download_queue, **kwargs):
     """
-    TODO
+    Get the page source for a YouTube channel/user URL. This function
+    combines :func:`get_source` and :func:`video_metadata_from_source`.
+
+    Args:
+        url (str): Channel/user URL.
+        download_queue (asyncio.queues.Queue): asyncio queue to which the
+            extracted videos will be added.
+        **kwargs: Keyword arguments for :func:`get_source` and
+            :func:`video_metadata_from_source`.
+
+    Returns:
+        List[dict]: videos
+            List of dicts where each video represents a dict, as returned by
+            :func:`video_metadata_from_source`.
     """
     get_source_keys = ["page_load_wait", "scroll_by"]
     get_source_kwargs = {
@@ -365,8 +378,15 @@ async def _download_video_mp3(
     to a queue (if provided).
 
     Args:
-    TODO
-        kwargs: Keyword arguments for :func:`download_video_mp3`.
+        video (dict): Dict corresponding to a video.
+        dst_dir (str): Path to download destination directory.
+        loop (asyncio.BaseEventLoop): asyncio EventLoop.
+        executor (concurrent.futures.Executor): ``concurrent.futures``
+            ThreadPoolExecutor or ProcessPoolExecutor in which each download
+            will be run.
+        out_queue (asyncio.queues.Queue): Output queue in which to put video
+            metadata dict after download.
+        **kwargs: Keyword arguments for :func:`download_video_mp3`.
 
     Returns:
         dict: video
@@ -411,7 +431,7 @@ async def download_video_mp3s(
             will be pushed after download attempt. This can be used as a
             process queue for asynchronously post-processing each video after
             it has been downloaded.
-        kwargs: Keyword arguments for :func:`download_video_mp3`.
+        **kwargs: Keyword arguments for :func:`download_video_mp3`.
 
     Returns:
         List(dict): videos
@@ -452,23 +472,11 @@ def download_channels(
     loop, urls, dst_dir, executor=None, out_queue=None, **kwargs
 ):
     """
-    Download all videos from one or more YouTube channels/users subject to the
-    specified criteria.
-
-    TODO: update docstring
-
-    ``exclude_longer_than`` and ``exclude_shorter_than`` DO NOT truncate MP3s;
-    they prevent them from being downloaded at all (see
-    :func:`video_metadata_from_source`). To truncate MP3s to only the desired
-    segment, provide ``start_time``, ``duration``, and/or ``end_time`` in
-    ``download_video_mp3_kwargs`` (see :func:`download_video_mp3`). For
-    example, if a video is 3000 seconds long and the first 500 seconds are
-    desired, use `duration=500`; providing ``exclude_longer_than=500`` would
-    cause the video to not be downloaded at all.
+    Asynchronously download all videos from one or more YouTube channels/users
+    subject to the specified criteria.
 
     Args:
-        loop (asyncio.BaseEventLoop): `asyncio` EventLoop (e.g., as returned by
-            ``asyncio.get_event_loop()``).
+        loop (asyncio.BaseEventLoop): asyncio EventLoop.
         urls (List[str]): List of YouTube channel/user URLs.
         dst_dir (str): Download destination directory.
         executor (concurrent.futures.Executor): ``concurrent.futures``
@@ -478,7 +486,7 @@ def download_channels(
             will be pushed after download attempt. This can be used as a
             process queue for asynchronously post-processing each video after
             it has been downloaded.
-        kwargs: Keyword args for :func:`video_metadata_from_urls` and
+        **kwargs: Keyword args for :func:`video_metadata_from_urls` and
             :func:`download_video_mp3`.
 
     Returns:
