@@ -81,7 +81,7 @@ the peaks, is shown below.
 * [Chromium](https://www.chromium.org) or
   [Google Chrome](https://www.google.com/chrome/) browser, and
   [ChromeDriver](http://chromedriver.chromium.org/home)
-* [FFmpeg](https://ffmpeg.org/download.html))
+* [FFmpeg](https://ffmpeg.org/download.html)
 * PostgreSQL or MySQL client/driver (see list of
   [SQLAlchemy–supported drivers/backends](https://docs.sqlalchemy.org/en/13/core/engines.html))
 
@@ -98,9 +98,9 @@ pip install .
 
 Next, install a PostgreSQL or MySQL client and development files. These must
 be installed before SQLAlchemy is installed with `pip`, as the
-`pip install` requires these to build/install the relevant Python packages.
-Example instructions for installing PostgreSQL/psycopg2 and MySQL/mysqlclient
-on Ubuntu are shown below.
+`pip install` requires these to build the relevant Python packages. Example
+instructions for installing PostgreSQL/psycopg2 and MySQL/mysqlclient on Ubuntu
+are shown below.
 
 **PostgreSQL and psycopg2**
 ```

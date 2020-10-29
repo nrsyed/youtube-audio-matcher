@@ -8,9 +8,9 @@ pip install .
 
 Next, install a PostgreSQL or MySQL client and development files. These must
 be installed before SQLAlchemy is installed with `pip`, as the
-`pip install` requires these to build/install the relevant Python packages.
-Example instructions for installing PostgreSQL/psycopg2 and MySQL/mysqlclient
-on Ubuntu are shown below.
+`pip install` requires these to build the relevant Python packages. Example
+instructions for installing PostgreSQL/psycopg2 and MySQL/mysqlclient on Ubuntu
+are shown below.
 
 **PostgreSQL and psycopg2**
 ```

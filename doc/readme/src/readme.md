@@ -31,7 +31,7 @@ database. Local files and directories can also be provided as input.
 * [Chromium](https://www.chromium.org) or
   [Google Chrome](https://www.google.com/chrome/) browser, and
   [ChromeDriver](http://chromedriver.chromium.org/home)
-* [FFmpeg](https://ffmpeg.org/download.html))
+* [FFmpeg](https://ffmpeg.org/download.html)
 * PostgreSQL or MySQL client/driver (see list of
   [SQLAlchemy–supported drivers/backends](https://docs.sqlalchemy.org/en/13/core/engines.html))
 
