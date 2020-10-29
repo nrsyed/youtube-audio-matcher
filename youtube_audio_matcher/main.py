@@ -14,6 +14,8 @@ import youtube_audio_matcher as yam
 # TODO: add max threads/max processes/max queue size arguments
 # TODO: summary of results (successful downloads, fingerprinting, etc.)
 # TODO: chunk long songs into segments and match segments in parallel
+# TODO: add duration (and actual file duration instead of YT duration) when
+#   adding songs to DB.
 
 def match_fingerprints(song, db_kwargs):
     db = yam.database.Database(**db_kwargs)
@@ -66,7 +68,7 @@ def match_fingerprints(song, db_kwargs):
             )
             iou = inter / union
 
-            song["match"] = {
+            song["match_stats"] = {
                 "num_matching_fingerprints": num_matching_fingerprints,
                 "confidence": confidence,
                 "iou": iou,
@@ -113,7 +115,7 @@ async def match_songs(loop, executor, db_kwargs, in_queue):
 
 
 def main(
-    inputs, add_to_database=False, conf_thresh=0.1, out_fpath=None,
+    inputs, add_to_database=False, conf_thresh=0.01, out_fpath=None,
     max_processes=multiprocessing.cpu_count(), **kwargs
 ):
     """
@@ -176,7 +178,7 @@ def main(
     for file_ in files:
         fingerprint_queue.put_nowait(
             {
-                "id": None,
+                "youtube_id": None,
                 "title": None,
                 "duration": None,
                 "channel_url": None,
@@ -250,8 +252,8 @@ def main(
     if not add_to_database:
         matches = []
         for matched_song in task_group.result()[-1]:
-            match = matched_song["match"]
-            if match and (match["confidence"] > conf_thresh):
+            match_stats = matched_song["match_stats"]
+            if match_stats and (match_stats["confidence"] > conf_thresh):
                 matches.append(matched_song)
 
         if out_fpath:

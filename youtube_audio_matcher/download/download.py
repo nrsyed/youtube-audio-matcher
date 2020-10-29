@@ -75,7 +75,7 @@ def video_metadata_from_source(
         A list of videos, where each video is represented by a dict::
 
             {
-                "id": str,
+                "youtube_id": str,
                 "title": str,
                 "duration": int
             }
@@ -141,7 +141,7 @@ def video_metadata_from_source(
         if min_duration <= duration <= max_duration:
             videos.append(
                 {
-                    "id": video_id,
+                    "youtube_id": video_id,
                     "title": video_title,
                     "duration": duration,
                     "channel_url": url,
@@ -375,7 +375,7 @@ async def _download_video_mp3(
     # Create function partial with keyword args for download_video_mp3
     # because loop.run_in_executor only takes function *args, not **kwargs.
     download_video_mp3_partial = functools.partial(
-        download_video_mp3, video["id"], dst_dir, **kwargs
+        download_video_mp3, video["youtube_id"], dst_dir, **kwargs
     )
     fpath = await loop.run_in_executor(executor, download_video_mp3_partial)
 
@@ -558,7 +558,7 @@ def run_download_channels(*args, **kwargs):
         (path will be ``None`` if download was unsuccessful)::
 
             {
-                "id": str,
+                "youtube_id": str,
                 "title": str,
                 "duration": int,
                 "channel_url": str,

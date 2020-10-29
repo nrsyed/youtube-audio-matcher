@@ -82,4 +82,24 @@ def get_parser():
         "filepath", type=pathlib.Path, metavar="<path>",
         help="Path to audio file"
     )
+    parser.add_argument(
+        "-c", "--channels", nargs="+", type=int, metavar="<channel>",
+        help="Plot only the specified audio channels (beginning at 0)"
+    )
+    parser.add_argument(
+        "-P", "--no-peaks", action="store_true",
+        help="Plot only the spectrogram without the spectrogram peaks"
+    )
+    parser.add_argument(
+        "-t", "--title", type=str, metavar="<title>",
+        help="Set plot title; defaults to filename if omitted"
+    )
+    parser.add_argument(
+        "--start", type=float, metavar="<seconds>",
+        help="Audio segment end time in seconds (beginning of file if omitted)"
+    )
+    parser.add_argument(
+        "--end", type=float, metavar="<seconds>",
+        help="Audio segment end time in seconds (end of file if omitted)"
+    )
     return parser

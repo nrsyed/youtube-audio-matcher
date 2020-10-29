@@ -83,7 +83,7 @@ def hash_file(fpath, block_size=2**16):
     return hash_.hexdigest()
 
 
-def read_file(fpath, num_retries=3):
+def read_file(fpath):
     """
     Read an audio file and extract audio information and file SHA1 hash.
 

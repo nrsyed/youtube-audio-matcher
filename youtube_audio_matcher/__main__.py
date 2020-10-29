@@ -44,7 +44,7 @@ def get_parser():
         "searching the database for matches"
     )
     parser.add_argument(
-        "-c", "--conf-thresh", type=float, default=0.1, metavar="<float>",
+        "-c", "--conf-thresh", type=float, default=0.05, metavar="<float>",
         help="Confidence threshold for matches"
     )
     parser.add_argument(
