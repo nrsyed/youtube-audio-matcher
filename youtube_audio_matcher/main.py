@@ -252,8 +252,10 @@ def main(
     if not add_to_database:
         matches = []
         for matched_song in task_group.result()[-1]:
-            match_stats = matched_song["match_stats"]
-            if match_stats and (match_stats["confidence"] > conf_thresh):
+            if (
+                "match_stats" in matched_song
+                and matched_song["match_stats"]["confidence"] > conf_thresh
+            ):
                 matches.append(matched_song)
 
         if out_fpath:
