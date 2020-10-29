@@ -189,6 +189,7 @@ the page has time to load and the entire page source is obtained/scraped
 retries failed downloads up to 10 times (`-r 10`) in case youtube-dl fails
 to download videos, which occasionally happens.
 
+**Command**:
 ```
 yamdl youtube.com/user/ytuser youtube.com/c/somechannel/videos \
   --end 30 -S 7 -L 1200 -d /path/to/dest_dir -i -p 4 -r 10

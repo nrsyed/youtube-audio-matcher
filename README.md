@@ -14,12 +14,11 @@
 
 # <span id="description">Description</span>
 
-YouTube Audio Matcher enables you to download the audio from all content from
-any number of YouTube channels or users, perform audio fingerprinting on them,
+YouTube Audio Matcher enables you to download the audio from all videos on
+any number of YouTube channels, perform audio fingerprinting on audio files,
 and compare the audio fingerprints to an SQL database of audio fingerprints
-to help identify the audio (like Shazam or any of a number of song
-identification apps) or, optionally, add them to the database. It also accepts
-files and directories on the local disk.
+to help identify the audio (similar to Shazam) or, optionally, add them to the
+database. Local files and directories can also be provided as input.
 
 
 # <span id="background">Design and Background</span>
@@ -82,9 +81,7 @@ the peaks, is shown below.
 * [Chromium](https://www.chromium.org) or
   [Google Chrome](https://www.google.com/chrome/) browser, and
   [ChromeDriver](http://chromedriver.chromium.org/home)
-* FFmpeg (install from your distribution's package repository, if on a
-  Unix-based system, e.g., `apt install ffmpeg`, or from
-  [https://ffmpeg.org](https://ffmpeg.org/download.html))
+* [FFmpeg](https://ffmpeg.org/download.html))
 * PostgreSQL or MySQL client/driver (see list of
   [SQLAlchemy–supported drivers/backends](https://docs.sqlalchemy.org/en/13/core/engines.html))
 
@@ -311,6 +308,7 @@ the page has time to load and the entire page source is obtained/scraped
 retries failed downloads up to 10 times (`-r 10`) in case youtube-dl fails
 to download videos, which occasionally happens.
 
+**Command**:
 ```
 yamdl youtube.com/user/ytuser youtube.com/c/somechannel/videos \
   --end 30 -S 7 -L 1200 -d /path/to/dest_dir -i -p 4 -r 10

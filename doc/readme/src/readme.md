@@ -14,12 +14,11 @@
 
 # <span id="description">Description</span>
 
-YouTube Audio Matcher enables you to download the audio from all content from
-any number of YouTube channels or users, perform audio fingerprinting on them,
+YouTube Audio Matcher enables you to download the audio from all videos on
+any number of YouTube channels, perform audio fingerprinting on audio files,
 and compare the audio fingerprints to an SQL database of audio fingerprints
-to help identify the audio (like Shazam or any of a number of song
-identification apps) or, optionally, add them to the database. It also accepts
-files and directories on the local disk.
+to help identify the audio (similar to Shazam) or, optionally, add them to the
+database. Local files and directories can also be provided as input.
 
 
 # <span id="background">Design and Background</span>
@@ -32,9 +31,7 @@ files and directories on the local disk.
 * [Chromium](https://www.chromium.org) or
   [Google Chrome](https://www.google.com/chrome/) browser, and
   [ChromeDriver](http://chromedriver.chromium.org/home)
-* FFmpeg (install from your distribution's package repository, if on a
-  Unix-based system, e.g., `apt install ffmpeg`, or from
-  [https://ffmpeg.org](https://ffmpeg.org/download.html))
+* [FFmpeg](https://ffmpeg.org/download.html))
 * PostgreSQL or MySQL client/driver (see list of
   [SQLAlchemy–supported drivers/backends](https://docs.sqlalchemy.org/en/13/core/engines.html))
 
