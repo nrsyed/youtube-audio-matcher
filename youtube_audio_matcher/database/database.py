@@ -3,18 +3,31 @@ import logging
 import time
 
 import sqlalchemy
-from sqlalchemy.pool import NullPool
 
 from .schema import Base, Fingerprint, Song
 
 
 def database_obj_to_py(obj, fingerprints_in_song=False):
+    """
+    Recursively convert Fingerprint and Song sqlalchemy objects to native
+    Python types (lists and dicts).
+
+    Args:
+        obj (database.schema.Fingerprint|database.schema.Song): ``audio``
+            module Fingerprint or Song object.
+        fingerprints_in_song (bool): Include each song's fingerprints as a
+            list within the song dict.
+
+    Returns:
+        py_obj: list|dict
+    """
     if isinstance(obj, list):
         return [
             database_obj_to_py(elem, fingerprints_in_song=fingerprints_in_song)
             for elem in obj
         ]
     elif isinstance(obj, Song):
+        breakpoint()
         song = {
             "id": obj.id,
             "duration": obj.duration,
@@ -51,6 +64,7 @@ def _threadsafe_add_fingerprints(db_kwargs, song):
     del song["fingerprints"]
 
 
+# TODO: delete files after fingerprinting
 async def _update_database(song, loop, executor, db_kwargs):
     start_t = time.time()
     delete_file = False
@@ -71,8 +85,23 @@ async def _update_database(song, loop, executor, db_kwargs):
 
 
 # TODO: handle song already existing in database
-# TODO: handle delete after
 async def update_database(loop, executor, db_kwargs, in_queue):
+    """
+    Consume fingerprinted songs from an async input queue and add the songs
+    and their fingerprints to the database either concurrently (via a thread
+    pool) or in parallel (via a process pool).
+
+    Args:
+        loop (asyncio.BaseEventLoop): asyncio EventLoop.
+        executor (concurrent.futures.Executor): `concurrent.futures`
+            ThreadPoolExecutor or ProcessPoolExecutor in which the database
+            connection will be created to update the database.
+        db_kwargs (dict): Dict containing keyword args for instantiating a
+            :class:`Database` object.
+        in_queue (asyncio.queues.Queue): Database queue containing song dicts
+            representing songs (and their fingerprints) to be added to the
+            database.
+    """
     start_t = time.time()
     tasks = []
     while True:
@@ -197,7 +226,8 @@ class Database:
 
     def as_dict(self, combine_tables=False):
         """
-        Return the database as a Python dictionary.
+        Return the database as a Python dictionary. See
+        :func:`database_obj_to_py`.
 
         Args:
             combine_tables (bool): If True, the returned dict will have a
@@ -208,6 +238,15 @@ class Database:
 
         Returns:
             dict: tables
+                Dict containing database Fingerprint and Song tables::
+
+                    {
+                        "songs": list,
+                        "fingerprints": list
+                    }
+
+                If ``combine_tables=True``, the returned dict will not contain
+                a ``fingerprints`` key.
         """
         songs_table = self.session.query(Song).all()
         fingerprints_table = self.session.query(Fingerprint).all()
@@ -223,6 +262,9 @@ class Database:
             }
 
     def delete_all(self):
+        """
+        Delete all rows in the Fingerprint and Song tables.
+        """
         self.session.query(Fingerprint).delete()
         self.session.query(Song).delete()
         self.session.commit()
@@ -232,19 +274,42 @@ class Database:
         self.session.commit()
 
     def drop_all_tables(self):
+        """
+        Drop Fingerprint and Song tables.
+        """
         self._drop_tables([Fingerprint.__table__, Song.__table__])
 
     def drop_song_table(self):
+        """
+        Drop Song table.
+        """
         self._drop_tables([Song.__table__])
 
     def drop_fingerprint_table(self):
+        """
+        Drop Fingerprint table.
+        """
         self._drop_tables([Fingerprint.__table__])
 
     def query_fingerprints(self, hashes):
         """
+        Query the database for a list of matching hashes.
+
         Args:
             hashes (str|List[str]): Hash or list of hashes from a
                 fingerprinted audio signal.
+
+        Returns:
+            fingerprints: list
+                A list of fingerprints whose hashes match the input hashes.
+                Each fingerprint is a dict containing the hash, song id, and
+                offset (in seconds)::
+
+                    {
+                        "song_id": int,
+                        "hash": str,
+                        "offset": float
+                    }
         """
         # Perform query; this is the equivalent of
         # SELECT * FROM fingerprint WHERE fingerprint.hash IN (`hashes`)
@@ -259,7 +324,52 @@ class Database:
         youtube_id=None, include_fingerprints=False
     ):
         """
-        TODO
+        Query the database for songs matching the specified criteria.
+
+        Args:
+            id_ (list|int): Int or list of ints corresponding to the id
+                primary key field of the database Song table.
+            duration (list|float): Float or list of floats corresponding to
+                the duration field of the database Song table.
+            duration_greater_than (float): Only return songs with a duration
+                greater than this value, if one is specified.
+            duration_less_than (float): Only return songs with a duration less
+                than this value, if one is specified.
+            filehash (list|str): A filehash or list of filehashes corresponding
+                to the filehash field of the database Song table.
+            filepath (list|str): A filepath or list of filepaths corresponding
+                to the filepath field of the database Song table.
+            title (list|str): A title or list of titles corresponding to the
+                title field of the database Song table.
+            youtube_id (list|str): A YouTube id or list of YouTube ids
+                corresponding to the youtube_id field of the databse Song
+                table.
+            include_fingerprints (bool): Include the fingerprints of each
+                song as a list within the dict corresponding to the song; see
+                :meth:`query_fingerprints`.
+
+        Returns:
+            results: List[dict]
+                A list of dicts where each dict represents a song and contains
+                the following keys::
+
+                    {
+                        "id": int,
+                        "duration": float,
+                        "filehash": str,
+                        "filepath": str,
+                        "title": str,
+                        "youtube_id" str,
+                        "fingerprints": list[dict],
+                        "num_fingerprints": int
+                    }
+
+                The ``fingerprints`` and ``num_fingerprints`` keys are only
+                included if ``include_fingerprints=True``.
+
+        Raises:
+            ValueError: if more than one of ``duration``,
+            ``duration_greater_than``, or ``duration_less_than`` are supplied.
         """
         duration_args_bool = [
             duration is not None, duration_greater_than is not None,
