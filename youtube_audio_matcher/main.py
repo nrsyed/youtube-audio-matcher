@@ -14,6 +14,8 @@ import youtube_audio_matcher as yam
 # TODO: add max threads/max processes/max queue size arguments
 # TODO: summary of results (successful downloads, fingerprinting, etc.)
 # TODO: chunk long songs into segments and match segments in parallel
+# TODO: add duration (and actual file duration instead of YT duration) when
+#   adding songs to DB.
 
 def match_fingerprints(song, db_kwargs):
     db = yam.database.Database(**db_kwargs)

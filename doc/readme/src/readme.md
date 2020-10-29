@@ -1,25 +1,30 @@
 # YouTube Audio Matcher
 
 * [Description](#description)
+* [Design and Background](#background)
 * [Requirements](#requirements)
 * [Installation](#installation)
-* [Background](#background)
-* [Usage and examples](#usage)
+* [Examples](#examples)
+* [Usage](#usage)
   * [`yam`](#yam-usage)
   * [`yamdb`](#yamdb-usage)
   * [`yamdl`](#yamdl-usage)
   * [`yamfp`](#yamfp-usage)
-  * [Import as Python package](#import)
 * [Acknowledgments](#acknowledgments)
 
 # <span id="description">Description</span>
 
 YouTube Audio Matcher enables you to download the audio from all content from
 any number of YouTube channels or users, perform audio fingerprinting on them,
-and compare the audio fingerprints to a SQL database of audio fingerprints
+and compare the audio fingerprints to an SQL database of audio fingerprints
 to help identify the audio (like Shazam or any of a number of song
 identification apps) or, optionally, add them to the database. It also accepts
 files and directories on the local disk.
+
+
+# <span id="background">Design and Background</span>
+
+@@include[background.md]
 
 
 # <span id="requirements">Requirements</span>
@@ -28,7 +33,7 @@ files and directories on the local disk.
   [Google Chrome](https://www.google.com/chrome/) browser, and
   [ChromeDriver](http://chromedriver.chromium.org/home)
 * FFmpeg (install from your distribution's package repository, if on a
-  Unix-based system (e.g., `apt install ffmpeg`), or from
+  Unix-based system, e.g., `apt install ffmpeg`, or from
   [https://ffmpeg.org](https://ffmpeg.org/download.html))
 * PostgreSQL or MySQL client/driver (see list of
   [SQLAlchemy–supported drivers/backends](https://docs.sqlalchemy.org/en/13/core/engines.html))
@@ -39,15 +44,19 @@ files and directories on the local disk.
 @@include[installation.md]
 
 
-# <span id="background">Background</span>
+# <span id="examples">Examples</span>
 
-@@include[background.md]
+@@include[examples.md]
 
 
 # <span id="usage">Usage</span>
 
 This package contains four command line tools/commands. The main tool is
-`yam` (**Y**ouTube **A**udio **M**atcher).
+`yam` (**Y**ouTube **A**udio **M**atcher), which combines download,
+fingerprinting, and database functionality. Each of these three components
+also have their own command line interfaces: `yamdb` (**YAM** **D**ata**b**ase
+tool), `yamdl` (**YAM** **D**own**l**oad tool), and `yamfp`
+(**YAM** **F**inger**p**rint tool).
 
 
 ## <span id="yam-usage">`yam`</span>
@@ -70,12 +79,16 @@ This package contains four command line tools/commands. The main tool is
 @@include[yamfp_usage.md]
 
 
-# <span id="import">Import as Python package</span>
-The package can be imported and used directly in a Python program. This exposes
-lower-level functionality than the command-line interface. Refer to the
-docstrings in the source code for complete documentation.
-
-
 # <span id="acknowledgments">Acknowledgments</span>
-This project and a couple bits of code were inspired by
-[Ben-0-mad's YT-TMS-Finder](https://github.com/Ben-0-mad/YT-TMS-Finder) repo.
+This project was inspired by
+[Ben-0-mad's YT-TMS-Finder](https://github.com/Ben-0-mad/YT-TMS-Finder) repo,
+whose goal is to try and identify unknown songs by checking YouTube channels
+for matching videos.
+
+Projects, articles, and papers I found to be invaluable for learning about
+audio fingerprinting include the following:
+* [Audio Fingerprinting with Python and Numpy](https://willdrevo.com/fingerprinting-and-audio-recognition-with-python/) and [dejavu](https://github.com/worldveil/dejavu)
+* [How does Shazam work](http://coding-geek.com/how-shazam-works/)
+* Avery Li-Chun Wang, "An Industrial-Strength Audio Search Algorithm,"
+Proc. 2003 ISMIR, Baltimore, MD, Oct. 2003.
+https://www.ee.columbia.edu/~dpwe/papers/Wang03-shazam.pdf
