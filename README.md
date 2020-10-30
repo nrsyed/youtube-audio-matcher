@@ -27,7 +27,7 @@ The program leverages asynchronous programming combined with
 multithreading and multiprocessing to efficiently download and/or process
 files, summarized in the flow diagram below.
 
-<img src="doc/img/yam_diagram.png" />
+<img src="docs/img/yam_diagram.png" />
 
 It accepts any number of YouTube channel/user URLs and local files/directories
 as input. An async function loads (via Selenium) and parses (via BeautifulSoup)
@@ -67,13 +67,13 @@ which is effectively a measure of the intensity of the sound frequencies of the
 audio over the course of the song. The spectrogram of the song *Phenomenal* by
 Benjai is shown below.
 
-<img src="doc/img/spec_full.png" />
+<img src="docs/img/spec_full.png" />
 
 The fingerprint of the song is obtained by finding the peaks in the
 spectrogram. The spectrogram for the first 10 seconds of the song, along with
 the peaks, is shown below.
 
-<img src="doc/img/spec_10_peaks.png" />
+<img src="docs/img/spec_10_peaks.png" />
 
 
 # <span id="requirements">Requirements</span>
