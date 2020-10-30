@@ -10,6 +10,7 @@
   * [`yamdb`](#yamdb-usage)
   * [`yamdl`](#yamdl-usage)
   * [`yamfp`](#yamfp-usage)
+  * [Import in Python](#import)
 * [Acknowledgments](#acknowledgments)
 
 # <span id="description">Description</span>
@@ -74,6 +75,22 @@ tool), `yamdl` (**YAM** **D**own**l**oad tool), and `yamfp`
 ## <span id="yamfp-usage">`yamfp`</span>
 
 @@include[yamfp_usage.md]
+
+
+## <span id="import">Import in Python</span>
+The package and its submodules can also be imported directly in Python:
+
+```
+import youtube_audio_matcher as yam
+
+import youtube_audio_matcher.audio
+import youtube_audio_matcher.database
+import youtube_audio_matcher.download
+```
+
+The complete Python API documentation can be found at
+https://nrsyed.github.io/youtube-audio-matcher, or refer to the source code
+and function/class docstrings.
 
 
 # <span id="acknowledgments">Acknowledgments</span>

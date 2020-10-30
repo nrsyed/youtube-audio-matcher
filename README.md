@@ -10,6 +10,7 @@
   * [`yamdb`](#yamdb-usage)
   * [`yamdl`](#yamdl-usage)
   * [`yamfp`](#yamfp-usage)
+  * [Import in Python](#import)
 * [Acknowledgments](#acknowledgments)
 
 # <span id="description">Description</span>
@@ -602,6 +603,22 @@ fingerprint arguments:
                         range [0, 1) (default: 0.5)
   --win-size <int>      Number of samples per FFT window (default: 4096)
 ```
+
+
+## <span id="import">Import in Python</span>
+The package and its submodules can also be imported directly in Python:
+
+```
+import youtube_audio_matcher as yam
+
+import youtube_audio_matcher.audio
+import youtube_audio_matcher.database
+import youtube_audio_matcher.download
+```
+
+The complete Python API documentation can be found at
+https://nrsyed.github.io/youtube-audio-matcher, or refer to the source code
+and function/class docstrings.
 
 
 # <span id="acknowledgments">Acknowledgments</span>
