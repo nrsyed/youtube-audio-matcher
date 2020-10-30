@@ -27,7 +27,6 @@ def database_obj_to_py(obj, fingerprints_in_song=False):
             for elem in obj
         ]
     elif isinstance(obj, Song):
-        breakpoint()
         song = {
             "id": obj.id,
             "duration": obj.duration,
@@ -121,6 +120,11 @@ async def update_database(loop, executor, db_kwargs, in_queue):
 
 # TODO: try/except, db rollbacks
 class Database:
+    """
+    Class that holds a database connection to perform read/update/delete
+    operations.
+    """
+
     def __init__(
         self, user, password, db_name, host="localhost", port=None,
         dialect="postgresql", driver=None

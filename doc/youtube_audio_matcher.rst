@@ -11,17 +11,6 @@ Subpackages
    youtube_audio_matcher.database
    youtube_audio_matcher.download
 
-Submodules
-----------
-
-youtube\_audio\_matcher.main module
------------------------------------
-
-.. automodule:: youtube_audio_matcher.main
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 Module contents
 ---------------
 

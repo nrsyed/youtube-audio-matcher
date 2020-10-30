@@ -52,6 +52,14 @@ def get_parser():
         help="Delete downloaded files after fingerprinting"
     )
     parser.add_argument(
+        "--max-processes", type=int, metavar="<num>",
+        help="Max number of CPUs for parallel processing"
+    )
+    parser.add_argument(
+        "--max-threads", type=int, metavar="<num>",
+        help="Max number of threads for concurrent tasks"
+    )
+    parser.add_argument(
         "-o", "--output", nargs="?", metavar="path", const=0,
         help="Path to output file containing matches in JSON format; if this "
         "option is provided without an argument, a timestamped filename is "
