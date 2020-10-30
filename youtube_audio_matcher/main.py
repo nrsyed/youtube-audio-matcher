@@ -18,6 +18,51 @@ import youtube_audio_matcher as yam
 #   adding songs to DB.
 
 def match_fingerprints(song, db_kwargs):
+    """
+    Opens a database connection and matches a song against the database.
+
+    Args:
+        song (dict): Dict corresponding to a fingerprinted song. Must contain
+            a ``fingerprints`` key containing a list of fingerprints
+            (hash/offset pairs) returned by
+            :func:`youtube_audio_matcher.audio.fingerprint_from_file`.
+        db_kwargs (dict): Keyword arguments for instantiating a
+            :class:`youtube_audio_matcher.database.Database` class instance.
+
+    Returns:
+        dict: song
+            Returns the input dict. If a match was found in the database,
+            a ``matching_song`` key (containing the song dict for the matching
+            song from the database) and a ``match_stats`` key (containing
+            metrics/statistics related to the match) are added to the dict.
+            The ``fingerprints`` key is deleted. The resulting dict has the
+            following structure::
+
+                {
+                    "channel_url": str,
+                    "duration": float,
+                    "filehash": str,
+                    "num_fingerprints": int,
+                    "path": str,
+                    "title": str,
+                    "youtube_id": str,
+                    "matching_song": {
+                        "id": int,
+                        "duration": float,
+                        "filehash": str,
+                        "filepath": str,
+                        "title": str,
+                        "youtube_id": str,
+                        "num_fingerprints": int
+                    },
+                    "match_stats": {
+                        "num_matching_fingerprints: int,
+                        "confidence": float,
+                        "iou": float,
+                        "relative_offset": float
+                    }
+                }
+    """
     db = yam.database.Database(**db_kwargs)
     match = None
     song["num_fingerprints"] = len(song["fingerprints"])
@@ -80,6 +125,9 @@ def match_fingerprints(song, db_kwargs):
 
 
 async def _match_song(song, loop, executor, db_kwargs):
+    """
+    Helper function for :func:`match_songs`.
+    """
     start_t = time.time()
     logging.info(f"Matching fingerprints for {song['path']}")
     matched_song = await loop.run_in_executor(
@@ -96,7 +144,22 @@ async def _match_song(song, loop, executor, db_kwargs):
 # TODO: Rename wrapper functions, helper functions, core algo functions?
 async def match_songs(loop, executor, db_kwargs, in_queue):
     """
-    TODO
+    Coroutine that consumes songs from a queue and matches them against
+    the database.
+
+    Args:
+        loop (asyncio.BaseEventLoop): asyncio EventLoop.
+        executor (concurrent.futures.Executor): ``concurrent.futures``
+            ThreadPoolExecutor or ProcessPoolExecutor.
+        db_kwargs (dict): Keyword arguments for instantiating a
+            :class:`youtube_audio_matcher.database.Database` class instance.
+        in_queue (asyncio.queues.Queue): Download queue from which song
+            data is fetched for each song to be matched.
+
+    Returns:
+        List[dict]: results
+            A list of dicts where each dict represents an input song and
+            database match information returned by :func:`match_fingerprints`.
     """
     tasks = []
     while True:
@@ -116,16 +179,48 @@ async def match_songs(loop, executor, db_kwargs, in_queue):
 
 def main(
     inputs, add_to_database=False, conf_thresh=0.01, out_fpath=None,
-    max_processes=multiprocessing.cpu_count(), **kwargs
+    max_processes=None, max_threads=None, **kwargs
 ):
     """
+    Fingerprint local files and/or the audio from videos on any number of
+    YouTube channels, and either add the songs to a database or match them
+    against existing songs in the database.
+
     Args:
         inputs (List[str]): List of input YouTube channel/user URLs and/or
             local paths to audio files or directories of audio files.
+        add_to_database (bool): If ``True``, input songs (and their
+            fingerprints to database after fingerprinting. If ``False``, match
+            songs against database after fingerprinting.
+        conf_thresh (float): Match confidence threshold in the range [0, 1].
+            Matches with a confidence <= ``conf_thresh`` are not returned.
+            Match confidence for a song is computed as the number of matching
+            fingerprints divided by the total number of fingerprints (belonging
+            to the input song).
+        out_fpath (str): Path to output file where matches will be written
+            as JSON.
+        max_processes (int): Maximum number of cores to utilize for parallel
+            processing. Defaults to all available CPUs.
+        max_threads (int): Maximum number of threads to spawn for concurrent
+            tasks and downloads. Defaults to the maximum defined in
+            `concurrent.futures.ThreadPoolExecutor`_.
+        **kwargs: Any keyword arguments for
+            :class:`youtube_audio_matcher.database.Database`,
+            :func:`youtube_audio_matcher.download.download_channels`,
+            and :func:`youtube_audio_matcher.audio.fingerprint_songs`.
+
+    Returns:
+        List[dict]|None: matches
+            If ``add_to_database=True``, a list of dicts returned by
+            :func:`match_fingerprints`, where each dict corresponds to a song
+            with a match in the database. If ``add_to_database=False``,
+            ``None``.
+
+    .. _`concurrent.futures.ThreadPoolExecutor`:
+        https://docs.python.org/3/library/concurrent.futures.html#concurrent.futures.ThreadPoolExecutor
     """
     # NOTE: THIS IS ABSOLUTELY CRITICAL! Without changing mp start method to
-    # spawn (from default fork), download task hangs 99 times out of 100.
-    # No idea why this is.
+    # spawn (from default fork), download task deadlocks/hangs. Reason unclear.
     multiprocessing.set_start_method("spawn")
 
     # Setup and input parsing.
@@ -149,8 +244,11 @@ def main(
             )
             urls.append(inp)
 
+    if not max_processes:
+        max_processes = multiprocessing.cpu_count()
+
     proc_pool = ProcessPoolExecutor(max_workers=max_processes)
-    thread_pool = ThreadPoolExecutor()
+    thread_pool = ThreadPoolExecutor(max_workers=max_threads)
 
     loop = asyncio.get_event_loop()
 
@@ -252,8 +350,10 @@ def main(
     if not add_to_database:
         matches = []
         for matched_song in task_group.result()[-1]:
-            match_stats = matched_song["match_stats"]
-            if match_stats and (match_stats["confidence"] > conf_thresh):
+            if (
+                "match_stats" in matched_song
+                and matched_song["match_stats"]["confidence"] > conf_thresh
+            ):
                 matches.append(matched_song)
 
         if out_fpath:

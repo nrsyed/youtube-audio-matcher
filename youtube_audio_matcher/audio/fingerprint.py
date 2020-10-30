@@ -42,8 +42,17 @@ def align_matches(song_fingerprints, db_fingerprints, offset_bin_size=0.2):
             integer to prevent floating point errors and inaccuracies from
             affecting the results.
 
-    Returns: Dict containing "song_id" and "num_matching_hashes" if any,
-        else ``None``.
+    Returns:
+        result: dict|None
+            Dict containing song id, number of matching fingerprints, and
+            offset of the input song relative to the matched song from the
+            database if a match was found, else returns ``None``::
+
+                {
+                    "song_id": int,
+                    "num_matching_fingerprints": int,
+                    "relative_offset": float
+                }
 
     .. note::
         ``db_fingerprints`` and ``song_fingerprints`` are assumed to be
@@ -131,15 +140,13 @@ def align_matches(song_fingerprints, db_fingerprints, offset_bin_size=0.2):
 
 def fingerprint_from_signal(samples, **kwargs):
     """
-    TODO: add find_peaks_2d kwargs
-
     Fingerprint an audio signal by obtaining its spectrogram and returning
     its hashes.
 
     Args:
         samples (np.ndarray): Array representing the audio signal.
         sample_rate (int): Audio signal sample rate (in Hz).
-        kwargs: Optional keyword args for :func:`get_spectrogram`,
+        **kwargs: Optional keyword args for :func:`get_spectrogram`,
             :func:`find_peaks_2d`, and :func:`hash_peaks`.
 
     Returns:
@@ -190,11 +197,13 @@ def fingerprint_from_file(fpath, delete=False, **kwargs):
     Args:
         fpath (str): Path to audio file.
         delete (bool): Delete file after fingerprinting.
-        **kwargs: See :func:`fingerprint_from_signal`.
+        **kwargs: Keyword args for :func:`fingerprint_from_signal`.
 
     Returns:
         tuple: (hashes, filehash)
-        TODO
+            - hashes (List[Tuple[str, float]]): List of tuples where each tuple
+              is a (hash, absolute_offset) pair. See :func:`hash_peaks`.
+            - filehash (str): SHA1 hash of the file.
 
     .. note::
         Sample rate is obtained from the file. ``sample_rate`` should not be
@@ -214,7 +223,7 @@ def fingerprint_from_file(fpath, delete=False, **kwargs):
     return hashes, filehash
 
 
-async def _fingerprint_song(song, loop, executor, out_queue=None, **kwargs):
+async def fingerprint_song(song, loop, executor, out_queue=None, **kwargs):
     """
     Helper function for :func:`fingerprint_songs`. Fingerprints an audio file,
     adds the fingerprints (as a list) and file SHA1 hash to the audio file
@@ -225,7 +234,7 @@ async def _fingerprint_song(song, loop, executor, out_queue=None, **kwargs):
             ``path`` key containing the path to the downloaded audio file
             (or ``None``) if the download wasn't successful and the file
             doesn't exist.
-        loop (asyncio.BaseEventLoop): `asyncio` EventLoop.
+        loop (asyncio.BaseEventLoop): asyncio EventLoop.
         executor (concurrent.futures.Executor): ``concurrent.futures``
             ThreadPoolExecutor or ProcessPoolExecutor in which the audio file
             will be processed.
@@ -235,7 +244,14 @@ async def _fingerprint_song(song, loop, executor, out_queue=None, **kwargs):
 
     Returns:
         dict: song
-            Dict representing metadata for the fingerprinted audio file.
+            Input dict with a ``filehash`` key and a ``fingerprints`` key
+            containing a list of fingerprints (returned by
+            :func:`fingerprint_from_file`) added to it::
+
+                {
+                    "filehash": str,
+                    "fingerprints": List[Tuple[str, int]],
+                }
     """
     song["filehash"] = None
     song["fingerprints"] = None
@@ -274,11 +290,12 @@ async def fingerprint_songs(
             metadata is fetched for each song to be processed.
         out_queue (asyncio.queues.Queue): Output queue to which audio metadata
             will be pushed.
-        kwargs: Keyword arguments for :func:`fingerprint_from_file`.
+        **kwargs: Keyword arguments for :func:`fingerprint_from_file`.
 
     Returns:
-        dict: song
-            Dict representing metadata for the fingerprinted audio file.
+        List[dict]: songs
+            List of dicts representing metadata for the fingerprinted audio
+            file. See :func:`fingerprint_song`.
     """
     tasks = []
     while True:
@@ -287,7 +304,7 @@ async def fingerprint_songs(
             break
 
         task = loop.create_task(
-            _fingerprint_song(
+            fingerprint_song(
                 song, loop, executor, out_queue=out_queue, **kwargs
             )
         )
@@ -420,8 +437,6 @@ def hash_peaks(
     hash_length=20, time_bin_size=0.5, freq_bin_size=2
 ):
     """
-    TODO: update terminology (time/frequency bins)
-
     Hash the peaks of a spectrogram. For reference, see:
 
     * `Audio Fingerprinting with Python and Numpy`_
