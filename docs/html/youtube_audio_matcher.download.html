@@ -1,0 +1,546 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>youtube_audio_matcher.download package &mdash; YouTube Audio Matcher  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> YouTube Audio Matcher
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">youtube_audio_matcher.download package</a><ul>
+<li><a class="reference internal" href="#module-youtube_audio_matcher.download">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">YouTube Audio Matcher</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>youtube_audio_matcher.download package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/youtube_audio_matcher.download.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="youtube-audio-matcher-download-package">
+<h1>youtube_audio_matcher.download package<a class="headerlink" href="#youtube-audio-matcher-download-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-youtube_audio_matcher.download">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-youtube_audio_matcher.download" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="youtube_audio_matcher.download.download_channels">
+<code class="sig-prename descclassname">youtube_audio_matcher.download.</code><code class="sig-name descname">download_channels</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">loop</span></em>, <em class="sig-param"><span class="n">urls</span></em>, <em class="sig-param"><span class="n">dst_dir</span></em>, <em class="sig-param"><span class="n">executor</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">out_queue</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#youtube_audio_matcher.download.download_channels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Asynchronously download all videos from one or more YouTube channels/users
+subject to the specified criteria.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>loop</strong> (<em>asyncio.BaseEventLoop</em>) – asyncio EventLoop.</p></li>
+<li><p><strong>urls</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – List of YouTube channel/user URLs.</p></li>
+<li><p><strong>dst_dir</strong> (<em>str</em>) – Download destination directory.</p></li>
+<li><p><strong>executor</strong> (<em>concurrent.futures.Executor</em>) – <code class="docutils literal notranslate"><span class="pre">concurrent.futures</span></code>
+ThreadPoolExecutor or ProcessPoolExecutor in which each download
+will be run.</p></li>
+<li><p><strong>out_queue</strong> (<em>asyncio.queues.Queue</em>) – Output queue to which video metadata
+will be pushed after download attempt. This can be used as a
+process queue for asynchronously post-processing each video after
+it has been downloaded.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword args for <a class="reference internal" href="#youtube_audio_matcher.download.video_metadata_from_urls" title="youtube_audio_matcher.download.video_metadata_from_urls"><code class="xref py py-func docutils literal notranslate"><span class="pre">video_metadata_from_urls()</span></code></a> and
+<a class="reference internal" href="#youtube_audio_matcher.download.download_video_mp3" title="youtube_audio_matcher.download.download_video_mp3"><code class="xref py py-func docutils literal notranslate"><span class="pre">download_video_mp3()</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>(get_videos_task, download_task)</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>get_videos_task (coroutine): Async coroutine that grabs videos</dt><dd><p>from <code class="docutils literal notranslate"><span class="pre">urls</span></code> and adds them to a download queue. See
+<a class="reference internal" href="#youtube_audio_matcher.download.video_metadata_from_urls" title="youtube_audio_matcher.download.video_metadata_from_urls"><code class="xref py py-func docutils literal notranslate"><span class="pre">video_metadata_from_urls()</span></code></a>.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>download_task (coroutine): Async coroutine that downloads videos</dt><dd><p>from the download queue populated by <code class="docutils literal notranslate"><span class="pre">get_videos_task</span></code>. See
+<a class="reference internal" href="#youtube_audio_matcher.download.download_video_mp3s" title="youtube_audio_matcher.download.download_video_mp3s"><code class="xref py py-func docutils literal notranslate"><span class="pre">download_video_mp3s()</span></code></a>.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This function should be called if the returned coroutines are to be
+run/managed directly as part of an existing event loop (e.g., if the
+videos are to be processed after download). To simply download videos
+and return the list of downloaded videos, <a class="reference internal" href="#youtube_audio_matcher.download.run_download_channels" title="youtube_audio_matcher.download.run_download_channels"><code class="xref py py-func docutils literal notranslate"><span class="pre">run_download_channels()</span></code></a>
+should be used instead.</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt id="youtube_audio_matcher.download.download_video_mp3">
+<code class="sig-prename descclassname">youtube_audio_matcher.download.</code><code class="sig-name descname">download_video_mp3</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">video_id</span></em>, <em class="sig-param"><span class="n">dst_dir</span></em>, <em class="sig-param"><span class="n">start_time</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">duration</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">end_time</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ignore_existing</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">num_retries</span><span class="o">=</span><span class="default_value">5</span></em>, <em class="sig-param"><span class="n">youtubedl_verbose</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#youtube_audio_matcher.download.download_video_mp3" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download a YouTube video as an mp3 using youtube-dl.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>video_id</strong> (<em>str</em>) – The video id, i.e., www.youtube.com/watch?v=&lt;video_id&gt;</p></li>
+<li><p><strong>dst_dir</strong> (<em>str</em>) – Path to destination directory for downloaded file.</p></li>
+<li><p><strong>start_time</strong> (<em>float</em>) – Start time (in seconds) of the portion of the
+video to extract. <code class="docutils literal notranslate"><span class="pre">0</span></code> (beginning of video) if omitted.</p></li>
+<li><p><strong>duration</strong> (<em>float</em>) – Duration of video (in seconds) to extract.</p></li>
+<li><p><strong>end_time</strong> (<em>float</em>) – End time (in seconds) of the portion of the video to
+extract.</p></li>
+<li><p><strong>ignore_existing</strong> (<em>bool</em>) – Skip existing files.</p></li>
+<li><p><strong>num_retries</strong> (<em>int</em>) – Number of times to re-attempt failed download. Pass
+<code class="docutils literal notranslate"><span class="pre">num_retries=None</span></code> to retry indefinitely.</p></li>
+<li><p><strong>youtubedl_verbose</strong> (<em>bool</em>) – Enable youtube_dl/ffmpeg terminal output.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Path (str) to output file if download successful, else None.</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code class="docutils literal notranslate"><span class="pre">duration</span></code> takes precedence over <code class="docutils literal notranslate"><span class="pre">end_time</span></code> (as defined in
+<a class="reference external" href="https://ffmpeg.org/ffmpeg.html#Main-options">ffmpeg usage</a>) if both are provided. If both <code class="docutils literal notranslate"><span class="pre">duration</span></code> and
+<code class="docutils literal notranslate"><span class="pre">end_time</span></code> are omitted, the whole video is extracted (beginning
+at <code class="docutils literal notranslate"><span class="pre">start_time</span></code>).</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt id="youtube_audio_matcher.download.download_video_mp3s">
+<em class="property">async </em><code class="sig-prename descclassname">youtube_audio_matcher.download.</code><code class="sig-name descname">download_video_mp3s</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dst_dir</span></em>, <em class="sig-param"><span class="n">loop</span></em>, <em class="sig-param"><span class="n">executor</span></em>, <em class="sig-param"><span class="n">in_queue</span></em>, <em class="sig-param"><span class="n">out_queue</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#youtube_audio_matcher.download.download_video_mp3s" title="Permalink to this definition">¶</a></dt>
+<dd><p>Asynchronously download videos from a queue as they are received. This
+functions acts as the consumer of a producer-consumer relationship with
+<a class="reference internal" href="#youtube_audio_matcher.download.video_metadata_from_urls" title="youtube_audio_matcher.download.video_metadata_from_urls"><code class="xref py py-func docutils literal notranslate"><span class="pre">video_metadata_from_urls()</span></code></a>. A <code class="docutils literal notranslate"><span class="pre">path</span></code> key is added to the
+each video metadata dict from the download (input) queue, whose value is
+the filepath of the downloaded file (or <code class="docutils literal notranslate"><span class="pre">None</span></code> if the download was
+unsuccessful).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dst_dir</strong> (<em>str</em>) – Download destination directory.</p></li>
+<li><p><strong>loop</strong> (<em>asyncio.BaseEventLoop</em>) – <cite>asyncio</cite> EventLoop (e.g., as returned by
+<code class="docutils literal notranslate"><span class="pre">asyncio.get_event_loop()</span></code>.</p></li>
+<li><p><strong>executor</strong> (<em>concurrent.futures.Executor</em>) – <code class="docutils literal notranslate"><span class="pre">concurrent.futures</span></code>
+ThreadPoolExecutor or ProcessPoolExecutor in which each download
+will be run.</p></li>
+<li><p><strong>in_queue</strong> (<em>asyncio.queues.Queue</em>) – Download queue from which video
+metadata is fetched for each video to be downloaded.</p></li>
+<li><p><strong>out_queue</strong> (<em>asyncio.queues.Queue</em>) – Output queue to which video metadata
+will be pushed after download attempt. This can be used as a
+process queue for asynchronously post-processing each video after
+it has been downloaded.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments for <a class="reference internal" href="#youtube_audio_matcher.download.download_video_mp3" title="youtube_audio_matcher.download.download_video_mp3"><code class="xref py py-func docutils literal notranslate"><span class="pre">download_video_mp3()</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>videos</dt><dd><p>List of dicts of video metadata, where each dict represents a
+video processed by this coroutine.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List(dict)</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code class="docutils literal notranslate"><span class="pre">youtube_dl.YoutubeDL.download</span></code> accepts a list of video URLs but is
+not multithreaded and downloads videos sequentially, not concurrently.
+This coroutine wraps this youtube_dl function
+(via <a class="reference internal" href="#youtube_audio_matcher.download.download_video_mp3" title="youtube_audio_matcher.download.download_video_mp3"><code class="xref py py-func docutils literal notranslate"><span class="pre">download_video_mp3()</span></code></a>) to download and encode videos
+asynchronously/concurrently.</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt id="youtube_audio_matcher.download.get_source">
+<em class="property">async </em><code class="sig-prename descclassname">youtube_audio_matcher.download.</code><code class="sig-name descname">get_source</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">url</span></em>, <em class="sig-param"><span class="n">page_load_wait</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">scroll_by</span><span class="o">=</span><span class="default_value">5000</span></em><span class="sig-paren">)</span><a class="headerlink" href="#youtube_audio_matcher.download.get_source" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get source for the given URL by scrolling to the end of the page.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>url</strong> (<em>str</em>) – Webpage URL.</p></li>
+<li><p><strong>page_load_wait</strong> (<em>float</em>) – Time to wait (in seconds) for page to load on
+initial page load and after each page scroll.</p></li>
+<li><p><strong>scroll_by</strong> (<em>int</em>) – Number of pixels to scroll down at each page scroll.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>source</dt><dd><p>Page source code.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="youtube_audio_matcher.download.get_videos_page_url">
+<code class="sig-prename descclassname">youtube_audio_matcher.download.</code><code class="sig-name descname">get_videos_page_url</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">url</span></em><span class="sig-paren">)</span><a class="headerlink" href="#youtube_audio_matcher.download.get_videos_page_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a valid videos page URL from a YouTube channel/user URL. See
+<a class="reference external" href="https://support.google.com/youtube/answer/6180214?hl=en">Understand Your Channel URLs</a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>url</strong> (<em>str</em>) – URL for a YouTube channel or user. The end of the URL may
+contain extra parameters or a subpath to a different page on the
+channel; these are stripped and the suffix “/videos” is added to
+the end of the core URL.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>URL for videos page if valid URL, else None.</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – if <code class="docutils literal notranslate"><span class="pre">url</span></code> is not a valid YouTube user/channel URL.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;youtube.com/channel/UCUZHFZ9jIKrLroW8LcyJEQQ&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">get_videos_page_url</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+<span class="go">&#39;https://www.youtube.com/channel/UCUZHFZ9jIKrLroW8LcyJEQQ/videos&#39;</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">url2</span> <span class="o">=</span> <span class="s1">&#39;www.youtube.com/c/creatoracademy/community&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">get_videos_page_url</span><span class="p">(</span><span class="n">url2</span><span class="p">)</span>
+<span class="go">&#39;https://www.youtube.com/c/creatoracademy/videos&#39;</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">url3</span> <span class="o">=</span> <span class="s1">&#39;https://youtube.com/u/foobar?param1=val1&amp;param2=val2&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">get_videos_page_url</span><span class="p">(</span><span class="n">url3</span><span class="p">)</span>
+<span class="go">&#39;https://www.youtube.com/u/foobar/videos&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt id="youtube_audio_matcher.download.run_download_channels">
+<code class="sig-prename descclassname">youtube_audio_matcher.download.</code><code class="sig-name descname">run_download_channels</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#youtube_audio_matcher.download.run_download_channels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper function for <a class="reference internal" href="#youtube_audio_matcher.download.download_channels" title="youtube_audio_matcher.download.download_channels"><code class="xref py py-func docutils literal notranslate"><span class="pre">download_channels()</span></code></a>. Creates an asyncio event
+loop, downloads videos, and returns the list of videos.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args</strong> – See <a class="reference internal" href="#youtube_audio_matcher.download.download_channels" title="youtube_audio_matcher.download.download_channels"><code class="xref py py-func docutils literal notranslate"><span class="pre">download_channels()</span></code></a>.</p></li>
+<li><p><strong>kwargs</strong> – See <a class="reference internal" href="#youtube_audio_matcher.download.download_channels" title="youtube_audio_matcher.download.download_channels"><code class="xref py py-func docutils literal notranslate"><span class="pre">download_channels()</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>A list of dicts containing the video id, video title, (original) video
+duration, channel/user videos page URL from which the video was
+downloaded, and path to the downloaded MP3 file on the local machine
+(path will be <code class="docutils literal notranslate"><span class="pre">None</span></code> if download was unsuccessful):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;youtube_id&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="s2">&quot;channel_url&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="nb">str</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If the video download coroutines need to be managed directly via an
+existing event loop and/or to add downloaded videos to a process queue
+(e.g., for fingerprinting videos after download),
+<a class="reference internal" href="#youtube_audio_matcher.download.download_channels" title="youtube_audio_matcher.download.download_channels"><code class="xref py py-func docutils literal notranslate"><span class="pre">download_channels()</span></code></a> should be called directly. To simply run the
+coroutines and download videos without creating an external event loop,
+this function can be called instead.</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt id="youtube_audio_matcher.download.video_metadata_from_source">
+<code class="sig-prename descclassname">youtube_audio_matcher.download.</code><code class="sig-name descname">video_metadata_from_source</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source</span></em>, <em class="sig-param"><span class="n">exclude_longer_than</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">exclude_shorter_than</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">url</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#youtube_audio_matcher.download.video_metadata_from_source" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given the page source for a channel/user Videos page, extract video id,
+video title, and video duration (in seconds) for each video.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>source</strong> (<em>str</em>) – Page source.</p></li>
+<li><p><strong>exclude_longer_than</strong> (<em>float</em>) – Only return metadata for videos shorter
+than the given duration (in seconds). If None, return all videos.</p></li>
+<li><p><strong>exclude_shorter_than</strong> (<em>float</em>) – Only return metadata for videos longer
+than the given duration (in seconds). If None, return all videos.</p></li>
+<li><p><strong>url</strong> (<em>str</em>) – Page URL (only used to add source URL to video dicts).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>A list of videos, where each video is represented by a dict:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;youtube_id&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="nb">int</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – if page source represents a 404 Not Found page.</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code class="docutils literal notranslate"><span class="pre">exclude_longer_than</span></code> and <code class="docutils literal notranslate"><span class="pre">exclude_shorter_than</span></code> may both be
+supplied to return videos meeting both criteria.</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt id="youtube_audio_matcher.download.video_metadata_from_url">
+<em class="property">async </em><code class="sig-prename descclassname">youtube_audio_matcher.download.</code><code class="sig-name descname">video_metadata_from_url</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">url</span></em>, <em class="sig-param"><span class="n">download_queue</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#youtube_audio_matcher.download.video_metadata_from_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the page source for a YouTube channel/user URL. This function
+combines <a class="reference internal" href="#youtube_audio_matcher.download.get_source" title="youtube_audio_matcher.download.get_source"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_source()</span></code></a> and <a class="reference internal" href="#youtube_audio_matcher.download.video_metadata_from_source" title="youtube_audio_matcher.download.video_metadata_from_source"><code class="xref py py-func docutils literal notranslate"><span class="pre">video_metadata_from_source()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>url</strong> (<em>str</em>) – Channel/user URL.</p></li>
+<li><p><strong>download_queue</strong> (<em>asyncio.queues.Queue</em>) – asyncio queue to which the
+extracted videos will be added.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments for <a class="reference internal" href="#youtube_audio_matcher.download.get_source" title="youtube_audio_matcher.download.get_source"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_source()</span></code></a> and
+<a class="reference internal" href="#youtube_audio_matcher.download.video_metadata_from_source" title="youtube_audio_matcher.download.video_metadata_from_source"><code class="xref py py-func docutils literal notranslate"><span class="pre">video_metadata_from_source()</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>videos</dt><dd><p>List of dicts where each video represents a dict, as returned by
+<a class="reference internal" href="#youtube_audio_matcher.download.video_metadata_from_source" title="youtube_audio_matcher.download.video_metadata_from_source"><code class="xref py py-func docutils literal notranslate"><span class="pre">video_metadata_from_source()</span></code></a>.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List[dict]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="youtube_audio_matcher.download.video_metadata_from_urls">
+<em class="property">async </em><code class="sig-prename descclassname">youtube_audio_matcher.download.</code><code class="sig-name descname">video_metadata_from_urls</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">urls</span></em>, <em class="sig-param"><span class="n">loop</span></em>, <em class="sig-param"><span class="n">download_queue</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#youtube_audio_matcher.download.video_metadata_from_urls" title="Permalink to this definition">¶</a></dt>
+<dd><p>Asychronously get information on each video from the YouTube channels
+corresponding to the given YouTube URLs. This function acts as the producer
+of a producer-consumer relationship with <a class="reference internal" href="#youtube_audio_matcher.download.download_video_mp3s" title="youtube_audio_matcher.download.download_video_mp3s"><code class="xref py py-func docutils literal notranslate"><span class="pre">download_video_mp3s()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>urls</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – List of YouTube users/channels.</p></li>
+<li><p><strong>download_queue</strong> (<em>asyncio.queues.Queue</em>) – Queue to which video metadata
+for each video is added for download.</p></li>
+<li><p><strong>kwargs</strong> – Keyword args for <a class="reference internal" href="#youtube_audio_matcher.download.get_source" title="youtube_audio_matcher.download.get_source"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_source()</span></code></a> and
+<a class="reference internal" href="#youtube_audio_matcher.download.video_metadata_from_source" title="youtube_audio_matcher.download.video_metadata_from_source"><code class="xref py py-func docutils literal notranslate"><span class="pre">video_metadata_from_source()</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>videos</dt><dd><p>List of dicts of video metadata, where each dict represents a
+video processed by this coroutine.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List[dict]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Najam R Syed
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,366 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>youtube_audio_matcher package &mdash; YouTube Audio Matcher  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> YouTube Audio Matcher
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">youtube_audio_matcher package</a><ul>
+<li><a class="reference internal" href="#subpackages">Subpackages</a></li>
+<li><a class="reference internal" href="#module-youtube_audio_matcher">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">YouTube Audio Matcher</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>youtube_audio_matcher package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/youtube_audio_matcher.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="youtube-audio-matcher-package">
+<h1>youtube_audio_matcher package<a class="headerlink" href="#youtube-audio-matcher-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="youtube_audio_matcher.audio.html">youtube_audio_matcher.audio package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="youtube_audio_matcher.audio.html#module-youtube_audio_matcher.audio">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="youtube_audio_matcher.database.html">youtube_audio_matcher.database package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="youtube_audio_matcher.database.html#module-youtube_audio_matcher.database">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="youtube_audio_matcher.download.html">youtube_audio_matcher.download package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="youtube_audio_matcher.download.html#module-youtube_audio_matcher.download">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="module-youtube_audio_matcher">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-youtube_audio_matcher" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="youtube_audio_matcher.main">
+<code class="sig-prename descclassname">youtube_audio_matcher.</code><code class="sig-name descname">main</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em>, <em class="sig-param"><span class="n">add_to_database</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">conf_thresh</span><span class="o">=</span><span class="default_value">0.01</span></em>, <em class="sig-param"><span class="n">out_fpath</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">max_processes</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">max_threads</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#youtube_audio_matcher.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fingerprint local files and/or the audio from videos on any number of
+YouTube channels, and either add the songs to a database or match them
+against existing songs in the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>inputs</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – List of input YouTube channel/user URLs and/or
+local paths to audio files or directories of audio files.</p></li>
+<li><p><strong>add_to_database</strong> (<em>bool</em>) – If <code class="docutils literal notranslate"><span class="pre">True</span></code>, input songs (and their
+fingerprints to database after fingerprinting. If <code class="docutils literal notranslate"><span class="pre">False</span></code>, match
+songs against database after fingerprinting.</p></li>
+<li><p><strong>conf_thresh</strong> (<em>float</em>) – Match confidence threshold in the range [0, 1].
+Matches with a confidence &lt;= <code class="docutils literal notranslate"><span class="pre">conf_thresh</span></code> are not returned.
+Match confidence for a song is computed as the number of matching
+fingerprints divided by the total number of fingerprints (belonging
+to the input song).</p></li>
+<li><p><strong>out_fpath</strong> (<em>str</em>) – Path to output file where matches will be written
+as JSON.</p></li>
+<li><p><strong>max_processes</strong> (<em>int</em>) – Maximum number of cores to utilize for parallel
+processing. Defaults to all available CPUs.</p></li>
+<li><p><strong>max_threads</strong> (<em>int</em>) – Maximum number of threads to spawn for concurrent
+tasks and downloads. Defaults to the maximum defined in
+<a class="reference external" href="https://docs.python.org/3/library/concurrent.futures.html#concurrent.futures.ThreadPoolExecutor">concurrent.futures.ThreadPoolExecutor</a>.</p></li>
+<li><p><strong>**kwargs</strong> – Any keyword arguments for
+<a class="reference internal" href="youtube_audio_matcher.database.html#youtube_audio_matcher.database.Database" title="youtube_audio_matcher.database.Database"><code class="xref py py-class docutils literal notranslate"><span class="pre">youtube_audio_matcher.database.Database</span></code></a>,
+<a class="reference internal" href="youtube_audio_matcher.download.html#youtube_audio_matcher.download.download_channels" title="youtube_audio_matcher.download.download_channels"><code class="xref py py-func docutils literal notranslate"><span class="pre">youtube_audio_matcher.download.download_channels()</span></code></a>,
+and <a class="reference internal" href="youtube_audio_matcher.audio.html#youtube_audio_matcher.audio.fingerprint_songs" title="youtube_audio_matcher.audio.fingerprint_songs"><code class="xref py py-func docutils literal notranslate"><span class="pre">youtube_audio_matcher.audio.fingerprint_songs()</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>matches</dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">add_to_database=True</span></code>, a list of dicts returned by
+<a class="reference internal" href="#youtube_audio_matcher.match_fingerprints" title="youtube_audio_matcher.match_fingerprints"><code class="xref py py-func docutils literal notranslate"><span class="pre">match_fingerprints()</span></code></a>, where each dict corresponds to a song
+with a match in the database. If <code class="docutils literal notranslate"><span class="pre">add_to_database=False</span></code>,
+<code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List[dict]|None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="youtube_audio_matcher.match_fingerprints">
+<code class="sig-prename descclassname">youtube_audio_matcher.</code><code class="sig-name descname">match_fingerprints</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">song</span></em>, <em class="sig-param"><span class="n">db_kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#youtube_audio_matcher.match_fingerprints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Opens a database connection and matches a song against the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>song</strong> (<em>dict</em>) – Dict corresponding to a fingerprinted song. Must contain
+a <code class="docutils literal notranslate"><span class="pre">fingerprints</span></code> key containing a list of fingerprints
+(hash/offset pairs) returned by
+<a class="reference internal" href="youtube_audio_matcher.audio.html#youtube_audio_matcher.audio.fingerprint_from_file" title="youtube_audio_matcher.audio.fingerprint_from_file"><code class="xref py py-func docutils literal notranslate"><span class="pre">youtube_audio_matcher.audio.fingerprint_from_file()</span></code></a>.</p></li>
+<li><p><strong>db_kwargs</strong> (<em>dict</em>) – Keyword arguments for instantiating a
+<a class="reference internal" href="youtube_audio_matcher.database.html#youtube_audio_matcher.database.Database" title="youtube_audio_matcher.database.Database"><code class="xref py py-class docutils literal notranslate"><span class="pre">youtube_audio_matcher.database.Database</span></code></a> class instance.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl>
+<dt>song</dt><dd><p>Returns the input dict. If a match was found in the database,
+a <code class="docutils literal notranslate"><span class="pre">matching_song</span></code> key (containing the song dict for the matching
+song from the database) and a <code class="docutils literal notranslate"><span class="pre">match_stats</span></code> key (containing
+metrics/statistics related to the match) are added to the dict.
+The <code class="docutils literal notranslate"><span class="pre">fingerprints</span></code> key is deleted. The resulting dict has the
+following structure:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;channel_url&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="s2">&quot;filehash&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="s2">&quot;num_fingerprints&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="s2">&quot;youtube_id&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="s2">&quot;matching_song&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;filehash&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="s2">&quot;filepath&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="s2">&quot;youtube_id&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="s2">&quot;num_fingerprints&quot;</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;match_stats&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;num_matching_fingerprints: int,</span>
+        <span class="s2">&quot;confidence&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;iou&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;relative_offset&quot;</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="youtube_audio_matcher.match_songs">
+<em class="property">async </em><code class="sig-prename descclassname">youtube_audio_matcher.</code><code class="sig-name descname">match_songs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">loop</span></em>, <em class="sig-param"><span class="n">executor</span></em>, <em class="sig-param"><span class="n">db_kwargs</span></em>, <em class="sig-param"><span class="n">in_queue</span></em><span class="sig-paren">)</span><a class="headerlink" href="#youtube_audio_matcher.match_songs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Coroutine that consumes songs from a queue and matches them against
+the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>loop</strong> (<em>asyncio.BaseEventLoop</em>) – asyncio EventLoop.</p></li>
+<li><p><strong>executor</strong> (<em>concurrent.futures.Executor</em>) – <code class="docutils literal notranslate"><span class="pre">concurrent.futures</span></code>
+ThreadPoolExecutor or ProcessPoolExecutor.</p></li>
+<li><p><strong>db_kwargs</strong> (<em>dict</em>) – Keyword arguments for instantiating a
+<a class="reference internal" href="youtube_audio_matcher.database.html#youtube_audio_matcher.database.Database" title="youtube_audio_matcher.database.Database"><code class="xref py py-class docutils literal notranslate"><span class="pre">youtube_audio_matcher.database.Database</span></code></a> class instance.</p></li>
+<li><p><strong>in_queue</strong> (<em>asyncio.queues.Queue</em>) – Download queue from which song
+data is fetched for each song to be matched.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>results</dt><dd><p>A list of dicts where each dict represents an input song and
+database match information returned by <a class="reference internal" href="#youtube_audio_matcher.match_fingerprints" title="youtube_audio_matcher.match_fingerprints"><code class="xref py py-func docutils literal notranslate"><span class="pre">match_fingerprints()</span></code></a>.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List[dict]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Najam R Syed
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

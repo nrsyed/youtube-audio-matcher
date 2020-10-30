@@ -1,0 +1,464 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>youtube_audio_matcher.database package &mdash; YouTube Audio Matcher  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> YouTube Audio Matcher
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">youtube_audio_matcher.database package</a><ul>
+<li><a class="reference internal" href="#module-youtube_audio_matcher.database">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">YouTube Audio Matcher</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>youtube_audio_matcher.database package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/youtube_audio_matcher.database.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="youtube-audio-matcher-database-package">
+<h1>youtube_audio_matcher.database package<a class="headerlink" href="#youtube-audio-matcher-database-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-youtube_audio_matcher.database">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-youtube_audio_matcher.database" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="youtube_audio_matcher.database.Database">
+<em class="property">class </em><code class="sig-prename descclassname">youtube_audio_matcher.database.</code><code class="sig-name descname">Database</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">user</span></em>, <em class="sig-param"><span class="n">password</span></em>, <em class="sig-param"><span class="n">db_name</span></em>, <em class="sig-param"><span class="n">host</span><span class="o">=</span><span class="default_value">'localhost'</span></em>, <em class="sig-param"><span class="n">port</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dialect</span><span class="o">=</span><span class="default_value">'postgresql'</span></em>, <em class="sig-param"><span class="n">driver</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#youtube_audio_matcher.database.Database" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class that holds a database connection to perform read/update/delete
+operations.</p>
+<p>Constructs a sqlalchemy database URL of the form
+<cite>dialect+driver://username:password&#64;host:port/db_name</cite> to create a
+sqlalchemy database engine. Refer to <a class="reference external" href="https://docs.sqlalchemy.org/en/13/core/engines.html#database-urls">SQLAlchemy Database URLs</a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>user</strong> (<em>str</em>) – User name.</p></li>
+<li><p><strong>password</strong> (<em>str</em>) – User password.</p></li>
+<li><p><strong>db_name</strong> (<em>str</em>) – Database name.</p></li>
+<li><p><strong>host</strong> (<em>str</em>) – Database hostname.</p></li>
+<li><p><strong>port</strong> (<em>int</em>) – Port on <code class="docutils literal notranslate"><span class="pre">host</span></code>.</p></li>
+<li><p><strong>dialect</strong> (<em>str</em>) – SQL database dialect to use. See
+<a class="reference external" href="https://docs.sqlalchemy.org/en/13/dialects/">SQLAlchemy Dialects</a>.</p></li>
+<li><p><strong>driver</strong> (<em>str</em>) – SQL database driver to use. See
+<a class="reference external" href="https://docs.sqlalchemy.org/en/13/core/engines.html#database-urls">SQLAlchemy Database URLs</a>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="youtube_audio_matcher.database.Database.add_fingerprint">
+<code class="sig-name descname">add_fingerprint</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">song_id</span></em>, <em class="sig-param"><span class="n">hash_</span></em>, <em class="sig-param"><span class="n">offset</span></em><span class="sig-paren">)</span><a class="headerlink" href="#youtube_audio_matcher.database.Database.add_fingerprint" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>song_id</strong> (<em>int</em>) – Song id corresponding to song in the Song table.</p></li>
+<li><p><strong>hash</strong> (<em>str</em>) – Fingerprint hash.</p></li>
+<li><p><strong>offset</strong> (<em>float</em>) – Fingerprint offset.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>id of the inserted fingerprint.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="youtube_audio_matcher.database.Database.add_fingerprints">
+<code class="sig-name descname">add_fingerprints</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">song_id</span></em>, <em class="sig-param"><span class="n">fingerprints</span></em><span class="sig-paren">)</span><a class="headerlink" href="#youtube_audio_matcher.database.Database.add_fingerprints" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>song_id</strong> (<em>int</em>) – Song table song id the fingerprints correspond to.</p></li>
+<li><p><strong>fingerprints</strong> (<em>List</em><em>[</em><em>tuple</em><em>]</em>) – A list of (hash, offset) fingerprints.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="youtube_audio_matcher.database.Database.add_song">
+<code class="sig-name descname">add_song</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">duration</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">filepath</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">filehash</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">title</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">youtube_id</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#youtube_audio_matcher.database.Database.add_song" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>duration</strong> (<em>float</em>) – Song duration.</p></li>
+<li><p><strong>filepath</strong> (<em>str</em>) – Path to file on local machine.</p></li>
+<li><p><strong>filehash</strong> (<em>str</em>) – File hash.</p></li>
+<li><p><strong>title</strong> (<em>str</em>) – Song title.</p></li>
+<li><p><strong>youtube_id</strong> (<em>str</em>) – YouTube ID, i.e., watch?v=&lt;youtube_id&gt;.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>id of the inserted song.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="youtube_audio_matcher.database.Database.as_dict">
+<code class="sig-name descname">as_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">combine_tables</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#youtube_audio_matcher.database.Database.as_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the database as a Python dictionary. See
+<code class="xref py py-func docutils literal notranslate"><span class="pre">database_obj_to_py()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>combine_tables</strong> (<em>bool</em>) – If True, the returned dict will have a
+single <code class="docutils literal notranslate"><span class="pre">songs</span></code> field containing a list of songs, and each
+song will have a <code class="docutils literal notranslate"><span class="pre">fingerprints</span></code> field containing the list
+of fingerprints belonging to it. If False, the returned dict
+will contain a <code class="docutils literal notranslate"><span class="pre">songs</span></code> field and a <code class="docutils literal notranslate"><span class="pre">fingerprints</span></code> field.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl>
+<dt>tables</dt><dd><p>Dict containing database Fingerprint and Song tables:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;songs&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+    <span class="s2">&quot;fingerprints&quot;</span><span class="p">:</span> <span class="nb">list</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>If <code class="docutils literal notranslate"><span class="pre">combine_tables=True</span></code>, the returned dict will not contain
+a <code class="docutils literal notranslate"><span class="pre">fingerprints</span></code> key.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="youtube_audio_matcher.database.Database.delete_all">
+<code class="sig-name descname">delete_all</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#youtube_audio_matcher.database.Database.delete_all" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete all rows in the Fingerprint and Song tables.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="youtube_audio_matcher.database.Database.drop_all_tables">
+<code class="sig-name descname">drop_all_tables</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#youtube_audio_matcher.database.Database.drop_all_tables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Drop Fingerprint and Song tables.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="youtube_audio_matcher.database.Database.drop_fingerprint_table">
+<code class="sig-name descname">drop_fingerprint_table</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#youtube_audio_matcher.database.Database.drop_fingerprint_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Drop Fingerprint table.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="youtube_audio_matcher.database.Database.drop_song_table">
+<code class="sig-name descname">drop_song_table</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#youtube_audio_matcher.database.Database.drop_song_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Drop Song table.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="youtube_audio_matcher.database.Database.query_fingerprints">
+<code class="sig-name descname">query_fingerprints</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">hashes</span></em><span class="sig-paren">)</span><a class="headerlink" href="#youtube_audio_matcher.database.Database.query_fingerprints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Query the database for a list of matching hashes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>hashes</strong> (<em>str|List</em><em>[</em><em>str</em><em>]</em>) – Hash or list of hashes from a
+fingerprinted audio signal.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl>
+<dt>list</dt><dd><p>A list of fingerprints whose hashes match the input hashes.
+Each fingerprint is a dict containing the hash, song id, and
+offset (in seconds):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;song_id&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="s2">&quot;hash&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="s2">&quot;offset&quot;</span><span class="p">:</span> <span class="nb">float</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>fingerprints</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="youtube_audio_matcher.database.Database.query_songs">
+<code class="sig-name descname">query_songs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">id_</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">duration</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">duration_greater_than</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">duration_less_than</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">filehash</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">filepath</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">title</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">youtube_id</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">include_fingerprints</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#youtube_audio_matcher.database.Database.query_songs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Query the database for songs matching the specified criteria.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>list|int</em>) – Int or list of ints corresponding to the id
+primary key field of the database Song table.</p></li>
+<li><p><strong>duration</strong> (<em>list|float</em>) – Float or list of floats corresponding to
+the duration field of the database Song table.</p></li>
+<li><p><strong>duration_greater_than</strong> (<em>float</em>) – Only return songs with a duration
+greater than this value, if one is specified.</p></li>
+<li><p><strong>duration_less_than</strong> (<em>float</em>) – Only return songs with a duration less
+than this value, if one is specified.</p></li>
+<li><p><strong>filehash</strong> (<em>list|str</em>) – A filehash or list of filehashes corresponding
+to the filehash field of the database Song table.</p></li>
+<li><p><strong>filepath</strong> (<em>list|str</em>) – A filepath or list of filepaths corresponding
+to the filepath field of the database Song table.</p></li>
+<li><p><strong>title</strong> (<em>list|str</em>) – A title or list of titles corresponding to the
+title field of the database Song table.</p></li>
+<li><p><strong>youtube_id</strong> (<em>list|str</em>) – A YouTube id or list of YouTube ids
+corresponding to the youtube_id field of the databse Song
+table.</p></li>
+<li><p><strong>include_fingerprints</strong> (<em>bool</em>) – Include the fingerprints of each
+song as a list within the dict corresponding to the song; see
+<a class="reference internal" href="#youtube_audio_matcher.database.Database.query_fingerprints" title="youtube_audio_matcher.database.Database.query_fingerprints"><code class="xref py py-meth docutils literal notranslate"><span class="pre">query_fingerprints()</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl>
+<dt>List[dict]</dt><dd><p>A list of dicts where each dict represents a song and contains
+the following keys:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="s2">&quot;filehash&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="s2">&quot;filepath&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="s2">&quot;youtube_id&quot;</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="s2">&quot;fingerprints&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span>
+    <span class="s2">&quot;num_fingerprints&quot;</span><span class="p">:</span> <span class="nb">int</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">fingerprints</span></code> and <code class="docutils literal notranslate"><span class="pre">num_fingerprints</span></code> keys are only
+included if <code class="docutils literal notranslate"><span class="pre">include_fingerprints=True</span></code>.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>results</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> – if more than one of <code class="docutils literal notranslate"><span class="pre">duration</span></code>,</p></li>
+<li><p><strong>duration_greater_than</strong><strong>, or </strong><strong>duration_less_than are supplied.</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="youtube_audio_matcher.database.update_database">
+<em class="property">async </em><code class="sig-prename descclassname">youtube_audio_matcher.database.</code><code class="sig-name descname">update_database</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">loop</span></em>, <em class="sig-param"><span class="n">executor</span></em>, <em class="sig-param"><span class="n">db_kwargs</span></em>, <em class="sig-param"><span class="n">in_queue</span></em><span class="sig-paren">)</span><a class="headerlink" href="#youtube_audio_matcher.database.update_database" title="Permalink to this definition">¶</a></dt>
+<dd><p>Consume fingerprinted songs from an async input queue and add the songs
+and their fingerprints to the database either concurrently (via a thread
+pool) or in parallel (via a process pool).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>loop</strong> (<em>asyncio.BaseEventLoop</em>) – asyncio EventLoop.</p></li>
+<li><p><strong>executor</strong> (<em>concurrent.futures.Executor</em>) – <cite>concurrent.futures</cite>
+ThreadPoolExecutor or ProcessPoolExecutor in which the database
+connection will be created to update the database.</p></li>
+<li><p><strong>db_kwargs</strong> (<em>dict</em>) – Dict containing keyword args for instantiating a
+<a class="reference internal" href="#youtube_audio_matcher.database.Database" title="youtube_audio_matcher.database.Database"><code class="xref py py-class docutils literal notranslate"><span class="pre">Database</span></code></a> object.</p></li>
+<li><p><strong>in_queue</strong> (<em>asyncio.queues.Queue</em>) – Database queue containing song dicts
+representing songs (and their fingerprints) to be added to the
+database.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Najam R Syed
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
