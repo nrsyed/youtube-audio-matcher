@@ -492,11 +492,11 @@ def download_channels(
     Returns:
         tuple: (get_videos_task, download_task)
             - get_videos_task (coroutine): Async coroutine that grabs videos
-                from ``urls`` and adds them to a download queue. See
-                :func:`video_metadata_from_urls`.
+              from ``urls`` and adds them to a download queue. See
+              :func:`video_metadata_from_urls`.
             - download_task (coroutine): Async coroutine that downloads videos
-                from the download queue populated by ``get_videos_task``. See
-                :func:`download_video_mp3s`.
+              from the download queue populated by ``get_videos_task``. See
+              :func:`download_video_mp3s`.
 
     .. note::
         This function should be called if the returned coroutines are to be

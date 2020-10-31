@@ -1,9 +1,9 @@
 # YouTube Audio Matcher
 
 * [Description](#description)
-* [Design and Background](#background)
 * [Requirements](#requirements)
 * [Installation](#installation)
+* [Design and Background](#background)
 * [Examples](#examples)
 * [Usage](#usage)
   * [`yam`](#yam-usage)
@@ -22,11 +22,6 @@ to help identify the audio (similar to Shazam) or, optionally, add them to the
 database. Local files and directories can also be provided as input.
 
 
-# <span id="background">Design and Background</span>
-
-@@include[background.md]
-
-
 # <span id="requirements">Requirements</span>
 * Python &ge; 3.6
 * [Chromium](https://www.chromium.org) or
@@ -40,6 +35,11 @@ database. Local files and directories can also be provided as input.
 # <span id="installation">Installation</span>
 
 @@include[installation.md]
+
+
+# <span id="background">Design and Background</span>
+
+@@include[background.md]
 
 
 # <span id="examples">Examples</span>
@@ -89,8 +89,8 @@ import youtube_audio_matcher.download
 ```
 
 The complete Python API documentation can be found at
-https://nrsyed.github.io/youtube-audio-matcher, or refer to the source code
-and function/class docstrings.
+https://nrsyed.github.io/youtube-audio-matcher (or in the source code and
+function/class docstrings).
 
 
 # <span id="acknowledgments">Acknowledgments</span>
