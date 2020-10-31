@@ -20,6 +20,7 @@ sys.path.insert(0, os.path.abspath("../youtube_audio_matcher"))
 project = "YouTube Audio Matcher"
 copyright = "2020, Najam R Syed"
 author = "Najam R Syed"
+version = "0.7"
 
 
 # -- General configuration ---------------------------------------------------
