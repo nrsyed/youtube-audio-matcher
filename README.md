@@ -70,7 +70,7 @@ files, summarized in the flow diagram below.
 <img src="docs/img/yam_diagram.png" />
 
 Any number of YouTube channel/user URLs and local files/directories can be
-provided as input. An webscraping coroutine (the "get video metadata from page
+provided as input. A webscraping coroutine (the "get video metadata from page
 source" block in the diagram) gets (via
 [Selenium](https://github.com/SeleniumHQ/selenium/)) and parses (via
 [BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/))
