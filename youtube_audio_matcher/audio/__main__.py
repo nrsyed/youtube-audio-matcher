@@ -31,6 +31,7 @@ def cli():
     num_channels = len(channels)
     fig, axes = plt.subplots(nrows=num_channels, ncols=1, sharex=True)
     fig.subplots_adjust(right=0.97, hspace=0.05)
+    #fig.subplots_adjust(right=0.8, hspace=0.05)
 
     # plt.subplots() returns an AxesSubplot object if 1 axis, else an array of
     # AxesSubplot objects. Either way, we want to convert it to a list.
@@ -82,6 +83,8 @@ def cli():
             youtube_audio_matcher.audio.plot_peaks(
                 peak_t, peak_freq, color=peak_color, ax=axes[i]
             )
+
+        axes[i].set_ylim(bottom=0, top=sample_rate / 2)
 
         show_xlabel = i == (num_channels - 1)
         if show_xlabel:
