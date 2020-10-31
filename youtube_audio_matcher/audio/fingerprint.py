@@ -138,6 +138,7 @@ def align_matches(song_fingerprints, db_fingerprints, offset_bin_size=0.2):
         }
     return result
 
+
 def fingerprint_from_signal(samples, **kwargs):
     """
     Fingerprint an audio signal by obtaining its spectrogram and returning
@@ -434,7 +435,7 @@ def get_spectrogram(
 
 def hash_peaks(
     times, frequencies, fanout=10, min_time_delta=0, max_time_delta=100,
-    hash_length=20, time_bin_size=0.5, freq_bin_size=2
+    hash_length=40, time_bin_size=0.5, freq_bin_size=2
 ):
     """
     Hash the peaks of a spectrogram. For reference, see:
@@ -485,7 +486,13 @@ def hash_peaks(
 
     hashes = []
     for i, (t, f) in enumerate(peaks):
-        for t2, f2 in peaks[(i + 1):(i + 1 + fanout)]:
+        # Number of constellation pairs formed between the current peak and
+        # adjacent peaks. This number is limited by the fanout value.
+        num_pairs = 0
+
+        j = i + 1
+        while (j < len(peaks)) and (num_pairs < fanout):
+            t2, f2 = peaks[j]
             t_delta = t2 - t
             if min_time_delta <= t_delta <= max_time_delta:
                 # Before hashing, we convert time delta and frequencies to
@@ -498,6 +505,9 @@ def hash_peaks(
                     f"{f_bin}{f2_bin}{t_delta_bin}".encode("utf-8")
                 )
                 hashes.append((hash_.hexdigest()[:hash_length], t))
+
+                num_pairs += 1
+            j += 1
     return hashes
 
 
