@@ -542,9 +542,31 @@ def plot_peaks(times, frequencies, color="r", marker=".", ax=None):
     return ax, pts
 
 
+def plot_fingerprints(
+    times, frequencies, fanout=3, min_time_delta=1, max_time_delta=10,
+    ax=None
+):
+    if ax is None:
+        fig, ax = plt.subplots()
+    peaks = sorted(zip(times, frequencies), key=lambda p: p[0])
+
+    hashes = []
+    for i, (t, f) in enumerate(peaks):
+        num_pairs = 0
+
+        j = i + 1
+        while (j < len(peaks)) and (num_pairs < fanout):
+            t2, f2 = peaks[j]
+            t_delta = t2 - t
+            if min_time_delta <= t_delta <= max_time_delta:
+                ax.plot([t, t2], [f, f2], marker=None, ls="solid", c="k")
+                num_pairs += 1
+            j += 1
+    return ax
+
+
 def plot_spectrogram(
     spectrogram, times, frequencies, title=None, ax=None, fig=None,
-    show_xlabel=True
 ):
     """
     Plot the spectrogram of an audio signal.
@@ -586,15 +608,8 @@ def plot_spectrogram(
     cmap.set_bad(color=min_color)
     im.set_cmap(cmap)
 
-    if title:
-        ax.set_title(title)
-
     if fig is not None:
         fig.colorbar(im, ax=ax)
-
-    if show_xlabel:
-        ax.set_xlabel("Time (s)")
-    ax.set_ylabel("Frequency (Hz)")
 
     return ax, fig, im
 
