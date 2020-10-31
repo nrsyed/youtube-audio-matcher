@@ -30,7 +30,7 @@ def get_parser():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         parents=[db_parser, dl_parser, fp_parser]
     )
-    
+
     parser.add_argument(
         "inputs", type=str, nargs="+",
         help="One or more space-separated input sources (YouTube channel/user "

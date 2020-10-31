@@ -6,9 +6,9 @@ import numpy as np
 import youtube_audio_matcher.audio
 from ._argparsers import get_parser
 
-#import matplotlib
-#matplotlib.rcParams.update({"font.size": 26})
-#matplotlib.rc("text", usetex=True)
+# import matplotlib
+# matplotlib.rcParams.update({"font.size": 26})
+# matplotlib.rc("text", usetex=True)
 
 
 def cli():
@@ -31,7 +31,6 @@ def cli():
     num_channels = len(channels)
     fig, axes = plt.subplots(nrows=num_channels, ncols=1, sharex=True)
     fig.subplots_adjust(right=0.97, hspace=0.05)
-    #fig.subplots_adjust(right=0.8, hspace=0.05)
 
     # plt.subplots() returns an AxesSubplot object if 1 axis, else an array of
     # AxesSubplot objects. Either way, we want to convert it to a list.

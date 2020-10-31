@@ -1,9 +1,7 @@
 from sqlalchemy import (
-    Column, Float, ForeignKey, Integer, MetaData, String, Table,
-    UniqueConstraint,
+    Column, Float, ForeignKey, Integer, String, UniqueConstraint
 )
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship
 
 Base = declarative_base()

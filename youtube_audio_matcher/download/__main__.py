@@ -1,5 +1,4 @@
 import logging
-import pathlib
 
 import youtube_audio_matcher.download
 from ._argparsers import get_parser

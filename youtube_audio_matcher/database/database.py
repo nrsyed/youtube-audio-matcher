@@ -37,7 +37,9 @@ def database_obj_to_py(obj, fingerprints_in_song=False):
         }
 
         if fingerprints_in_song:
-            song["fingerprints"] = [database_obj_to_py(fp) for fp in obj.fingerprints]
+            song["fingerprints"] = [
+                database_obj_to_py(fp) for fp in obj.fingerprints
+            ]
             song["num_fingerprints"] = len(obj.fingerprints)
         return song
     elif isinstance(obj, Fingerprint):
@@ -108,7 +110,9 @@ async def update_database(loop, executor, db_kwargs, in_queue):
         if song is None:
             break
 
-        task = loop.create_task(_update_database(song, loop, executor, db_kwargs))
+        task = loop.create_task(
+            _update_database(song, loop, executor, db_kwargs)
+        )
         tasks.append(task)
 
     # Wrap asyncio.wait() in if statement to avoid ValueError if no tasks.
@@ -257,7 +261,8 @@ class Database:
 
         if combine_tables:
             return {
-                "songs": database_obj_to_py(songs_table, fingerprints_in_song=True),
+                "songs":
+                    database_obj_to_py(songs_table, fingerprints_in_song=True),
             }
         else:
             return {
