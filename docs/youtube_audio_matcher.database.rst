@@ -1,5 +1,5 @@
-youtube\_audio\_matcher.database package
-========================================
+youtube\_audio\_matcher.database
+================================
 
 Module contents
 ---------------

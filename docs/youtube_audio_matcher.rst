@@ -1,11 +1,11 @@
-youtube\_audio\_matcher package
-===============================
+Python API
+=======================
 
 Subpackages
 -----------
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 2
 
    youtube_audio_matcher.audio
    youtube_audio_matcher.database

@@ -1,5 +1,5 @@
-youtube\_audio\_matcher.audio package
-=====================================
+youtube\_audio\_matcher.audio
+=============================
 
 Module contents
 ---------------
