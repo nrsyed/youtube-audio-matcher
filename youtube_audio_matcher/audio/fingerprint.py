@@ -279,13 +279,15 @@ async def fingerprint_songs(
     loop, executor, in_queue, out_queue=None, **kwargs
 ):
     """
-    TODO
+    Fingerprint audio files from an input queue and put them in an output
+    queue for additional processing (e.g., to add them to a database or to
+    match them against a database). See :func:`fingerprint_song` for more
+    information.
 
     Args:
         loop (asyncio.BaseEventLoop): `asyncio` EventLoop.
         executor (concurrent.futures.Executor): ``concurrent.futures``
-            ThreadPoolExecutor or ProcessPoolExecutor in which the audio file
-            will be processed.
+            ProcessPoolExecutor in which the audio file will be processed.
         in_queue (asyncio.queues.Queue): Process queue from which audio
             metadata is fetched for each song to be processed.
         out_queue (asyncio.queues.Queue): Output queue to which audio metadata
@@ -547,6 +549,24 @@ def plot_fingerprints(
     times, frequencies, fanout=3, min_time_delta=1, max_time_delta=10,
     ax=None
 ):
+    """
+    Plot the fingerprints (hash constellation) of a spectrogram's peaks.
+
+    Args:
+        times (np.ndarray): 1D array of the peak times of the audio signal
+            spectrogram.
+        frequencies (np.ndarray): 1D array of peak frequencies of the audio
+            signal spectrogram.
+        fanout (int): See :func:`hash_peaks`.
+        min_time_delta (float): See :func:`hash_peaks`.
+        max_time_delta (float): See :func:`hash_peaks`.
+        ax (matplotlib.axes.Axes): Matplotlib axis handle in which to plot the
+            fingerprints. If None, a new figure/axis is created.
+
+    Returns:
+        matplotlib.axes.Axes: ax
+            Plot axis handle.
+    """
     if ax is None:
         fig, ax = plt.subplots()
     peaks = sorted(zip(times, frequencies), key=lambda p: p[0])
@@ -584,7 +604,6 @@ def plot_spectrogram(
         fig (matplotlib.figure.Figure): Matplotlib figure handle for the figure
             containing `ax` (if any). Used for placing colormap scale beside
             plot. If `ax` is not provided, a new figure and axis are created.
-        show_xlabel (bool): Display x-axis label.
 
     Returns:
         tuple: (ax, fig)
