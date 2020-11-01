@@ -6,7 +6,7 @@ YouTube Audio Matcher command line tool
 Usage
 -----
 
-.. code-block:: bash
+.. code-block:: none
 
   usage: yam [-h] [-N <database_name>] [-C <dialect>] [-R <driver>] [-H <host>]
              [-P <password>] [-O <port>] [-U <username>] [-d <path>]

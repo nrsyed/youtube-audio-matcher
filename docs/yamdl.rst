@@ -6,7 +6,7 @@ YAM download tool
 Usage
 -----
 
-.. code-block:: bash
+.. code-block:: none
 
   usage: yamdl [-h] [-d <path>] [-L <seconds>] [-S <seconds>] [-i]
                [-p <seconds>] [-r <num>] [-y] [--start <seconds>]

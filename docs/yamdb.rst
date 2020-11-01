@@ -6,7 +6,7 @@ YAM database tool
 Usage
 -----
 
-.. code-block:: bash
+.. code-block:: none
 
   usage: yamdb [-h] [-N <database_name>] [-C <dialect>] [-R <driver>]
                [-H <host>] [-P <password>] [-O <port>] [-U <username>]

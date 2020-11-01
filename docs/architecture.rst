@@ -22,8 +22,7 @@ added to a fingerprint queue. Any local files provided as input are
 added directly to the fingerprint queue, since they don't need to be
 downloaded. A third coroutine ("fingerprint songs") consumes songs from the
 fingerprint queue and sends them to a process pool, where they are
-fingerprinted using all available CPUs (see the
-[Audio fingerprinting](#audio-fingerprinting) sub-section below). After
+fingerprinted using all available CPUs (see :doc:`fingerprinting`). After
 fingerprinting, each video is added to a database queue.
 
 If the user opted to add songs to the database, the fingerprinted files are

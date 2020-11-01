@@ -9,10 +9,4 @@ YouTube Audio Matcher Documentation
   fingerprinting
   youtube_audio_matcher
   cli
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+  acknowledgments
