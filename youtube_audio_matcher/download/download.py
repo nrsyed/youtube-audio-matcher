@@ -12,6 +12,7 @@ import youtube_dl
 
 # TODO: support for YT video URL
 
+
 def get_videos_page_url(url):
     """
     Get a valid videos page URL from a YouTube channel/user URL. See
@@ -241,7 +242,7 @@ async def video_metadata_from_urls(urls, loop, download_queue, **kwargs):
         urls (List[str]): List of YouTube users/channels.
         download_queue (asyncio.queues.Queue): Queue to which video metadata
             for each video is added for download.
-        kwargs: Keyword args for :func:`get_source` and 
+        kwargs: Keyword args for :func:`get_source` and
             :func:`video_metadata_from_source`.
 
     Returns:
@@ -350,7 +351,7 @@ def download_video_mp3(
                 if os.path.exists(dst_path):
                     download_successful = True
                 else:
-                    log_msg += f"Error downloading/converting video."
+                    log_msg += "Error downloading/converting video."
             finally:
                 if download_successful:
                     logging.info(
@@ -362,7 +363,6 @@ def download_video_mp3(
                 else:
                     log_msg += " Max attempts reached"
                     logging.error(log_msg)
-                    logging.error(str(e))
                     return None
                 tries += 1
     return dst_path

@@ -31,7 +31,7 @@ def align_matches(song_fingerprints, db_fingerprints, offset_bin_size=0.2):
         db_fingerprints (List[dict]): List of fingerprints from the database
             with matching hashes, where each fingerprint is a dict containing
             the database song id, hash, and offset::
-                
+
                 {
                     "song_id": int,
                     "hash": str,
@@ -63,7 +63,7 @@ def align_matches(song_fingerprints, db_fingerprints, offset_bin_size=0.2):
     # Map input song hashes to a list of offsets for each hash.
     inp_hash_to_offsets = collections.defaultdict(list)
     for fp in song_fingerprints:
-        offset =  int(fp["offset"] / offset_bin_size)
+        offset = int(fp["offset"] / offset_bin_size)
         inp_hash_to_offsets[fp["hash"]].append(offset)
 
     # Do the same as above but for each song in the database that's a potential
@@ -90,17 +90,17 @@ def align_matches(song_fingerprints, db_fingerprints, offset_bin_size=0.2):
     # hash = "abcdefg"
     # inp_hash_to_offsets[hash] = [0, 3, 12]
     # db_song_to_hashes_offsets[1][hash] = [1, 4]
-    # 
+    #
     # We compute a relative offset for offset pairs (0, 1), (0, 4), (3, 1),
     # (3, 4), (12, 1), (12, 4), i.e., we end up with
-    # len(inp_hash_to_offsets[hash]) * len(db_song_to_hashes_offsets[1]["hash"])
+    # len(inp_hash_to_offsets[hash]) * len(db_song_to_hashes_offsets[1][hash])
     # relative offsets even though there are only two actual offsets in the
     # database song. We use all relative offsets for computing the histogram,
     # which may result in there being more matching hashes than the total
     # number of hashes in the input song (especially if `offset bin size` is
-    # relatively large). To compensate for this, we limit `num_matching_offsets`
-    # returned at the end of the function to the total number of offsets in the
-    # input song, i.e., len(song_fingerprints).
+    # relatively large). To compensate for this, we limit
+    # `num_matching_offsets` returned at the end of the function to the total
+    # number of offsets in the input song, i.e., len(song_fingerprints).
 
     for song_id in db_song_to_hashes_offsets:
         for hash_ in db_song_to_hashes_offsets[song_id]:
@@ -176,7 +176,6 @@ def fingerprint_from_signal(samples, **kwargs):
 
     peak_times = t[peak_time_idxs]
     peak_freqs = freq[peak_freq_idxs]
-    peak_amplitudes = spectrogram[peaks]
 
     hash_peaks_keys = [
         "fanout", "min_time_delta", "max_time_delta", "hash_length",
@@ -395,15 +394,15 @@ def get_spectrogram(
 
     Returns:
         tuple: (spectrogram, t, freq)
-            - spectrogram (np.ndarray): 2D array representing the signal spectrogram
-              (amplitudes are in units of dB).
+            - spectrogram (np.ndarray): 2D array representing the signal
+              spectrogram (amplitudes are in units of dB).
             - t (np.ndarray): 1D array of time bins (in units of seconds)
               corresponding to index 1 of ``spectrogram``.
             - freq (np.ndarray): 1D array of frequency bins (in units of Hz)
               corresponding to index 0 of ``spectrogram``.
 
     Raises:
-        ValueError: If an invalid option for `spectrogram_backend` is specified.
+        ValueError: If an invalid `spectrogram_backend` is specified.
 
     .. _`scipy.signal.spectrogram`:
         https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.spectrogram.html
@@ -442,7 +441,8 @@ def hash_peaks(
 
     * `Audio Fingerprinting with Python and Numpy`_
     * `How Shazam Works`_
-    * A. Porter, `Evaluating musical fingerprinting systems`_, Montreal University, 2013. 
+    * A. Porter, `Evaluating musical fingerprinting systems`_,
+      Montreal University, 2013.
 
     Args:
         times (np.ndarray): Time bins of the peaks. Each element in `times`
@@ -527,9 +527,10 @@ def plot_peaks(times, frequencies, color="r", marker=".", ax=None):
 
     Returns:
         tuple: (ax, pts)
-            - ax (matplotlib.axes.Axes): Axis handle on which peaks were plotted.
-            - pts (matplotlib.collections.PathCollection): Object containing the
-              points plotted as a scatter plot. See `Axes.scatter`_.
+            - ax (matplotlib.axes.Axes): Axis handle on which peaks were
+              plotted.
+            - pts (matplotlib.collections.PathCollection): Object containing
+              the points plotted as a scatter plot. See `Axes.scatter`_.
 
     .. _`matplotlib.markers`:
         https://matplotlib.org/api/markers_api.html
@@ -550,7 +551,6 @@ def plot_fingerprints(
         fig, ax = plt.subplots()
     peaks = sorted(zip(times, frequencies), key=lambda p: p[0])
 
-    hashes = []
     for i, (t, f) in enumerate(peaks):
         num_pairs = 0
 
@@ -612,49 +612,3 @@ def plot_spectrogram(
         fig.colorbar(im, ax=ax)
 
     return ax, fig, im
-
-
-def _dev_test(fpath=None, samples=None, sample_rate=None):
-    """
-    Demo function for fingerprinting an audio signal and plotting its
-    spectrogram.
-    
-    Provide either 1) a path to an audio file with `fpath` or 2) both an audio
-    signal and its sample rate with `samples` and `sample_rate`, respectively,
-    or 3) nothing. If no input file or signal are provided, a sample waveform
-    is generated and used.
-
-    Args:
-        fpath (str): Path to input audio file.
-        samples (np.ndarray): Array representing audio signal.
-        sample_rate (int): Sample rate of `samples`.
-    """
-    if fpath is not None and os.path.exists(fpath):
-        samples, sample_rate, _ = read_file(fpath)
-        samples = samples[0]
-    elif samples is None and sample_rate is None:
-        # Get an example waveform.
-        sample_rate = 44100
-        samples = generate_waveform(
-            shape="sawtooth", duration=4, sample_rate=sample_rate, frequency=10000,
-            amplitude=0.6, width=0.7
-        )
-
-    hashes = fingerprint(samples, sample_rate=sample_rate)
-
-    # Get and plot the spectrogram for the audio.
-    spectrogram, t, freq = get_spectrogram(samples, sample_rate, 4096, 0.5)
-    ax, _, _ = plot_spectrogram(spectrogram, t, freq)
-
-    # Find peaks in the spectrogram ignoring any with an amplitude < 10 dB.
-    # Peaks is a boolean array of the same shape as ``spectrogram`` where
-    # ``True`` values indicate peaks.
-    peaks = find_peaks_2d(spectrogram, min_amplitude=10)
-
-    # Obtain times and frequencies corresponding to the peaks, then plot them.
-    peak_freq_idxs, peak_time_idxs = np.where(peaks)
-    peak_t = t[peak_time_idxs]
-    peak_freq = freq[peak_freq_idxs]
-    plot_peaks(peak_t, peak_freq, ax=ax)
-
-    plt.show()

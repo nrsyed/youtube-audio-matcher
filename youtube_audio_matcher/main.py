@@ -1,12 +1,9 @@
 import asyncio
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
-import functools
 import json
 import logging
-import math
 import multiprocessing
 import os
-import pathlib
 import time
 
 import youtube_audio_matcher as yam
@@ -16,6 +13,7 @@ import youtube_audio_matcher as yam
 # TODO: chunk long songs into segments and match segments in parallel
 # TODO: add duration (and actual file duration instead of YT duration) when
 #   adding songs to DB.
+
 
 def match_fingerprints(song, db_kwargs):
     """
@@ -64,7 +62,6 @@ def match_fingerprints(song, db_kwargs):
                 }
     """
     db = yam.database.Database(**db_kwargs)
-    match = None
     song["num_fingerprints"] = len(song["fingerprints"])
 
     # List of hashes (for the database query) and a list of dicts
@@ -117,7 +114,7 @@ def match_fingerprints(song, db_kwargs):
                 "num_matching_fingerprints": num_matching_fingerprints,
                 "confidence": confidence,
                 "iou": iou,
-                "relative_offset": result["relative_offset"] ,
+                "relative_offset": result["relative_offset"],
             }
         logging.info(f"Finished aligning hash matches for {song['path']}")
     del db
@@ -270,7 +267,6 @@ def main(
         "db_name", "dialect", "driver", "host", "password", "port", "user"
     ]
     db_kwargs = {k: v for k, v in kwargs.items() if k in db_keys}
-    db = yam.database.Database(**db_kwargs)
 
     # Add local files, if any, to fingerprint queue.
     for file_ in files:

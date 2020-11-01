@@ -45,7 +45,7 @@ def get_core_parser():
         "-y", "--youtubedl-verbose", action="store_true",
         help="Enable youtube-dl and ffmpeg terminal output"
     )
-    
+
     download_args.add_argument(
         "--start", type=float, metavar="<seconds>", dest="start_time",
         help="Extract audio beginning at the specified video time (in seconds)"
