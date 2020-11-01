@@ -8,7 +8,8 @@ usage: yam [-h] [-N <database_name>] [-C <dialect>] [-R <driver>] [-H <host>]
            [--max-time-delta <float>] [--min-time-delta <float>] [-a <dB>]
            [--spectrogram-backend {scipy,matplotlib}]
            [--win-overlap-ratio <float>] [--win-size <int>] [-A] [-c <float>]
-           [-D] [-o [path]] [--debug] [-s]
+           [-D] [--max-processes <num>] [--max-threads <num>] [-o [path]]
+           [--debug] [-s]
            inputs [inputs ...]
 
 positional arguments:
@@ -25,6 +26,11 @@ optional arguments:
                         Confidence threshold for matches (default: 0.05)
   -D, --delete          Delete downloaded files after fingerprinting (default:
                         False)
+  --max-processes <num>
+                        Max number of CPUs for parallel processing (default:
+                        None)
+  --max-threads <num>   Max number of threads for concurrent tasks (default:
+                        None)
   -o [path], --output [path]
                         Path to output file containing matches in JSON format;
                         if this option is provided without an argument, a
@@ -96,8 +102,8 @@ fingerprint arguments:
                         Max filter dilation (neighborhood size) for peak
                         finding (default: 10)
   -l <int>, --hash-length <int>
-                        Truncate each fingerprint SHA1 hash to --hash-length
-                        (max 40) (default: 40)
+                        Truncate fingerprint SHA1 hashes to --hash-length (max
+                        40) (default: 40)
   --max-time-delta <float>
                         Target zone max time offset difference for hashes
                         (default: 100)

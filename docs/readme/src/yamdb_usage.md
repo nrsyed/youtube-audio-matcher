@@ -1,7 +1,7 @@
 ```
 usage: yamdb [-h] [-N <database_name>] [-C <dialect>] [-R <driver>]
              [-H <host>] [-P <password>] [-O <port>] [-U <username>]
-             [-d | -r | -o OUTPUT | -s]
+             [-d | -r | -o <path> | -s]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -25,7 +25,7 @@ database arguments:
 actions:
   -d, --delete          Delete all rows (default: False)
   -r, --drop            Drop all tables (default: False)
-  -o OUTPUT, --output OUTPUT
+  -o <path>, --output <path>
                         Write the contents of the database to an output file
                         as JSON (default: None)
   -s, --songs           Print a list of songs in the database (default: False)
