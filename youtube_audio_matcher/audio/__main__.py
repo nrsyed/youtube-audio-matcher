@@ -30,7 +30,11 @@ def cli():
 
     num_channels = len(channels)
     fig, axes = plt.subplots(nrows=num_channels, ncols=1, sharex=True)
-    fig.subplots_adjust(right=0.97, hspace=0.05)
+
+    if args.plot_fingerprints:
+        fig.subplots_adjust(right=0.8, hspace=0.05)
+    else:
+        fig.subplots_adjust(right=0.97, hspace=0.05)
 
     # plt.subplots() returns an AxesSubplot object if 1 axis, else an array of
     # AxesSubplot objects. Either way, we want to convert it to a list.
