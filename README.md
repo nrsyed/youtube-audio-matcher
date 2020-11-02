@@ -10,7 +10,7 @@
   * [`yamdb`](#yamdb-usage)
   * [`yamdl`](#yamdl-usage)
   * [`yamfp`](#yamfp-usage)
-  * [Import in Python](#import)
+  * [Python API](#python-api)
 * [Acknowledgments](#acknowledgments)
 
 # <span id="description">Description</span>
@@ -659,8 +659,8 @@ fingerprint arguments:
 ```
 
 
-## <span id="import">Import in Python</span>
-The package and its submodules can also be imported directly in Python:
+## <span id="python-api">Python API</span>
+The package and its submodules can be imported directly in Python:
 
 ```
 import youtube_audio_matcher as yam
@@ -670,21 +670,20 @@ import youtube_audio_matcher.database
 import youtube_audio_matcher.download
 ```
 
-The complete Python API documentation can be found at
-https://nrsyed.github.io/youtube-audio-matcher (or in the source code and
-function/class docstrings).
+Refer to https://nrsyed.github.io/youtube-audio-matcher for complete
+Python API documentation.
 
 
 # <span id="acknowledgments">Acknowledgments</span>
 This project was inspired by
-[Ben-0-mad's YT-TMS-Finder](https://github.com/Ben-0-mad/YT-TMS-Finder) repo,
 whose goal is to try and identify unknown songs by checking YouTube channels
 for matching videos.
 
-Projects, articles, and papers I found to be invaluable for learning about
-audio fingerprinting include the following:
 * [Audio Fingerprinting with Python and Numpy](https://willdrevo.com/fingerprinting-and-audio-recognition-with-python/) and [dejavu](https://github.com/worldveil/dejavu)
-* [How does Shazam work](http://coding-geek.com/how-shazam-works/)
 * Avery Li-Chun Wang, "An Industrial-Strength Audio Search Algorithm,"
 Proc. 2003 ISMIR, Baltimore, MD, Oct. 2003.
 https://www.ee.columbia.edu/~dpwe/papers/Wang03-shazam.pdf
+* Ben-0-mad's [YT-TMS-Finder](https://github.com/Ben-0-mad/YT-TMS-Finder) repo,
+whose goal is to identify unknown songs by checking YouTube channels for
+matching videos, served as the inspiration for YouTube Audio Matcher.
+* [How does Shazam work](http://coding-geek.com/how-shazam-works/)
