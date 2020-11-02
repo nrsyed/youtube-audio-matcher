@@ -54,7 +54,7 @@ def match_fingerprints(song, db_kwargs):
                         "num_fingerprints": int
                     },
                     "match_stats": {
-                        "num_matching_fingerprints: int,
+                        "num_matching_fingerprints": int,
                         "confidence": float,
                         "iou": float,
                         "relative_offset": float

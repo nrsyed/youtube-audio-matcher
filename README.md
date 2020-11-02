@@ -10,7 +10,7 @@
   * [`yamdb`](#yamdb-usage)
   * [`yamdl`](#yamdl-usage)
   * [`yamfp`](#yamfp-usage)
-  * [Import in Python](#import)
+  * [Python API](#python-api)
 * [Acknowledgments](#acknowledgments)
 
 # <span id="description">Description</span>
@@ -376,7 +376,8 @@ usage: yam [-h] [-N <database_name>] [-C <dialect>] [-R <driver>] [-H <host>]
            [--max-time-delta <float>] [--min-time-delta <float>] [-a <dB>]
            [--spectrogram-backend {scipy,matplotlib}]
            [--win-overlap-ratio <float>] [--win-size <int>] [-A] [-c <float>]
-           [-D] [-o [path]] [--debug] [-s]
+           [-D] [--max-processes <num>] [--max-threads <num>] [-o [path]]
+           [--debug] [-s]
            inputs [inputs ...]
 
 positional arguments:
@@ -393,6 +394,11 @@ optional arguments:
                         Confidence threshold for matches (default: 0.05)
   -D, --delete          Delete downloaded files after fingerprinting (default:
                         False)
+  --max-processes <num>
+                        Max number of CPUs for parallel processing (default:
+                        None)
+  --max-threads <num>   Max number of threads for concurrent tasks (default:
+                        None)
   -o [path], --output [path]
                         Path to output file containing matches in JSON format;
                         if this option is provided without an argument, a
@@ -464,8 +470,8 @@ fingerprint arguments:
                         Max filter dilation (neighborhood size) for peak
                         finding (default: 10)
   -l <int>, --hash-length <int>
-                        Truncate each fingerprint SHA1 hash to --hash-length
-                        (max 40) (default: 40)
+                        Truncate fingerprint SHA1 hashes to --hash-length (max
+                        40) (default: 40)
   --max-time-delta <float>
                         Target zone max time offset difference for hashes
                         (default: 100)
@@ -494,7 +500,7 @@ Verbosity arguments:
 ```
 usage: yamdb [-h] [-N <database_name>] [-C <dialect>] [-R <driver>]
              [-H <host>] [-P <password>] [-O <port>] [-U <username>]
-             [-d | -r | -o OUTPUT | -s]
+             [-d | -r | -o <path> | -s]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -518,7 +524,7 @@ database arguments:
 actions:
   -d, --delete          Delete all rows (default: False)
   -r, --drop            Drop all tables (default: False)
-  -o OUTPUT, --output OUTPUT
+  -o <path>, --output <path>
                         Write the contents of the database to an output file
                         as JSON (default: None)
   -s, --songs           Print a list of songs in the database (default: False)
@@ -653,8 +659,8 @@ fingerprint arguments:
 ```
 
 
-## <span id="import">Import in Python</span>
-The package and its submodules can also be imported directly in Python:
+## <span id="python-api">Python API</span>
+The package and its submodules can be imported directly in Python:
 
 ```
 import youtube_audio_matcher as yam
@@ -664,21 +670,20 @@ import youtube_audio_matcher.database
 import youtube_audio_matcher.download
 ```
 
-The complete Python API documentation can be found at
-https://nrsyed.github.io/youtube-audio-matcher (or in the source code and
-function/class docstrings).
+Refer to https://nrsyed.github.io/youtube-audio-matcher for complete
+Python API documentation.
 
 
 # <span id="acknowledgments">Acknowledgments</span>
 This project was inspired by
-[Ben-0-mad's YT-TMS-Finder](https://github.com/Ben-0-mad/YT-TMS-Finder) repo,
 whose goal is to try and identify unknown songs by checking YouTube channels
 for matching videos.
 
-Projects, articles, and papers I found to be invaluable for learning about
-audio fingerprinting include the following:
 * [Audio Fingerprinting with Python and Numpy](https://willdrevo.com/fingerprinting-and-audio-recognition-with-python/) and [dejavu](https://github.com/worldveil/dejavu)
-* [How does Shazam work](http://coding-geek.com/how-shazam-works/)
 * Avery Li-Chun Wang, "An Industrial-Strength Audio Search Algorithm,"
 Proc. 2003 ISMIR, Baltimore, MD, Oct. 2003.
 https://www.ee.columbia.edu/~dpwe/papers/Wang03-shazam.pdf
+* Ben-0-mad's [YT-TMS-Finder](https://github.com/Ben-0-mad/YT-TMS-Finder) repo,
+whose goal is to identify unknown songs by checking YouTube channels for
+matching videos, served as the inspiration for YouTube Audio Matcher.
+* [How does Shazam work](http://coding-geek.com/how-shazam-works/)

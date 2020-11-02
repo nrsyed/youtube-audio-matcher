@@ -8,6 +8,23 @@ Base = declarative_base()
 
 
 class Fingerprint(Base):
+    """
+    SQLAlchemy class representing database ``fingerprint`` table schema.
+
+    Attributes:
+        id (int): ``fingerprint`` table primary key.
+        hash (str): SHA1 hash.
+        offset (float): Fingerprint offset from beginning of file in seconds.
+        song_id (int): Song id from the ``song`` table (:class:`Song`) to which
+            this fingerprint belongs.
+
+    .. note::
+        There is a `UNIQUE constraint`_  on the combination of
+        (``song_id``, ``hash``, ``offset``) keys.
+
+    .. _`UNIQUE constraint`:
+        https://docs.sqlalchemy.org/en/13/core/constraints.html#unique-constraint
+    """
     __tablename__ = "fingerprint"
 
     id = Column("id", Integer, primary_key=True)
@@ -21,6 +38,21 @@ class Fingerprint(Base):
 
 
 class Song(Base):
+    """
+    SQLAlchemy class representing database ``song`` table schema.
+
+    Attributes:
+        id (int): ``song`` table primary key.
+        duration (float): Song duration in seconds.
+        filehash (str): SHA1 hash of the file.
+        filepath (str): Path to the song file on local machine.
+        title (str): Song title.
+        youtube_id (str): The YouTube id of the song (if the song was
+            downloaded from YouTube).
+
+        fingerprints (List[Fingerprint]): A list of fingerprints (Fingerprint
+            objects) belonging to this song.
+    """
     __tablename__ = "song"
 
     id = Column("id", Integer, primary_key=True)
