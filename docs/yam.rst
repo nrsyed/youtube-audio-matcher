@@ -1,7 +1,19 @@
 yam
 =====
 
-YouTube Audio Matcher command line tool
+The **Y**\ outube **A**\ udio **M**\ atcher command line tool ``yam``
+is the package's main command line utility. It combines the functionality of
+the :doc:`youtube_audio_matcher.download`, :doc:`youtube_audio_matcher.audio`,
+and :doc:`youtube_audio_matcher.database` modules to download videos as audio
+from YouTube channels/users as MP files3, obtain the audio fingerprint of
+downloaded files (or local files), and add the fingerprints to a database or
+match the fingerprints against existing fingerprints in a database.
+
+Most of the options available for ``yam`` (detailed below in the
+:ref:`yam-usage` section) are the same as those found in the individual
+sub-module command line tools :doc:`yamdl`, :doc:`yamfp`, and :doc:`yamdb`.
+
+.. _yam-usage:
 
 Usage
 -----
@@ -133,3 +145,169 @@ Usage
     --debug               Print verbose debugging info (default: False)
     -s, --silent          Suppress youtube-audio-matcher terminal output
                           (default: False)
+
+Examples
+--------
+
+To add songs to the database, provide the ``-A``/``--add-to-database`` switch
+along with any number of YouTube channel/user URLs and/or any number of paths
+to local audio files or local directories containing audio files. The following
+example demonstrates the command for adding a local file ``file1.mp3``, all
+files from a local directory ``sample_directory``, and a YouTube channel to a
+PostgreSQL database (with the credentials `user` = ``yam``,
+`database name` = ``yam``, `databse password` = ``yam``), as well as sample
+terminal output:
+
+*Command*
+
+.. code-block:: bash
+
+  yam -A www.youtube.com/c/sample_channel file1.mp3 sample_directory \
+  -U yam -N yam -P yam
+
+*Output*
+
+.. code-block:: none
+
+  [INFO] Fingerprinted /home/sample_directory/file3.mp3 (44570 hashes)
+  [INFO] Fingerprinted /home/sample_directory/file2.mp3 (89020 hashes)
+  [INFO] Fingerprinted /home/file1.mp3 (216960 hashes)
+  [INFO] Successfully downloaded /home/Z6_7orLq0D.mp3
+  [INFO] Added /home/sample_directory/file3.mp3 to database (4.56 s)
+  [INFO] Fingerprinted /home/Z6_7orLq0D.mp3 (75470 hashes)
+  [INFO] Successfully downloaded /home/s71A5oUut3.mp3
+  [INFO] Successfully downloaded /home/wFoxOcQU60.mp3
+  [INFO] Added /home/sample_directory/file2.mp3 to database (9.04 s)
+  [INFO] Fingerprinted /home/wFoxOcQU60.mp3 (89020 hashes)
+  [INFO] Fingerprinted /home/s71A5oUut3.mp3 (216960 hashes)
+  [INFO] Added /home/Z6_7orLq0D.mp3 to database (8.06 s)
+  [INFO] Added /home/wFoxOcQU60.mp3 to database (8.89 s)
+  [INFO] Added /home/file1.mp3 to database (21.22 s)
+  [INFO] Added /home/s71A5oUut3.mp3 to database (19.88 s)
+  [INFO] All songs added to database (25.13 s)
+
+
+To match songs against those already in the database, omit the
+``-A`` switch. To delete any downloaded songs after they've been fingerprinted,
+include the ``-D``/``--delete`` switch. The following command fingerprints a
+local file `file4.mp3` and the audio from all videos on two YouTube
+users/channels, compares them to the database, and prints any matches to the
+terminal (as well as deletes the downloaded files):
+
+*Command*
+
+.. code-block:: bash
+
+  yam youtube.com/c/some_channel youtube.com/u/some_user file4.mp3 \
+    -D -U yam -N yam -P yam
+
+*Output*
+
+.. code-block:: none
+
+  [INFO] Fingerprinted /home/file4.mp3 (11520 hashes)
+  [INFO] Matching fingerprints for /home/file4.mp3
+  [INFO] Successfully downloaded /home/pzvDf_H7db.mp3
+  [INFO] Successfully downloaded /home/Rv4nWAZw8V.mp3
+  [INFO] Successfully downloaded /home/iPTmeNCao7.mp3
+  [INFO] Fingerprinted /home/pzvDf_H7db.mp3 (32650 hashes)
+  [INFO] Matching fingerprints for /home/pzvDf_H7db.mp3
+  [INFO] Fingerprinted /home/Rv4nWAZw8V.mp3 (22520 hashes)
+  [INFO] Matching fingerprints for /home/Rv4nWAZw8V.mp3
+  [INFO] Fingerprinted /home/iPTmeNCao7.mp3 (73860 hashes)
+  [INFO] Matching fingerprints for /home/iPTmeNCao7.mp3
+  [INFO] Finished matching fingerprints for /home/file4.mp3 in 10.28 s
+  [INFO] Finished matching fingerprints for /home/Rv4nWAZw8V.mp3 in 2.68 s
+  [INFO] Finished matching fingerprints for /home/iPTmeNCao7.mp3 in 7.21 s
+  [INFO] Finished matching fingerprints for /home/pzvDf_H7db.mp3 in 10.14 s
+  [INFO] Match 1:
+  {
+      "youtube_id": null,
+      "title": null,
+      "duration": null,
+      "channel_url": null,
+      "path": "/home/file4.mp3",
+      "filehash": "e0bf9d28e9b2409b7ad181b97f532569d27c9633",
+      "num_fingerprints": 11520,
+      "matching_song": {
+          "id": 8,
+          "duration": 436.0,
+          "filehash": "c12b119ab98caee4a24eef5e7b3f4d7bf2b38f99",
+          "filepath": "/home/song2.mp3",
+          "title": null,
+          "youtube_id": null,
+          "num_fingerprints": 812890
+      },
+      "match_stats": {
+          "num_matching_fingerprints": 3352,
+          "confidence": 0.29097222222222224,
+          "iou": 0.004082537409050274,
+          "relative_offset": 300.0
+      }
+  }
+
+  [INFO] Match 2:
+  {
+      "youtube_id": "iPTmeNCao7",
+      "title": "Sample YT video title",
+      "duration": 177,
+      "channel_url": "https://www.youtube.com/c/some_channel/videos",
+      "path": "/home/iPTmeNCao7.mp3",
+      "filehash": "6b59b4c301de5ad3f7dddcdb78fbf62bd1618cab",
+      "num_fingerprints": 73860,
+      "matching_song": {
+          "id": 3,
+          "duration": 155.0,
+          "filehash": "6ba1139a7fc8cde33ff30065b45ed3c9f457f5a6",
+          "filepath": "/home/a92_Uxy5mq.mp3",
+          "title": "Some other video on youtube",
+          "youtube_id": "a92_Uxy5mq",
+          "num_fingerprints": 216960
+      },
+      "match_stats": {
+          "num_matching_fingerprints": 73821,
+          "confidence": 0.9994719740048741,
+          "iou": 0.3401905077903585,
+          "relative_offset": 0.0
+      }
+  }
+
+The output contains matches (if any) as well as information on each match,
+including the `confidence` (number of matching fingerprints divided by total
+number of fingerprints in the input song) and `relative_offset` (which part of
+the matched song the input song corresponds to, in seconds); in other words, a
+`relative_offset` of 300 means that the beginning of the input song corresponds
+to the 300-second mark in the matched song from the database.
+
+The confidence threshold for determining what's considered a match can be
+adjusted using the ``-c``/``--confidence`` option. To write the matches to a
+text file, use the ``-o``/``--output`` option:
+
+.. code-block:: bash
+
+  yam youtube.com/c/some_channel youtube.com/u/some_user file4.mp3 \
+    -D -U yam -N yam -P yam -c 0.25 -o matches.txt
+
+
+Troubleshooting
+---------------
+
+High RAM usage
+^^^^^^^^^^^^^^
+
+Because the ``yam`` command uses all available CPUs to compute and match
+fingerprints and each set of fingerprints consumes a certain amount of memory,
+running the command on a large number of songs with a large number of available
+CPUs may end up using up all available RAM. If this becomes an issue, limit the
+number of processes with the ``--max-processes`` option.
+
+429 Too Many Requests
+^^^^^^^^^^^^^^^^^^^^^
+
+YouTube sometimes detects and prevents a large number of simultaneous
+downloads, which can cause the youtube-dl download attempt to fail. By default,
+``yam`` will retry any failed downloads up to (a default of) 5 times, but this
+number can be adjusted with the ``-r``/``--retries`` option. If downloads are
+still failing due to a `429 Too Many Requests` HTTP error, you can try limiting
+the number of concurrent downloads by specifying a maximum number of threads
+with the ``--max-threads`` option (all downloads are handled by a thread pool).
