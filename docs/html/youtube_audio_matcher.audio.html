@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>youtube_audio_matcher.audio package &mdash; YouTube Audio Matcher  documentation</title>
+  <title>youtube_audio_matcher.audio &mdash; YouTube Audio Matcher  documentation</title>
   
 
   
@@ -35,7 +35,9 @@
 
     
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="youtube_audio_matcher.database" href="youtube_audio_matcher.database.html" />
+    <link rel="prev" title="Python API" href="youtube_audio_matcher.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -57,6 +59,10 @@
 
           
             
+            
+              <div class="version">
+                0.8
+              </div>
             
           
 
@@ -80,14 +86,28 @@
               
             
             
-              <!-- Local TOC -->
-              <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">youtube_audio_matcher.audio package</a><ul>
-<li><a class="reference internal" href="#module-youtube_audio_matcher.audio">Module contents</a></li>
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Setup and Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fingerprinting.html">Audio Fingerprinting</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="youtube_audio_matcher.html">Python API</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="youtube_audio_matcher.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">youtube_audio_matcher.audio</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#module-youtube_audio_matcher.audio">Module contents</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="youtube_audio_matcher.database.html">youtube_audio_matcher.database</a></li>
+<li class="toctree-l3"><a class="reference internal" href="youtube_audio_matcher.download.html">youtube_audio_matcher.download</a></li>
 </ul>
-</div>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="youtube_audio_matcher.html#module-youtube_audio_matcher">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="acknowledgments.html">Acknowledgments</a></li>
+</ul>
+
             
           
         </div>
@@ -132,7 +152,9 @@
     
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li>youtube_audio_matcher.audio package</li>
+          <li><a href="youtube_audio_matcher.html">Python API</a> &raquo;</li>
+        
+      <li>youtube_audio_matcher.audio</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -151,8 +173,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="youtube-audio-matcher-audio-package">
-<h1>youtube_audio_matcher.audio package<a class="headerlink" href="#youtube-audio-matcher-audio-package" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="youtube-audio-matcher-audio">
+<h1>youtube_audio_matcher.audio<a class="headerlink" href="#youtube-audio-matcher-audio" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="module-youtube_audio_matcher.audio">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-youtube_audio_matcher.audio" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
@@ -359,14 +381,16 @@ containing a list of fingerprints (returned by
 <dl class="py function">
 <dt id="youtube_audio_matcher.audio.fingerprint_songs">
 <em class="property">async </em><code class="sig-prename descclassname">youtube_audio_matcher.audio.</code><code class="sig-name descname">fingerprint_songs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">loop</span></em>, <em class="sig-param"><span class="n">executor</span></em>, <em class="sig-param"><span class="n">in_queue</span></em>, <em class="sig-param"><span class="n">out_queue</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#youtube_audio_matcher.audio.fingerprint_songs" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO</p>
+<dd><p>Fingerprint audio files from an input queue and put them in an output
+queue for additional processing (e.g., to add them to a database or to
+match them against a database). See <a class="reference internal" href="#youtube_audio_matcher.audio.fingerprint_song" title="youtube_audio_matcher.audio.fingerprint_song"><code class="xref py py-func docutils literal notranslate"><span class="pre">fingerprint_song()</span></code></a> for more
+information.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>loop</strong> (<em>asyncio.BaseEventLoop</em>) – <cite>asyncio</cite> EventLoop.</p></li>
 <li><p><strong>executor</strong> (<em>concurrent.futures.Executor</em>) – <code class="docutils literal notranslate"><span class="pre">concurrent.futures</span></code>
-ThreadPoolExecutor or ProcessPoolExecutor in which the audio file
-will be processed.</p></li>
+ProcessPoolExecutor in which the audio file will be processed.</p></li>
 <li><p><strong>in_queue</strong> (<em>asyncio.queues.Queue</em>) – Process queue from which audio
 metadata is fetched for each song to be processed.</p></li>
 <li><p><strong>out_queue</strong> (<em>asyncio.queues.Queue</em>) – Output queue to which audio metadata
@@ -446,8 +470,8 @@ compute the spectrogram. See <a class="reference external" href="https://docs.sc
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><dl class="simple">
 <dt>(spectrogram, t, freq)</dt><dd><ul class="simple">
-<li><p>spectrogram (np.ndarray): 2D array representing the signal spectrogram
-(amplitudes are in units of dB).</p></li>
+<li><p>spectrogram (np.ndarray): 2D array representing the signal
+spectrogram (amplitudes are in units of dB).</p></li>
 <li><p>t (np.ndarray): 1D array of time bins (in units of seconds)
 corresponding to index 1 of <code class="docutils literal notranslate"><span class="pre">spectrogram</span></code>.</p></li>
 <li><p>freq (np.ndarray): 1D array of frequency bins (in units of Hz)
@@ -461,7 +485,7 @@ corresponding to index 0 of <code class="docutils literal notranslate"><span cla
 <dd class="field-odd"><p>tuple</p>
 </dd>
 <dt class="field-even">Raises</dt>
-<dd class="field-even"><p><strong>ValueError</strong> – If an invalid option for <cite>spectrogram_backend</cite> is specified.</p>
+<dd class="field-even"><p><strong>ValueError</strong> – If an invalid <cite>spectrogram_backend</cite> is specified.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -492,15 +516,13 @@ corresponding to index 0 of <code class="docutils literal notranslate"><span cla
 
 <dl class="py function">
 <dt id="youtube_audio_matcher.audio.hash_peaks">
-<code class="sig-prename descclassname">youtube_audio_matcher.audio.</code><code class="sig-name descname">hash_peaks</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">times</span></em>, <em class="sig-param"><span class="n">frequencies</span></em>, <em class="sig-param"><span class="n">fanout</span><span class="o">=</span><span class="default_value">10</span></em>, <em class="sig-param"><span class="n">min_time_delta</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">max_time_delta</span><span class="o">=</span><span class="default_value">100</span></em>, <em class="sig-param"><span class="n">hash_length</span><span class="o">=</span><span class="default_value">20</span></em>, <em class="sig-param"><span class="n">time_bin_size</span><span class="o">=</span><span class="default_value">0.5</span></em>, <em class="sig-param"><span class="n">freq_bin_size</span><span class="o">=</span><span class="default_value">2</span></em><span class="sig-paren">)</span><a class="headerlink" href="#youtube_audio_matcher.audio.hash_peaks" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">youtube_audio_matcher.audio.</code><code class="sig-name descname">hash_peaks</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">times</span></em>, <em class="sig-param"><span class="n">frequencies</span></em>, <em class="sig-param"><span class="n">fanout</span><span class="o">=</span><span class="default_value">10</span></em>, <em class="sig-param"><span class="n">min_time_delta</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">max_time_delta</span><span class="o">=</span><span class="default_value">100</span></em>, <em class="sig-param"><span class="n">hash_length</span><span class="o">=</span><span class="default_value">40</span></em>, <em class="sig-param"><span class="n">time_bin_size</span><span class="o">=</span><span class="default_value">0.5</span></em>, <em class="sig-param"><span class="n">freq_bin_size</span><span class="o">=</span><span class="default_value">2</span></em><span class="sig-paren">)</span><a class="headerlink" href="#youtube_audio_matcher.audio.hash_peaks" title="Permalink to this definition">¶</a></dt>
 <dd><p>Hash the peaks of a spectrogram. For reference, see:</p>
 <ul class="simple">
 <li><p><a class="reference external" href="https://willdrevo.com/fingerprinting-and-audio-recognition-with-python/">Audio Fingerprinting with Python and Numpy</a></p></li>
 <li><p><a class="reference external" href="https://medium.com/&#64;treycoopermusic/how-shazam-works-d97135fb4582">How Shazam Works</a></p></li>
-<li><ol class="upperalpha simple">
-<li><p>Porter, <a class="reference external" href="https://www.upf.edu/documents/223346843/0/porter2012thesis.pdf">Evaluating musical fingerprinting systems</a>, Montreal University, 2013.</p></li>
-</ol>
-</li>
+<li><p>A. Porter, <a class="reference external" href="https://www.upf.edu/documents/223346843/0/porter2012thesis.pdf">Evaluating musical fingerprinting systems</a>,
+Montreal University, 2013.</p></li>
 </ul>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -545,6 +567,37 @@ audio signal, in seconds.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt id="youtube_audio_matcher.audio.plot_fingerprints">
+<code class="sig-prename descclassname">youtube_audio_matcher.audio.</code><code class="sig-name descname">plot_fingerprints</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">times</span></em>, <em class="sig-param"><span class="n">frequencies</span></em>, <em class="sig-param"><span class="n">fanout</span><span class="o">=</span><span class="default_value">3</span></em>, <em class="sig-param"><span class="n">min_time_delta</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">max_time_delta</span><span class="o">=</span><span class="default_value">10</span></em>, <em class="sig-param"><span class="n">ax</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#youtube_audio_matcher.audio.plot_fingerprints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the fingerprints (hash constellation) of a spectrogram’s peaks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>times</strong> (<em>np.ndarray</em>) – 1D array of the peak times of the audio signal
+spectrogram.</p></li>
+<li><p><strong>frequencies</strong> (<em>np.ndarray</em>) – 1D array of peak frequencies of the audio
+signal spectrogram.</p></li>
+<li><p><strong>fanout</strong> (<em>int</em>) – See <a class="reference internal" href="#youtube_audio_matcher.audio.hash_peaks" title="youtube_audio_matcher.audio.hash_peaks"><code class="xref py py-func docutils literal notranslate"><span class="pre">hash_peaks()</span></code></a>.</p></li>
+<li><p><strong>min_time_delta</strong> (<em>float</em>) – See <a class="reference internal" href="#youtube_audio_matcher.audio.hash_peaks" title="youtube_audio_matcher.audio.hash_peaks"><code class="xref py py-func docutils literal notranslate"><span class="pre">hash_peaks()</span></code></a>.</p></li>
+<li><p><strong>max_time_delta</strong> (<em>float</em>) – See <a class="reference internal" href="#youtube_audio_matcher.audio.hash_peaks" title="youtube_audio_matcher.audio.hash_peaks"><code class="xref py py-func docutils literal notranslate"><span class="pre">hash_peaks()</span></code></a>.</p></li>
+<li><p><strong>ax</strong> (<em>matplotlib.axes.Axes</em>) – Matplotlib axis handle in which to plot the
+fingerprints. If None, a new figure/axis is created.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>ax</dt><dd><p>Plot axis handle.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>matplotlib.axes.Axes</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt id="youtube_audio_matcher.audio.plot_peaks">
 <code class="sig-prename descclassname">youtube_audio_matcher.audio.</code><code class="sig-name descname">plot_peaks</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">times</span></em>, <em class="sig-param"><span class="n">frequencies</span></em>, <em class="sig-param"><span class="n">color</span><span class="o">=</span><span class="default_value">'r'</span></em>, <em class="sig-param"><span class="n">marker</span><span class="o">=</span><span class="default_value">'.'</span></em>, <em class="sig-param"><span class="n">ax</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#youtube_audio_matcher.audio.plot_peaks" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot spectrogram peaks.</p>
@@ -564,9 +617,10 @@ a new figure/axis will be created.</p></li>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><dl class="simple">
 <dt>(ax, pts)</dt><dd><ul class="simple">
-<li><p>ax (matplotlib.axes.Axes): Axis handle on which peaks were plotted.</p></li>
-<li><p>pts (matplotlib.collections.PathCollection): Object containing the
-points plotted as a scatter plot. See <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.axes.Axes.scatter.html">Axes.scatter</a>.</p></li>
+<li><p>ax (matplotlib.axes.Axes): Axis handle on which peaks were
+plotted.</p></li>
+<li><p>pts (matplotlib.collections.PathCollection): Object containing
+the points plotted as a scatter plot. See <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.axes.Axes.scatter.html">Axes.scatter</a>.</p></li>
 </ul>
 </dd>
 </dl>
@@ -580,7 +634,7 @@ points plotted as a scatter plot. See <a class="reference external" href="https:
 
 <dl class="py function">
 <dt id="youtube_audio_matcher.audio.plot_spectrogram">
-<code class="sig-prename descclassname">youtube_audio_matcher.audio.</code><code class="sig-name descname">plot_spectrogram</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">spectrogram</span></em>, <em class="sig-param"><span class="n">times</span></em>, <em class="sig-param"><span class="n">frequencies</span></em>, <em class="sig-param"><span class="n">title</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ax</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fig</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">show_xlabel</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#youtube_audio_matcher.audio.plot_spectrogram" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">youtube_audio_matcher.audio.</code><code class="sig-name descname">plot_spectrogram</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">spectrogram</span></em>, <em class="sig-param"><span class="n">times</span></em>, <em class="sig-param"><span class="n">frequencies</span></em>, <em class="sig-param"><span class="n">title</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ax</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fig</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#youtube_audio_matcher.audio.plot_spectrogram" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot the spectrogram of an audio signal.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -597,7 +651,6 @@ spectrogram. If None, a new figure/axis is created.</p></li>
 <li><p><strong>fig</strong> (<em>matplotlib.figure.Figure</em>) – Matplotlib figure handle for the figure
 containing <cite>ax</cite> (if any). Used for placing colormap scale beside
 plot. If <cite>ax</cite> is not provided, a new figure and axis are created.</p></li>
-<li><p><strong>show_xlabel</strong> (<em>bool</em>) – Display x-axis label.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -653,6 +706,15 @@ plot. If <cite>ax</cite> is not provided, a new figure and axis are created.</p>
            
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="youtube_audio_matcher.database.html" class="btn btn-neutral float-right" title="youtube_audio_matcher.database" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="youtube_audio_matcher.html" class="btn btn-neutral float-left" title="Python API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>

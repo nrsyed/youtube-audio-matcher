@@ -1,0 +1,317 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>yamdb &mdash; YouTube Audio Matcher  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="yamdl" href="yamdl.html" />
+    <link rel="prev" title="yam" href="yam.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> YouTube Audio Matcher
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.8
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Setup and Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fingerprinting.html">Audio Fingerprinting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="youtube_audio_matcher.html">Python API</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="cli.html">Command Line Interface</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="yam.html">yam</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">yamdb</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#usage">Usage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="yamdl.html">yamdl</a></li>
+<li class="toctree-l2"><a class="reference internal" href="yamfp.html">yamfp</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="acknowledgments.html">Acknowledgments</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">YouTube Audio Matcher</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="cli.html">Command Line Interface</a> &raquo;</li>
+        
+      <li>yamdb</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/yamdb.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="yamdb">
+<h1>yamdb<a class="headerlink" href="#yamdb" title="Permalink to this headline">¶</a></h1>
+<p>The <strong>Y</strong>outube <strong>A</strong>udio <strong>M</strong>atcher <strong>D</strong>ata<strong>b</strong>ase
+command line tool <code class="docutils literal notranslate"><span class="pre">yamdb</span></code> enables simple user interaction with the
+SQL database that contains songs and fingerprints. Refer to
+<a class="reference internal" href="youtube_audio_matcher.database.html"><span class="doc">youtube_audio_matcher.database</span></a> for more information on supported SQL
+dialects/drivers.</p>
+<div class="section" id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>usage: yamdb [-h] [-N &lt;database_name&gt;] [-C &lt;dialect&gt;] [-R &lt;driver&gt;]
+             [-H &lt;host&gt;] [-P &lt;password&gt;] [-O &lt;port&gt;] [-U &lt;username&gt;]
+             [-d | -r | -o &lt;path&gt; | -s]
+
+optional arguments:
+  -h, --help            show this help message and exit
+
+database arguments:
+  -N &lt;database_name&gt;, --db-name &lt;database_name&gt;
+                        Database name (default: yam)
+  -C &lt;dialect&gt;, --dialect &lt;dialect&gt;
+                        SQL dialect (default: postgresql)
+  -R &lt;driver&gt;, --driver &lt;driver&gt;
+                        SQL dialect driver (default: None)
+  -H &lt;host&gt;, --host &lt;host&gt;
+                        Database hostname (default: localhost)
+  -P &lt;password&gt;, --password &lt;password&gt;
+                        Database password (default: None)
+  -O &lt;port&gt;, --port &lt;port&gt;
+                        Database port number (default: None)
+  -U &lt;username&gt;, --user &lt;username&gt;
+                        Database user name (default: None)
+
+actions:
+  -d, --delete          Delete all rows (default: False)
+  -r, --drop            Drop all tables (default: False)
+  -o &lt;path&gt;, --output &lt;path&gt;
+                        Write the contents of the database to an output file
+                        as JSON (default: None)
+  -s, --songs           Print a list of songs in the database (default: False)
+</pre></div>
+</div>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<p>To print all songs in the database as a JSON-formatted list, use the
+<code class="docutils literal notranslate"><span class="pre">-s</span></code>/<code class="docutils literal notranslate"><span class="pre">--songs</span></code> switch. This is demonstrated by the following sample command
+and its terminal output, assuming the database name, username, and password are
+all <code class="docutils literal notranslate"><span class="pre">yam</span></code>.</p>
+<p><em>Command</em></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>yamdb -s -U yam -N yam -P yam
+</pre></div>
+</div>
+<p><em>Output</em></p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[
+  {
+    &quot;id&quot;: 3,
+    &quot;duration&quot;: 155.0,
+    &quot;filehash&quot;: &quot;6ba1139a7fc8cde33ff30065b45ed3c9f457f5a6&quot;,
+    &quot;filepath&quot;: &quot;/home/a92_Uxy5mq.mp3&quot;,
+    &quot;title&quot;: &quot;Some other video on youtube&quot;,
+    &quot;youtube_id&quot;: &quot;a92_Uxy5mq&quot;,
+  },
+  {
+    &quot;id&quot;: 8,
+    &quot;duration&quot;: 436.0,
+    &quot;filehash&quot;: &quot;c12b119ab98caee4a24eef5e7b3f4d7bf2b38f99&quot;,
+    &quot;filepath&quot;: &quot;/home/song2.mp3&quot;,
+    &quot;title&quot;: null,
+    &quot;youtube_id&quot;: null,
+  }
+]
+</pre></div>
+</div>
+<p>The database can also be reset using the <code class="docutils literal notranslate"><span class="pre">-d</span></code>/<code class="docutils literal notranslate"><span class="pre">--delete</span></code> switch (which
+retains the database schema/tables but deletes all rows in the <code class="docutils literal notranslate"><span class="pre">song</span></code> and
+<code class="docutils literal notranslate"><span class="pre">fingerprint</span></code> tables) or the <code class="docutils literal notranslate"><span class="pre">-r</span></code>/<code class="docutils literal notranslate"><span class="pre">--drop</span></code> switch (which drops the
+<code class="docutils literal notranslate"><span class="pre">song</span></code> and <code class="docutils literal notranslate"><span class="pre">fingerprint</span></code> tables altogether), as demonstrated in the
+following examples:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>yamdb -U yam -N yam -P yam -d
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>yamdb -U yam -N yam -P yam -r
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="yamdl.html" class="btn btn-neutral float-right" title="yamdl" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="yam.html" class="btn btn-neutral float-left" title="yam" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Najam R Syed
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

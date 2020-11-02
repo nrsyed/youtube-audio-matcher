@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>youtube_audio_matcher package &mdash; YouTube Audio Matcher  documentation</title>
+  <title>Python API &mdash; YouTube Audio Matcher  documentation</title>
   
 
   
@@ -35,7 +35,9 @@
 
     
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="youtube_audio_matcher.audio" href="youtube_audio_matcher.audio.html" />
+    <link rel="prev" title="Audio Fingerprinting" href="fingerprinting.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -57,6 +59,10 @@
 
           
             
+            
+              <div class="version">
+                0.8
+              </div>
             
           
 
@@ -80,15 +86,25 @@
               
             
             
-              <!-- Local TOC -->
-              <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">youtube_audio_matcher package</a><ul>
-<li><a class="reference internal" href="#subpackages">Subpackages</a></li>
-<li><a class="reference internal" href="#module-youtube_audio_matcher">Module contents</a></li>
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Setup and Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fingerprinting.html">Audio Fingerprinting</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Python API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="youtube_audio_matcher.audio.html">youtube_audio_matcher.audio</a></li>
+<li class="toctree-l3"><a class="reference internal" href="youtube_audio_matcher.database.html">youtube_audio_matcher.database</a></li>
+<li class="toctree-l3"><a class="reference internal" href="youtube_audio_matcher.download.html">youtube_audio_matcher.download</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#module-youtube_audio_matcher">Module contents</a></li>
 </ul>
-</div>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="acknowledgments.html">Acknowledgments</a></li>
+</ul>
+
             
           
         </div>
@@ -133,7 +149,7 @@
     
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li>youtube_audio_matcher package</li>
+      <li>Python API</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -152,21 +168,30 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="youtube-audio-matcher-package">
-<h1>youtube_audio_matcher package<a class="headerlink" href="#youtube-audio-matcher-package" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="python-api">
+<h1>Python API<a class="headerlink" href="#python-api" title="Permalink to this headline">¶</a></h1>
+<p>The YouTube Audio Matcher Python API comprises the main
+<code class="docutils literal notranslate"><span class="pre">youtube_audio_matcher</span></code> package and three standalone submodules that handle
+audio/fingerprinting functionality, mass download functionality, and
+database functionality (<a class="reference internal" href="youtube_audio_matcher.audio.html"><span class="doc">youtube_audio_matcher.audio</span></a>,
+<a class="reference internal" href="youtube_audio_matcher.download.html"><span class="doc">youtube_audio_matcher.download</span></a>, and
+<a class="reference internal" href="youtube_audio_matcher.database.html"><span class="doc">youtube_audio_matcher.database</span></a>, respectively). The main module, detailed
+in the <a class="reference internal" href="#main-module"><span class="std std-ref">Module contents</span></a> section below, contains functions that tie the three
+submodules together to download and fingerprint files, then add them to the
+database or match them against the database.</p>
 <div class="section" id="subpackages">
 <h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="youtube_audio_matcher.audio.html">youtube_audio_matcher.audio package</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="youtube_audio_matcher.audio.html">youtube_audio_matcher.audio</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="youtube_audio_matcher.audio.html#module-youtube_audio_matcher.audio">Module contents</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="youtube_audio_matcher.database.html">youtube_audio_matcher.database package</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="youtube_audio_matcher.database.html">youtube_audio_matcher.database</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="youtube_audio_matcher.database.html#module-youtube_audio_matcher.database">Module contents</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="youtube_audio_matcher.download.html">youtube_audio_matcher.download package</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="youtube_audio_matcher.download.html">youtube_audio_matcher.download</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="youtube_audio_matcher.download.html#module-youtube_audio_matcher.download">Module contents</a></li>
 </ul>
 </li>
@@ -174,7 +199,7 @@
 </div>
 </div>
 <div class="section" id="module-youtube_audio_matcher">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-youtube_audio_matcher" title="Permalink to this headline">¶</a></h2>
+<span id="module-contents"></span><span id="main-module"></span><h2>Module contents<a class="headerlink" href="#module-youtube_audio_matcher" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
 <dt id="youtube_audio_matcher.main">
 <code class="sig-prename descclassname">youtube_audio_matcher.</code><code class="sig-name descname">main</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inputs</span></em>, <em class="sig-param"><span class="n">add_to_database</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">conf_thresh</span><span class="o">=</span><span class="default_value">0.01</span></em>, <em class="sig-param"><span class="n">out_fpath</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">max_processes</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">max_threads</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#youtube_audio_matcher.main" title="Permalink to this definition">¶</a></dt>
@@ -264,7 +289,7 @@ following structure:</p>
         <span class="s2">&quot;num_fingerprints&quot;</span><span class="p">:</span> <span class="nb">int</span>
     <span class="p">},</span>
     <span class="s2">&quot;match_stats&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;num_matching_fingerprints: int,</span>
+        <span class="s2">&quot;num_matching_fingerprints&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="s2">&quot;confidence&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
         <span class="s2">&quot;iou&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
         <span class="s2">&quot;relative_offset&quot;</span><span class="p">:</span> <span class="nb">float</span>
@@ -321,6 +346,15 @@ database match information returned by <a class="reference internal" href="#yout
            
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="youtube_audio_matcher.audio.html" class="btn btn-neutral float-right" title="youtube_audio_matcher.audio" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="fingerprinting.html" class="btn btn-neutral float-left" title="Audio Fingerprinting" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>

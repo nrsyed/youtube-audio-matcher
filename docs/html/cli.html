@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>youtube_audio_matcher &mdash; YouTube Audio Matcher  documentation</title>
+  <title>Command Line Interface &mdash; YouTube Audio Matcher  documentation</title>
   
 
   
@@ -35,7 +35,9 @@
 
     
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="yam" href="yam.html" />
+    <link rel="prev" title="youtube_audio_matcher.download" href="youtube_audio_matcher.download.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -57,6 +59,10 @@
 
           
             
+            
+              <div class="version">
+                0.8
+              </div>
             
           
 
@@ -80,11 +86,22 @@
               
             
             
-              <!-- Local TOC -->
-              <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">youtube_audio_matcher</a></li>
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Setup and Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fingerprinting.html">Audio Fingerprinting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="youtube_audio_matcher.html">Python API</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Command Line Interface</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="yam.html">yam</a></li>
+<li class="toctree-l2"><a class="reference internal" href="yamdb.html">yamdb</a></li>
+<li class="toctree-l2"><a class="reference internal" href="yamdl.html">yamdl</a></li>
+<li class="toctree-l2"><a class="reference internal" href="yamfp.html">yamfp</a></li>
 </ul>
-</div>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="acknowledgments.html">Acknowledgments</a></li>
+</ul>
+
             
           
         </div>
@@ -129,13 +146,13 @@
     
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li>youtube_audio_matcher</li>
+      <li>Command Line Interface</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/modules.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/cli.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -148,27 +165,29 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="youtube-audio-matcher">
-<h1>youtube_audio_matcher<a class="headerlink" href="#youtube-audio-matcher" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="command-line-interface">
+<h1>Command Line Interface<a class="headerlink" href="#command-line-interface" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="youtube_audio_matcher.html">youtube_audio_matcher package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="youtube_audio_matcher.html#subpackages">Subpackages</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="youtube_audio_matcher.audio.html">youtube_audio_matcher.audio package</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="youtube_audio_matcher.audio.html#module-youtube_audio_matcher.audio">Module contents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="yam.html">yam</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="yam.html#usage">Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="yam.html#examples">Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="yam.html#troubleshooting">Troubleshooting</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="youtube_audio_matcher.database.html">youtube_audio_matcher.database package</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="youtube_audio_matcher.database.html#module-youtube_audio_matcher.database">Module contents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="yamdb.html">yamdb</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="yamdb.html#usage">Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="yamdb.html#examples">Examples</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="youtube_audio_matcher.download.html">youtube_audio_matcher.download package</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="youtube_audio_matcher.download.html#module-youtube_audio_matcher.download">Module contents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="yamdl.html">yamdl</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="yamdl.html#usage">Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="yamdl.html#examples">Examples</a></li>
 </ul>
 </li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="youtube_audio_matcher.html#module-youtube_audio_matcher">Module contents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="yamfp.html">yamfp</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="yamfp.html#usage">Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="yamfp.html#examples">Examples</a></li>
 </ul>
 </li>
 </ul>
@@ -180,6 +199,15 @@
            
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="yam.html" class="btn btn-neutral float-right" title="yam" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="youtube_audio_matcher.download.html" class="btn btn-neutral float-left" title="youtube_audio_matcher.download" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>

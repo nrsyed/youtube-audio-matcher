@@ -58,6 +58,10 @@
           
             
             
+              <div class="version">
+                0.8
+              </div>
+            
           
 
           
@@ -80,8 +84,16 @@
               
             
             
-              <!-- Local TOC -->
-              <div class="local-toc"></div>
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Setup and Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fingerprinting.html">Audio Fingerprinting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="youtube_audio_matcher.html">Python API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="acknowledgments.html">Acknowledgments</a></li>
+</ul>
+
             
           
         </div>
@@ -152,10 +164,14 @@
  | <a href="#F"><strong>F</strong></a>
  | <a href="#G"><strong>G</strong></a>
  | <a href="#H"><strong>H</strong></a>
+ | <a href="#I"><strong>I</strong></a>
  | <a href="#M"><strong>M</strong></a>
+ | <a href="#O"><strong>O</strong></a>
  | <a href="#P"><strong>P</strong></a>
  | <a href="#Q"><strong>Q</strong></a>
  | <a href="#R"><strong>R</strong></a>
+ | <a href="#S"><strong>S</strong></a>
+ | <a href="#T"><strong>T</strong></a>
  | <a href="#U"><strong>U</strong></a>
  | <a href="#V"><strong>V</strong></a>
  | <a href="#Y"><strong>Y</strong></a>
@@ -200,23 +216,33 @@
 </li>
       <li><a href="youtube_audio_matcher.database.html#youtube_audio_matcher.database.Database.drop_song_table">drop_song_table() (youtube_audio_matcher.database.Database method)</a>
 </li>
+      <li><a href="youtube_audio_matcher.database.html#youtube_audio_matcher.database.Song.duration">duration (youtube_audio_matcher.database.Song attribute)</a>
+</li>
   </ul></td>
 </tr></table>
 
 <h2 id="F">F</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="youtube_audio_matcher.database.html#youtube_audio_matcher.database.Song.filehash">filehash (youtube_audio_matcher.database.Song attribute)</a>
+</li>
+      <li><a href="youtube_audio_matcher.database.html#youtube_audio_matcher.database.Song.filepath">filepath (youtube_audio_matcher.database.Song attribute)</a>
+</li>
       <li><a href="youtube_audio_matcher.audio.html#youtube_audio_matcher.audio.find_peaks_2d">find_peaks_2d() (in module youtube_audio_matcher.audio)</a>
 </li>
-      <li><a href="youtube_audio_matcher.audio.html#youtube_audio_matcher.audio.fingerprint_from_file">fingerprint_from_file() (in module youtube_audio_matcher.audio)</a>
+      <li><a href="youtube_audio_matcher.database.html#youtube_audio_matcher.database.Fingerprint">Fingerprint (class in youtube_audio_matcher.database)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="youtube_audio_matcher.audio.html#youtube_audio_matcher.audio.fingerprint_from_file">fingerprint_from_file() (in module youtube_audio_matcher.audio)</a>
+</li>
       <li><a href="youtube_audio_matcher.audio.html#youtube_audio_matcher.audio.fingerprint_from_signal">fingerprint_from_signal() (in module youtube_audio_matcher.audio)</a>
 </li>
       <li><a href="youtube_audio_matcher.audio.html#youtube_audio_matcher.audio.fingerprint_song">fingerprint_song() (in module youtube_audio_matcher.audio)</a>
 </li>
       <li><a href="youtube_audio_matcher.audio.html#youtube_audio_matcher.audio.fingerprint_songs">fingerprint_songs() (in module youtube_audio_matcher.audio)</a>
+</li>
+      <li><a href="youtube_audio_matcher.database.html#youtube_audio_matcher.database.Song.fingerprints">fingerprints (youtube_audio_matcher.database.Song attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -240,12 +266,26 @@
 <h2 id="H">H</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="youtube_audio_matcher.audio.html#youtube_audio_matcher.audio.hash_file">hash_file() (in module youtube_audio_matcher.audio)</a>
+      <li><a href="youtube_audio_matcher.database.html#youtube_audio_matcher.database.Fingerprint.hash">hash (youtube_audio_matcher.database.Fingerprint attribute)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="youtube_audio_matcher.audio.html#youtube_audio_matcher.audio.hash_file">hash_file() (in module youtube_audio_matcher.audio)</a>
+</li>
       <li><a href="youtube_audio_matcher.audio.html#youtube_audio_matcher.audio.hash_peaks">hash_peaks() (in module youtube_audio_matcher.audio)</a>
 </li>
+  </ul></td>
+</tr></table>
+
+<h2 id="I">I</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="youtube_audio_matcher.database.html#youtube_audio_matcher.database.Fingerprint.id">id (youtube_audio_matcher.database.Fingerprint attribute)</a>
+
+      <ul>
+        <li><a href="youtube_audio_matcher.database.html#youtube_audio_matcher.database.Song.id">(youtube_audio_matcher.database.Song attribute)</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -264,23 +304,33 @@
       <ul>
         <li><a href="youtube_audio_matcher.html#module-youtube_audio_matcher">youtube_audio_matcher</a>
 </li>
-        <li><a href="index.html#module-youtube_audio_matcher.audio">youtube_audio_matcher.audio</a>, <a href="youtube_audio_matcher.audio.html#module-youtube_audio_matcher.audio">[1]</a>
+        <li><a href="youtube_audio_matcher.audio.html#module-youtube_audio_matcher.audio">youtube_audio_matcher.audio</a>
 </li>
-        <li><a href="index.html#module-youtube_audio_matcher.database">youtube_audio_matcher.database</a>, <a href="youtube_audio_matcher.database.html#module-youtube_audio_matcher.database">[1]</a>
+        <li><a href="youtube_audio_matcher.database.html#module-youtube_audio_matcher.database">youtube_audio_matcher.database</a>
 </li>
-        <li><a href="index.html#module-youtube_audio_matcher.download">youtube_audio_matcher.download</a>, <a href="youtube_audio_matcher.download.html#module-youtube_audio_matcher.download">[1]</a>
+        <li><a href="youtube_audio_matcher.download.html#module-youtube_audio_matcher.download">youtube_audio_matcher.download</a>
 </li>
       </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="O">O</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="youtube_audio_matcher.database.html#youtube_audio_matcher.database.Fingerprint.offset">offset (youtube_audio_matcher.database.Fingerprint attribute)</a>
+</li>
   </ul></td>
 </tr></table>
 
 <h2 id="P">P</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="youtube_audio_matcher.audio.html#youtube_audio_matcher.audio.plot_peaks">plot_peaks() (in module youtube_audio_matcher.audio)</a>
+      <li><a href="youtube_audio_matcher.audio.html#youtube_audio_matcher.audio.plot_fingerprints">plot_fingerprints() (in module youtube_audio_matcher.audio)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="youtube_audio_matcher.audio.html#youtube_audio_matcher.audio.plot_peaks">plot_peaks() (in module youtube_audio_matcher.audio)</a>
+</li>
       <li><a href="youtube_audio_matcher.audio.html#youtube_audio_matcher.audio.plot_spectrogram">plot_spectrogram() (in module youtube_audio_matcher.audio)</a>
 </li>
   </ul></td>
@@ -306,6 +356,26 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="youtube_audio_matcher.download.html#youtube_audio_matcher.download.run_download_channels">run_download_channels() (in module youtube_audio_matcher.download)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="S">S</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="youtube_audio_matcher.database.html#youtube_audio_matcher.database.Song">Song (class in youtube_audio_matcher.database)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="youtube_audio_matcher.database.html#youtube_audio_matcher.database.Fingerprint.song_id">song_id (youtube_audio_matcher.database.Fingerprint attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="T">T</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="youtube_audio_matcher.database.html#youtube_audio_matcher.database.Song.title">title (youtube_audio_matcher.database.Song attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -346,7 +416,7 @@
     youtube_audio_matcher.audio
 
       <ul>
-        <li><a href="index.html#module-youtube_audio_matcher.audio">module</a>, <a href="youtube_audio_matcher.audio.html#module-youtube_audio_matcher.audio">[1]</a>
+        <li><a href="youtube_audio_matcher.audio.html#module-youtube_audio_matcher.audio">module</a>
 </li>
       </ul></li>
   </ul></td>
@@ -355,16 +425,18 @@
     youtube_audio_matcher.database
 
       <ul>
-        <li><a href="index.html#module-youtube_audio_matcher.database">module</a>, <a href="youtube_audio_matcher.database.html#module-youtube_audio_matcher.database">[1]</a>
+        <li><a href="youtube_audio_matcher.database.html#module-youtube_audio_matcher.database">module</a>
 </li>
       </ul></li>
       <li>
     youtube_audio_matcher.download
 
       <ul>
-        <li><a href="index.html#module-youtube_audio_matcher.download">module</a>, <a href="youtube_audio_matcher.download.html#module-youtube_audio_matcher.download">[1]</a>
+        <li><a href="youtube_audio_matcher.download.html#module-youtube_audio_matcher.download">module</a>
 </li>
       </ul></li>
+      <li><a href="youtube_audio_matcher.database.html#youtube_audio_matcher.database.Song.youtube_id">youtube_id (youtube_audio_matcher.database.Song attribute)</a>
+</li>
   </ul></td>
 </tr></table>
 

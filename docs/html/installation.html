@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>YouTube Audio Matcher Documentation &mdash; YouTube Audio Matcher  documentation</title>
+  <title>Setup and Installation &mdash; YouTube Audio Matcher  documentation</title>
   
 
   
@@ -36,7 +36,8 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Setup and Installation" href="installation.html" /> 
+    <link rel="next" title="Architecture" href="architecture.html" />
+    <link rel="prev" title="YouTube Audio Matcher Documentation" href="index.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -50,7 +51,7 @@
           
 
           
-            <a href="#" class="icon icon-home" alt="Documentation Home"> YouTube Audio Matcher
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> YouTube Audio Matcher
           
 
           
@@ -86,8 +87,12 @@
             
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="installation.html">Setup and Installation</a></li>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Setup and Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="fingerprinting.html">Audio Fingerprinting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="youtube_audio_matcher.html">Python API</a></li>
@@ -108,7 +113,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="#">YouTube Audio Matcher</a>
+          <a href="index.html">YouTube Audio Matcher</a>
         
       </nav>
 
@@ -137,15 +142,15 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="#" class="icon icon-home"></a> &raquo;</li>
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li>YouTube Audio Matcher Documentation</li>
+      <li>Setup and Installation</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/installation.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -158,32 +163,43 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="youtube-audio-matcher-documentation">
-<h1>YouTube Audio Matcher Documentation<a class="headerlink" href="#youtube-audio-matcher-documentation" title="Permalink to this headline">¶</a></h1>
-<div class="toctree-wrapper compound">
-<p class="caption"><span class="caption-text">Contents:</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="installation.html">Setup and Installation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="installation.html#requirements">Requirements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="installation.html#installation">Installation</a></li>
+  <div class="section" id="setup-and-installation">
+<h1>Setup and Installation<a class="headerlink" href="#setup-and-installation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Python ≥ 3.6</p></li>
+<li><p><a class="reference external" href="https://www.chromium.org">Chromium</a> or
+<a class="reference external" href="https://www.google.com/chrome/">Google Chrome</a> browser, and
+<a class="reference external" href="http://chromedriver.chromium.org/home">ChromeDriver</a></p></li>
+<li><p><a class="reference external" href="https://ffmpeg.org/download.html">FFmpeg</a></p></li>
+<li><p>PostgreSQL or MySQL client/driver; see list of
+<a class="reference external" href="https://docs.sqlalchemy.org/en/13/core/engines.html">SQLAlchemy–supported drivers/backends</a></p></li>
 </ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
-<li class="toctree-l1"><a class="reference internal" href="fingerprinting.html">Audio Fingerprinting</a></li>
-<li class="toctree-l1"><a class="reference internal" href="youtube_audio_matcher.html">Python API</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="youtube_audio_matcher.html#subpackages">Subpackages</a></li>
-<li class="toctree-l2"><a class="reference internal" href="youtube_audio_matcher.html#module-youtube_audio_matcher">Module contents</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="cli.html">Command Line Interface</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="yam.html">yam</a></li>
-<li class="toctree-l2"><a class="reference internal" href="yamdb.html">yamdb</a></li>
-<li class="toctree-l2"><a class="reference internal" href="yamdl.html">yamdl</a></li>
-<li class="toctree-l2"><a class="reference internal" href="yamfp.html">yamfp</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="acknowledgments.html">Acknowledgments</a></li>
-</ul>
+</div>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p>First, install the Python package.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/nrsyed/youtube-audio-matcher.git
+<span class="nb">cd</span> youtube-audio-matcher
+pip install .
+</pre></div>
+</div>
+<p>Next, install a PostgreSQL or MySQL client and development files. These must
+be installed before SQLAlchemy is installed with <code class="docutils literal notranslate"><span class="pre">pip</span></code>, as the
+<code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span></code> requires these to build the relevant Python packages. Example
+instructions for installing PostgreSQL/psycopg2 and MySQL/mysqlclient on Ubuntu
+are shown below.</p>
+<p><strong>PostgreSQL and psycopg2</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo apt install libpq-dev
+pip install psycopg2
+</pre></div>
+</div>
+<p><strong>MySQL and mysqlclient</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo apt install libmysqlclient-dev mysql-client-core-8.0
+pip install mysqlclient
+</pre></div>
+</div>
 </div>
 </div>
 
@@ -195,8 +211,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="installation.html" class="btn btn-neutral float-right" title="Setup and Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="architecture.html" class="btn btn-neutral float-right" title="Architecture" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="YouTube Audio Matcher Documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

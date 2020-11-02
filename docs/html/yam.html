@@ -1,0 +1,528 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>yam &mdash; YouTube Audio Matcher  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="yamdb" href="yamdb.html" />
+    <link rel="prev" title="Command Line Interface" href="cli.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> YouTube Audio Matcher
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.8
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Setup and Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fingerprinting.html">Audio Fingerprinting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="youtube_audio_matcher.html">Python API</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="cli.html">Command Line Interface</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">yam</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#usage">Usage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#troubleshooting">Troubleshooting</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#high-ram-usage">High RAM usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#too-many-requests">429 Too Many Requests</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="yamdb.html">yamdb</a></li>
+<li class="toctree-l2"><a class="reference internal" href="yamdl.html">yamdl</a></li>
+<li class="toctree-l2"><a class="reference internal" href="yamfp.html">yamfp</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="acknowledgments.html">Acknowledgments</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">YouTube Audio Matcher</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="cli.html">Command Line Interface</a> &raquo;</li>
+        
+      <li>yam</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/yam.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="yam">
+<h1>yam<a class="headerlink" href="#yam" title="Permalink to this headline">¶</a></h1>
+<p>The <strong>Y</strong>outube <strong>A</strong>udio <strong>M</strong>atcher command line tool <code class="docutils literal notranslate"><span class="pre">yam</span></code>
+is the package’s main command line utility. It combines the functionality of
+the <a class="reference internal" href="youtube_audio_matcher.download.html"><span class="doc">youtube_audio_matcher.download</span></a>, <a class="reference internal" href="youtube_audio_matcher.audio.html"><span class="doc">youtube_audio_matcher.audio</span></a>,
+and <a class="reference internal" href="youtube_audio_matcher.database.html"><span class="doc">youtube_audio_matcher.database</span></a> modules to download videos as audio
+from YouTube channels/users as MP files3, obtain the audio fingerprint of
+downloaded files (or local files), and add the fingerprints to a database or
+match the fingerprints against existing fingerprints in a database.</p>
+<p>Most of the options available for <code class="docutils literal notranslate"><span class="pre">yam</span></code> (detailed below in the
+<a class="reference internal" href="#yam-usage"><span class="std std-ref">Usage</span></a> section) are the same as those found in the individual
+sub-module command line tools <a class="reference internal" href="yamdl.html"><span class="doc">yamdl</span></a>, <a class="reference internal" href="yamfp.html"><span class="doc">yamfp</span></a>, and <a class="reference internal" href="yamdb.html"><span class="doc">yamdb</span></a>.</p>
+<div class="section" id="usage">
+<span id="yam-usage"></span><h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>usage: yam [-h] [-N &lt;database_name&gt;] [-C &lt;dialect&gt;] [-R &lt;driver&gt;] [-H &lt;host&gt;]
+           [-P &lt;password&gt;] [-O &lt;port&gt;] [-U &lt;username&gt;] [-d &lt;path&gt;]
+           [-L &lt;seconds&gt;] [-S &lt;seconds&gt;] [-i] [-p &lt;seconds&gt;] [-r &lt;num&gt;] [-y]
+           [--start &lt;seconds&gt;] [--end &lt;seconds&gt;] [--duration &lt;seconds&gt;]
+           [--erosion-iterations &lt;int&gt;] [-f &lt;int&gt;]
+           [--filter-connectivity {1,2}] [--filter-dilation &lt;int&gt;] [-l &lt;int&gt;]
+           [--max-time-delta &lt;float&gt;] [--min-time-delta &lt;float&gt;] [-a &lt;dB&gt;]
+           [--spectrogram-backend {scipy,matplotlib}]
+           [--win-overlap-ratio &lt;float&gt;] [--win-size &lt;int&gt;] [-A] [-c &lt;float&gt;]
+           [-D] [--max-processes &lt;num&gt;] [--max-threads &lt;num&gt;] [-o [path]]
+           [--debug] [-s]
+           inputs [inputs ...]
+
+positional arguments:
+  inputs                One or more space-separated input sources (YouTube
+                        channel/user URL, local path to audio file, or local
+                        path to a directory of audio files)
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -A, --add-to-database
+                        Add files to the database after fingerprinting instead
+                        of searching the database for matches (default: False)
+  -c &lt;float&gt;, --conf-thresh &lt;float&gt;
+                        Confidence threshold for matches (default: 0.05)
+  -D, --delete          Delete downloaded files after fingerprinting (default:
+                        False)
+  --max-processes &lt;num&gt;
+                        Max number of CPUs for parallel processing (default:
+                        None)
+  --max-threads &lt;num&gt;   Max number of threads for concurrent tasks (default:
+                        None)
+  -o [path], --output [path]
+                        Path to output file containing matches in JSON format;
+                        if this option is provided without an argument, a
+                        timestamped filename is generated and written to the
+                        current directory (default: None)
+
+database arguments:
+  -N &lt;database_name&gt;, --db-name &lt;database_name&gt;
+                        Database name (default: yam)
+  -C &lt;dialect&gt;, --dialect &lt;dialect&gt;
+                        SQL dialect (default: postgresql)
+  -R &lt;driver&gt;, --driver &lt;driver&gt;
+                        SQL dialect driver (default: None)
+  -H &lt;host&gt;, --host &lt;host&gt;
+                        Database hostname (default: localhost)
+  -P &lt;password&gt;, --password &lt;password&gt;
+                        Database password (default: None)
+  -O &lt;port&gt;, --port &lt;port&gt;
+                        Database port number (default: None)
+  -U &lt;username&gt;, --user &lt;username&gt;
+                        Database user name (default: None)
+
+download arguments:
+  -d &lt;path&gt;, --dst-dir &lt;path&gt;
+                        Path to destination directory for downloaded files
+                        (default: .)
+  -L &lt;seconds&gt;, --exclude-longer-than &lt;seconds&gt;
+                        Do not download/convert videos longer than specified
+                        duration. This does NOT truncate videos to a maximum
+                        desired length; to extract or truncate specific
+                        segments of audio from downloaded videos, use --start,
+                        --end, and/or --duration (default: None)
+  -S &lt;seconds&gt;, --exclude-shorter-than &lt;seconds&gt;
+                        Do not download/convert videos shorter than specified
+                        duration (default: None)
+  -i, --ignore-existing
+                        Do not download files that already exist (default:
+                        False)
+  -p &lt;seconds&gt;, --page-load-wait &lt;seconds&gt;
+                        Time to wait (in seconds) to allow page to load on
+                        initial page load and and after each page scroll
+                        (default: 1)
+  -r &lt;num&gt;, --retries &lt;num&gt;
+                        Number of times to re-attempt failed downloads. Pass
+                        -1 to retry indefinitely until successful (default: 5)
+  -y, --youtubedl-verbose
+                        Enable youtube-dl and ffmpeg terminal output (default:
+                        False)
+  --start &lt;seconds&gt;     Extract audio beginning at the specified video time
+                        (in seconds) (default: None)
+  --end &lt;seconds&gt;       Extract audio up to the specified video time (in
+                        seconds) (default: None)
+  --duration &lt;seconds&gt;  Duration (in seconds) of audio to extract beginning at
+                        0 if --start not specified, otherwise at --start. If
+                        --duration is used with --end, --duration takes
+                        precedence. (default: None)
+
+fingerprint arguments:
+  --erosion-iterations &lt;int&gt;
+                        Number of times to apply binary erosion for peak
+                        finding (default: 1)
+  -f &lt;int&gt;, --fanout &lt;int&gt;
+                        Number of adjacent peaks to consider for generating
+                        hashes (default: 10)
+  --filter-connectivity {1,2}
+                        Max filter neighborhood connectivity for peak finding
+                        (default: 1)
+  --filter-dilation &lt;int&gt;
+                        Max filter dilation (neighborhood size) for peak
+                        finding (default: 10)
+  -l &lt;int&gt;, --hash-length &lt;int&gt;
+                        Truncate fingerprint SHA1 hashes to --hash-length (max
+                        40) (default: 40)
+  --max-time-delta &lt;float&gt;
+                        Target zone max time offset difference for hashes
+                        (default: 100)
+  --min-time-delta &lt;float&gt;
+                        Target zone min time offset difference for hashes
+                        (default: 0)
+  -a &lt;dB&gt;, --min-amplitude &lt;dB&gt;
+                        Spectogram peak minimum amplitude in dB (default: 10)
+  --spectrogram-backend {scipy,matplotlib}
+                        Library to use for computing spectrogram (default:
+                        scipy)
+  --win-overlap-ratio &lt;float&gt;
+                        Window overlap as a fraction of window size, in the
+                        range [0, 1) (default: 0.5)
+  --win-size &lt;int&gt;      Number of samples per FFT window (default: 4096)
+
+Verbosity arguments:
+  --debug               Print verbose debugging info (default: False)
+  -s, --silent          Suppress youtube-audio-matcher terminal output
+                        (default: False)
+</pre></div>
+</div>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<p>To add songs to the database, provide the <code class="docutils literal notranslate"><span class="pre">-A</span></code>/<code class="docutils literal notranslate"><span class="pre">--add-to-database</span></code> switch
+along with any number of YouTube channel/user URLs and/or any number of paths
+to local audio files or local directories containing audio files. The following
+example demonstrates the command for adding a local file <code class="docutils literal notranslate"><span class="pre">file1.mp3</span></code>, all
+files from a local directory <code class="docutils literal notranslate"><span class="pre">sample_directory</span></code>, and a YouTube channel to a
+PostgreSQL database (with the credentials <cite>user</cite> = <code class="docutils literal notranslate"><span class="pre">yam</span></code>,
+<cite>database name</cite> = <code class="docutils literal notranslate"><span class="pre">yam</span></code>, <cite>databse password</cite> = <code class="docutils literal notranslate"><span class="pre">yam</span></code>), as well as sample
+terminal output:</p>
+<p><em>Command</em></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>yam -A www.youtube.com/c/sample_channel file1.mp3 sample_directory <span class="se">\</span>
+-U yam -N yam -P yam
+</pre></div>
+</div>
+<p><em>Output</em></p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[INFO] Fingerprinted /home/sample_directory/file3.mp3 (44570 hashes)
+[INFO] Fingerprinted /home/sample_directory/file2.mp3 (89020 hashes)
+[INFO] Fingerprinted /home/file1.mp3 (216960 hashes)
+[INFO] Successfully downloaded /home/Z6_7orLq0D.mp3
+[INFO] Added /home/sample_directory/file3.mp3 to database (4.56 s)
+[INFO] Fingerprinted /home/Z6_7orLq0D.mp3 (75470 hashes)
+[INFO] Successfully downloaded /home/s71A5oUut3.mp3
+[INFO] Successfully downloaded /home/wFoxOcQU60.mp3
+[INFO] Added /home/sample_directory/file2.mp3 to database (9.04 s)
+[INFO] Fingerprinted /home/wFoxOcQU60.mp3 (89020 hashes)
+[INFO] Fingerprinted /home/s71A5oUut3.mp3 (216960 hashes)
+[INFO] Added /home/Z6_7orLq0D.mp3 to database (8.06 s)
+[INFO] Added /home/wFoxOcQU60.mp3 to database (8.89 s)
+[INFO] Added /home/file1.mp3 to database (21.22 s)
+[INFO] Added /home/s71A5oUut3.mp3 to database (19.88 s)
+[INFO] All songs added to database (25.13 s)
+</pre></div>
+</div>
+<p>To match songs against those already in the database, omit the
+<code class="docutils literal notranslate"><span class="pre">-A</span></code> switch. To delete any downloaded songs after they’ve been fingerprinted,
+include the <code class="docutils literal notranslate"><span class="pre">-D</span></code>/<code class="docutils literal notranslate"><span class="pre">--delete</span></code> switch. The following command fingerprints a
+local file <cite>file4.mp3</cite> and the audio from all videos on two YouTube
+users/channels, compares them to the database, and prints any matches to the
+terminal (as well as deletes the downloaded files):</p>
+<p><em>Command</em></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>yam youtube.com/c/some_channel youtube.com/u/some_user file4.mp3 <span class="se">\</span>
+  -D -U yam -N yam -P yam
+</pre></div>
+</div>
+<p><em>Output</em></p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[INFO] Fingerprinted /home/file4.mp3 (11520 hashes)
+[INFO] Matching fingerprints for /home/file4.mp3
+[INFO] Successfully downloaded /home/pzvDf_H7db.mp3
+[INFO] Successfully downloaded /home/Rv4nWAZw8V.mp3
+[INFO] Successfully downloaded /home/iPTmeNCao7.mp3
+[INFO] Fingerprinted /home/pzvDf_H7db.mp3 (32650 hashes)
+[INFO] Matching fingerprints for /home/pzvDf_H7db.mp3
+[INFO] Fingerprinted /home/Rv4nWAZw8V.mp3 (22520 hashes)
+[INFO] Matching fingerprints for /home/Rv4nWAZw8V.mp3
+[INFO] Fingerprinted /home/iPTmeNCao7.mp3 (73860 hashes)
+[INFO] Matching fingerprints for /home/iPTmeNCao7.mp3
+[INFO] Finished matching fingerprints for /home/file4.mp3 in 10.28 s
+[INFO] Finished matching fingerprints for /home/Rv4nWAZw8V.mp3 in 2.68 s
+[INFO] Finished matching fingerprints for /home/iPTmeNCao7.mp3 in 7.21 s
+[INFO] Finished matching fingerprints for /home/pzvDf_H7db.mp3 in 10.14 s
+[INFO] Match 1:
+{
+    &quot;youtube_id&quot;: null,
+    &quot;title&quot;: null,
+    &quot;duration&quot;: null,
+    &quot;channel_url&quot;: null,
+    &quot;path&quot;: &quot;/home/file4.mp3&quot;,
+    &quot;filehash&quot;: &quot;e0bf9d28e9b2409b7ad181b97f532569d27c9633&quot;,
+    &quot;num_fingerprints&quot;: 11520,
+    &quot;matching_song&quot;: {
+        &quot;id&quot;: 8,
+        &quot;duration&quot;: 436.0,
+        &quot;filehash&quot;: &quot;c12b119ab98caee4a24eef5e7b3f4d7bf2b38f99&quot;,
+        &quot;filepath&quot;: &quot;/home/song2.mp3&quot;,
+        &quot;title&quot;: null,
+        &quot;youtube_id&quot;: null,
+        &quot;num_fingerprints&quot;: 812890
+    },
+    &quot;match_stats&quot;: {
+        &quot;num_matching_fingerprints&quot;: 3352,
+        &quot;confidence&quot;: 0.29097222222222224,
+        &quot;iou&quot;: 0.004082537409050274,
+        &quot;relative_offset&quot;: 300.0
+    }
+}
+
+[INFO] Match 2:
+{
+    &quot;youtube_id&quot;: &quot;iPTmeNCao7&quot;,
+    &quot;title&quot;: &quot;Sample YT video title&quot;,
+    &quot;duration&quot;: 177,
+    &quot;channel_url&quot;: &quot;https://www.youtube.com/c/some_channel/videos&quot;,
+    &quot;path&quot;: &quot;/home/iPTmeNCao7.mp3&quot;,
+    &quot;filehash&quot;: &quot;6b59b4c301de5ad3f7dddcdb78fbf62bd1618cab&quot;,
+    &quot;num_fingerprints&quot;: 73860,
+    &quot;matching_song&quot;: {
+        &quot;id&quot;: 3,
+        &quot;duration&quot;: 155.0,
+        &quot;filehash&quot;: &quot;6ba1139a7fc8cde33ff30065b45ed3c9f457f5a6&quot;,
+        &quot;filepath&quot;: &quot;/home/a92_Uxy5mq.mp3&quot;,
+        &quot;title&quot;: &quot;Some other video on youtube&quot;,
+        &quot;youtube_id&quot;: &quot;a92_Uxy5mq&quot;,
+        &quot;num_fingerprints&quot;: 216960
+    },
+    &quot;match_stats&quot;: {
+        &quot;num_matching_fingerprints&quot;: 73821,
+        &quot;confidence&quot;: 0.9994719740048741,
+        &quot;iou&quot;: 0.3401905077903585,
+        &quot;relative_offset&quot;: 0.0
+    }
+}
+</pre></div>
+</div>
+<p>The output contains matches (if any) as well as information on each match,
+including the <cite>confidence</cite> (number of matching fingerprints divided by total
+number of fingerprints in the input song) and <cite>relative_offset</cite> (which part of
+the matched song the input song corresponds to, in seconds); in other words, a
+<cite>relative_offset</cite> of 300 means that the beginning of the input song corresponds
+to the 300-second mark in the matched song from the database.</p>
+<p>The confidence threshold for determining what’s considered a match can be
+adjusted using the <code class="docutils literal notranslate"><span class="pre">-c</span></code>/<code class="docutils literal notranslate"><span class="pre">--confidence</span></code> option. To write the matches to a
+text file, use the <code class="docutils literal notranslate"><span class="pre">-o</span></code>/<code class="docutils literal notranslate"><span class="pre">--output</span></code> option:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>yam youtube.com/c/some_channel youtube.com/u/some_user file4.mp3 <span class="se">\</span>
+  -D -U yam -N yam -P yam -c <span class="m">0</span>.25 -o matches.txt
+</pre></div>
+</div>
+</div>
+<div class="section" id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="high-ram-usage">
+<h3>High RAM usage<a class="headerlink" href="#high-ram-usage" title="Permalink to this headline">¶</a></h3>
+<p>Because the <code class="docutils literal notranslate"><span class="pre">yam</span></code> command uses all available CPUs to compute and match
+fingerprints and each set of fingerprints consumes a certain amount of memory,
+running the command on a large number of songs with a large number of available
+CPUs may end up using up all available RAM. If this becomes an issue, limit the
+number of processes with the <code class="docutils literal notranslate"><span class="pre">--max-processes</span></code> option.</p>
+</div>
+<div class="section" id="too-many-requests">
+<h3>429 Too Many Requests<a class="headerlink" href="#too-many-requests" title="Permalink to this headline">¶</a></h3>
+<p>YouTube sometimes detects and prevents a large number of simultaneous
+downloads, which can cause the youtube-dl download attempt to fail. By default,
+<code class="docutils literal notranslate"><span class="pre">yam</span></code> will retry any failed downloads up to (a default of) 5 times, but this
+number can be adjusted with the <code class="docutils literal notranslate"><span class="pre">-r</span></code>/<code class="docutils literal notranslate"><span class="pre">--retries</span></code> option. If downloads are
+still failing due to a <cite>429 Too Many Requests</cite> HTTP error, you can try limiting
+the number of concurrent downloads by specifying a maximum number of threads
+with the <code class="docutils literal notranslate"><span class="pre">--max-threads</span></code> option (all downloads are handled by a thread pool).</p>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="yamdb.html" class="btn btn-neutral float-right" title="yamdb" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="cli.html" class="btn btn-neutral float-left" title="Command Line Interface" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Najam R Syed
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

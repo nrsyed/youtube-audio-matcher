@@ -1,0 +1,267 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Architecture &mdash; YouTube Audio Matcher  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Audio Fingerprinting" href="fingerprinting.html" />
+    <link rel="prev" title="Setup and Installation" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> YouTube Audio Matcher
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.8
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Setup and Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fingerprinting.html">Audio Fingerprinting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="youtube_audio_matcher.html">Python API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="acknowledgments.html">Acknowledgments</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">YouTube Audio Matcher</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Architecture</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/architecture.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="architecture">
+<h1>Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h1>
+<p>Youtube Audio Matcher (YAM) leverages Python asynchronous functions and
+coroutines, combined with multithreading and multiprocessing, to efficiently
+download and/or process files, summarized in the flow diagram below.</p>
+<img alt="_images/yam_diagram.png" src="_images/yam_diagram.png" />
+<p>Any number of YouTube channel/user URLs and local files/directories can be
+provided as input. In the example above, these are labeled <cite>URL 1</cite>, <cite>URL 2</cite>,
+<cite>File 1</cite>, and <cite>File 2</cite>. URLs can be any valid channel/user URL. The
+channel/user Videos page URL is constructed from this URL by
+<a class="reference internal" href="youtube_audio_matcher.download.html#youtube_audio_matcher.download.get_videos_page_url" title="youtube_audio_matcher.download.get_videos_page_url"><code class="xref py py-func docutils literal notranslate"><span class="pre">youtube_audio_matcher.download.get_videos_page_url()</span></code></a>.</p>
+<p>The URLs are passed to a webscraping coroutine—the
+<cite>get video metadata from page source</cite> block in the diagram, which corresponds
+to <a class="reference internal" href="youtube_audio_matcher.download.html#youtube_audio_matcher.download.video_metadata_from_urls" title="youtube_audio_matcher.download.video_metadata_from_urls"><code class="xref py py-func docutils literal notranslate"><span class="pre">youtube_audio_matcher.download.video_metadata_from_urls()</span></code></a>—
+asynchronously gets (via <a class="reference external" href="https://github.com/SeleniumHQ/selenium/">Selenium</a>) and parses (via <a class="reference external" href="https://www.crummy.com/software/BeautifulSoup/">BeautifulSoup</a>)
+the complete page source for each URL and extracts information on each video
+on the channel/user Videos page, namely the YouTube ID, duration, title. The
+videos are filtered based on criteria supplied by the user (e.g., exclude
+videos longer and/or shorter than a certain duration), after which they’re
+added to a download queue.</p>
+<p>A download coroutine—<cite>download videos as mp3</cite> in the diagram, which
+corresponds to <a class="reference internal" href="youtube_audio_matcher.download.html#youtube_audio_matcher.download.download_video_mp3s" title="youtube_audio_matcher.download.download_video_mp3s"><code class="xref py py-func docutils literal notranslate"><span class="pre">youtube_audio_matcher.download.download_video_mp3s()</span></code></a>—
+kicks off each download in a thread pool, in which each video is downloaded
+via youtube-dl and converted to MP3 by ffmpeg. Although encoding to MP3 by
+ffmpeg is a CPU task and would theoretically benefit from multiprocessing,
+we use a thread pool instead of the process pool because the computational
+cost of encoding the MP3 is relatively small and its impact on performance
+is negligible.</p>
+<p>As each download completes, it’s added to a fingerprint queue. Any local files
+provided as input are added directly to the fingerprint queue, since they
+don’t need to be downloaded. A third coroutine—<cite>fingerprint songs</cite>,
+corresponding to <a class="reference internal" href="youtube_audio_matcher.audio.html#youtube_audio_matcher.audio.fingerprint_songs" title="youtube_audio_matcher.audio.fingerprint_songs"><code class="xref py py-func docutils literal notranslate"><span class="pre">youtube_audio_matcher.audio.fingerprint_songs()</span></code></a>—
+consumes songs from the fingerprint queue and sends them to a process pool,
+where they are fingerprinted (see <a class="reference internal" href="fingerprinting.html"><span class="doc">Audio Fingerprinting</span></a>) using all available
+CPUs (see <a class="reference internal" href="youtube_audio_matcher.audio.html#youtube_audio_matcher.audio.fingerprint_from_file" title="youtube_audio_matcher.audio.fingerprint_from_file"><code class="xref py py-func docutils literal notranslate"><span class="pre">youtube_audio_matcher.audio.fingerprint_from_file()</span></code></a>). After
+fingerprinting, each video is added to a database queue.</p>
+<p>If the user opted to add songs to the database, the fingerprinted files are
+passed to a coroutine (<cite>add songs to database</cite>, corresponding to
+<a class="reference internal" href="youtube_audio_matcher.database.html#youtube_audio_matcher.database.update_database" title="youtube_audio_matcher.database.update_database"><code class="xref py py-func docutils literal notranslate"><span class="pre">youtube_audio_matcher.database.update_database()</span></code></a>) that uses the process
+pool to add the new songs/fingerprints to the database.</p>
+<p>If the user instead opted to match the input songs against the fingerprints
+already in the database, the songs are passed to a coroutine that uses the
+process pool to query the database and determine if there’s a match
+(<cite>match songs against database</cite>, corresponding to
+<a class="reference internal" href="youtube_audio_matcher.html#youtube_audio_matcher.match_songs" title="youtube_audio_matcher.match_songs"><code class="xref py py-func docutils literal notranslate"><span class="pre">youtube_audio_matcher.match_songs()</span></code></a> and
+<a class="reference internal" href="youtube_audio_matcher.html#youtube_audio_matcher.match_fingerprints" title="youtube_audio_matcher.match_fingerprints"><code class="xref py py-func docutils literal notranslate"><span class="pre">youtube_audio_matcher.match_fingerprints()</span></code></a>). All matches are returned
+and optionally written to a text file as JSON.</p>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="fingerprinting.html" class="btn btn-neutral float-right" title="Audio Fingerprinting" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="installation.html" class="btn btn-neutral float-left" title="Setup and Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Najam R Syed
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

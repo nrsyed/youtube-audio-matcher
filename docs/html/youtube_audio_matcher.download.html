@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>youtube_audio_matcher.download package &mdash; YouTube Audio Matcher  documentation</title>
+  <title>youtube_audio_matcher.download &mdash; YouTube Audio Matcher  documentation</title>
   
 
   
@@ -35,7 +35,9 @@
 
     
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Command Line Interface" href="cli.html" />
+    <link rel="prev" title="youtube_audio_matcher.database" href="youtube_audio_matcher.database.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -57,6 +59,10 @@
 
           
             
+            
+              <div class="version">
+                0.8
+              </div>
             
           
 
@@ -80,14 +86,28 @@
               
             
             
-              <!-- Local TOC -->
-              <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">youtube_audio_matcher.download package</a><ul>
-<li><a class="reference internal" href="#module-youtube_audio_matcher.download">Module contents</a></li>
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Setup and Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fingerprinting.html">Audio Fingerprinting</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="youtube_audio_matcher.html">Python API</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="youtube_audio_matcher.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="youtube_audio_matcher.audio.html">youtube_audio_matcher.audio</a></li>
+<li class="toctree-l3"><a class="reference internal" href="youtube_audio_matcher.database.html">youtube_audio_matcher.database</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">youtube_audio_matcher.download</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#module-youtube_audio_matcher.download">Module contents</a></li>
 </ul>
 </li>
 </ul>
-</div>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="youtube_audio_matcher.html#module-youtube_audio_matcher">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="acknowledgments.html">Acknowledgments</a></li>
+</ul>
+
             
           
         </div>
@@ -132,7 +152,9 @@
     
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li>youtube_audio_matcher.download package</li>
+          <li><a href="youtube_audio_matcher.html">Python API</a> &raquo;</li>
+        
+      <li>youtube_audio_matcher.download</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -151,8 +173,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="youtube-audio-matcher-download-package">
-<h1>youtube_audio_matcher.download package<a class="headerlink" href="#youtube-audio-matcher-download-package" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="youtube-audio-matcher-download">
+<h1>youtube_audio_matcher.download<a class="headerlink" href="#youtube-audio-matcher-download" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="module-youtube_audio_matcher.download">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-youtube_audio_matcher.download" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
@@ -180,18 +202,12 @@ it has been downloaded.</p></li>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><dl class="simple">
 <dt>(get_videos_task, download_task)</dt><dd><ul class="simple">
-<li><dl class="simple">
-<dt>get_videos_task (coroutine): Async coroutine that grabs videos</dt><dd><p>from <code class="docutils literal notranslate"><span class="pre">urls</span></code> and adds them to a download queue. See
-<a class="reference internal" href="#youtube_audio_matcher.download.video_metadata_from_urls" title="youtube_audio_matcher.download.video_metadata_from_urls"><code class="xref py py-func docutils literal notranslate"><span class="pre">video_metadata_from_urls()</span></code></a>.</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>download_task (coroutine): Async coroutine that downloads videos</dt><dd><p>from the download queue populated by <code class="docutils literal notranslate"><span class="pre">get_videos_task</span></code>. See
-<a class="reference internal" href="#youtube_audio_matcher.download.download_video_mp3s" title="youtube_audio_matcher.download.download_video_mp3s"><code class="xref py py-func docutils literal notranslate"><span class="pre">download_video_mp3s()</span></code></a>.</p>
-</dd>
-</dl>
-</li>
+<li><p>get_videos_task (coroutine): Async coroutine that grabs videos
+from <code class="docutils literal notranslate"><span class="pre">urls</span></code> and adds them to a download queue. See
+<a class="reference internal" href="#youtube_audio_matcher.download.video_metadata_from_urls" title="youtube_audio_matcher.download.video_metadata_from_urls"><code class="xref py py-func docutils literal notranslate"><span class="pre">video_metadata_from_urls()</span></code></a>.</p></li>
+<li><p>download_task (coroutine): Async coroutine that downloads videos
+from the download queue populated by <code class="docutils literal notranslate"><span class="pre">get_videos_task</span></code>. See
+<a class="reference internal" href="#youtube_audio_matcher.download.download_video_mp3s" title="youtube_audio_matcher.download.download_video_mp3s"><code class="xref py py-func docutils literal notranslate"><span class="pre">download_video_mp3s()</span></code></a>.</p></li>
 </ul>
 </dd>
 </dl>
@@ -501,6 +517,15 @@ video processed by this coroutine.</p>
            
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="cli.html" class="btn btn-neutral float-right" title="Command Line Interface" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="youtube_audio_matcher.database.html" class="btn btn-neutral float-left" title="youtube_audio_matcher.database" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>
