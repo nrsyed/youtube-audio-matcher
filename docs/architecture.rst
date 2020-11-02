@@ -16,9 +16,9 @@ channel/user Videos page URL is constructed from this URL by
 The URLs are passed to a webscraping coroutine---the
 `get video metadata from page source` block in the diagram, which corresponds
 to :func:`youtube_audio_matcher.download.video_metadata_from_urls`---
-asynchronously gets (via `Selenium`_) and parses (via `BeautifulSoup`_)
+that asynchronously gets (via `Selenium`_) and parses (via `BeautifulSoup`_)
 the complete page source for each URL and extracts information on each video
-on the channel/user Videos page, namely the YouTube ID, duration, title. The
+from the channel/user Videos page, namely the YouTube ID, duration, title. The
 videos are filtered based on criteria supplied by the user (e.g., exclude
 videos longer and/or shorter than a certain duration), after which they're
 added to a download queue.
@@ -27,10 +27,10 @@ A download coroutine---`download videos as mp3` in the diagram, which
 corresponds to :func:`youtube_audio_matcher.download.download_video_mp3s`---
 kicks off each download in a thread pool, in which each video is downloaded
 via youtube-dl and converted to MP3 by ffmpeg. Although encoding to MP3 by
-ffmpeg is a CPU task and would theoretically benefit from multiprocessing,
-we use a thread pool instead of the process pool because the computational
-cost of encoding the MP3 is relatively small and its impact on performance
-is negligible.
+ffmpeg is a CPU-intensive task and would theoretically benefit from
+multiprocessing, we use a thread pool instead of the process pool because the
+computational cost of encoding the MP3 is relatively small and its impact on
+performance is negligible.
 
 
 As each download completes, it's added to a fingerprint queue. Any local files
