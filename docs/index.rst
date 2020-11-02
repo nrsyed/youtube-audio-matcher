@@ -5,6 +5,7 @@ YouTube Audio Matcher Documentation
   :maxdepth: 2
   :caption: Contents:
 
+  installation
   architecture
   fingerprinting
   youtube_audio_matcher
